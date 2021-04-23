@@ -2,7 +2,6 @@
 Kotlin Client for sending Signals to AppTelemetry
 
 ## Spec
-
 In general, AppTelemetry Signals are sent as HTTP requests to AppTelemetry's signal ingestion API. Currently, one signal per request is accepted, but in the future, an array of Signal will also be supported, to collect signals before sending them off in bulk. Here's the [documentation for the Swift library](https://apptelemetry.io/pages/sending-signals.html) for reference.
 
 The library should be initialized at app startup with the app identifier. This is how that looks in Swift:
@@ -42,16 +41,14 @@ where `<YOUR-APP-ID>` is the App ID of the app the signal was generated in. User
 
 These are the headers that should be sent with the HTTP request:
 
-```
-  'Accept': 'application/json'
-  'Content-Type': 'application/json'
-```
+- Accept: 'application/json'
+- Content-Type: 'application/json'
 
-### Signal Type
+### Signal Type: `type`
 
 Signals always have a type. This a short string that describes the event that caused the signal to be sent. It is recommended to use short, camel-cased half-sentences. 
 
-### Signal Client User
+### Signal Client User: `clientUser`
 
 Signals have a `clientUser` property, which stores a string. All signals with the same client user property will be assumed to originate from the same user. 
 
@@ -59,7 +56,7 @@ Whatever string a developer hands into the `clientUser` property, it **must** be
 
 If the developer hands a null value into the the `clientUser` property, the library should use a reasonable default value, such as a device ID, or an app specific ID. On iOS, this default is the [identifierForVendor](https://developer.apple.com/documentation/uikit/uidevice/1620059-identifierforvendor) UUID, which allows us to recognize recurrign users without infringing on their privacy.
 
-### Payload Metadata
+### Payload Metadata: `payload`
 
 Signals have a metadata payload dictionary that contains things like platform, os version, and any data a user adds throw in there. This is highly useful for filtering and aggregation insights.
 
@@ -74,6 +71,14 @@ The default client library should automatically send a base payload with these k
 
 If the user passes in a dictionary of String keys and String values, this dictionary should be appended to the default payload. If duplicate keys are present, the user's values should take precedent and overwrite the default values.
 
+### Session ID: `sessionID`
+
+Clients are encouraged to pass on a session ID, which should stay the same until the session ends. What defines a session might be different depending on various circumstances. In an app, it should usually be until the app enters the background, or is closed. On a website, a cookie that stays until the browser window is closed might be the correct approach.
+
+### Optional Generation Date: `receivedAt`
+
+The signal JSON can optionally include a date parameter `receivedAt`, which should contain the point in time the signal was generated, in ISO 8601 format with time zone. If this parameter is not present, or set to null, the server will use the point in time the Signal was received. This feature can be used to cache up signals when no network connection is present. When in doubt, default to not setting the `receivedAt` parameter.
+
 ### Signal JSON
 
 Here is an example signal:
@@ -82,6 +87,7 @@ Here is an example signal:
 {
     "type":"PlayAction",
     "clientUser":"C00010FFBAAAAAADDEADFA11",
+    "sessionID": "DEADBEEF",
     "payload": {
       "isAppStore": "true",
       "platform": "iOS",
