@@ -1,8 +1,8 @@
 # KotlinClient
-Kotlin Client for sending Signals to AppTelemetry
+Kotlin Client for sending Signals to TelemetryDeck
 
 ## Spec
-In general, AppTelemetry Signals are sent as HTTP requests to AppTelemetry's signal ingestion API. Currently, one signal per request is accepted, but in the future, an array of Signal will also be supported, to collect signals before sending them off in bulk. Here's the [documentation for the Swift library](https://apptelemetry.io/pages/sending-signals.html) for reference.
+In general, TelemetryDeck Signals are sent as HTTP requests to TelemetryDeck's signal ingestion API. Currently, one signal per request is accepted, but in the future, an array of Signal will also be supported, to collect signals before sending them off in bulk. Here's the [documentation for the Swift library](https://telemetrydeck.com/pages/sending-signals.html) for reference.
 
 The library should be initialized at app startup with the app identifier. This is how that looks in Swift:
 
@@ -27,14 +27,14 @@ TelemetryManager.send(
     ])
 ```
 
-Further reading: [How to send Signals via JavaScript](https://apptelemetry.io/pages/website-telemetry.html).
+Further reading: [How to send Signals via JavaScript](https://telemetrydeck.com/pages/website-telemetry.html).
 
 ### API Endpoint
 
 Signals should be sent as JSON body to this URL:
 
 ```
-https://apptelemetry.io/api/v1/apps/<YOUR-APP-ID>/signals/
+https://nom.telemetrydeck.com/api/v1/apps/<YOUR-APP-ID>/signals/
 ```
 
 where `<YOUR-APP-ID>` is the App ID of the app the signal was generated in. Users can get the App ID from the Telemetry Viewer App.
