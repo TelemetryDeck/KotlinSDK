@@ -58,7 +58,10 @@ class ActivityLifecycleTelemetryProvider : TelemetryProvider,
     }
 
     override fun onActivitySaveInstanceState(p0: Activity, p1: Bundle) {
-        // do nothing
+        manager?.get()?.queue(
+            SignalType.ActivitySaveInstanceState,
+            additionalPayload = mapOf("activity" to p0.localClassName)
+        )
     }
 
     override fun onActivityDestroyed(p0: Activity) {
