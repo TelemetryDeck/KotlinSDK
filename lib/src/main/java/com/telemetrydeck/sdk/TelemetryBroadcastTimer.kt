@@ -17,6 +17,8 @@ internal class TelemetryBroadcastTimer(val manager: WeakReference<TelemetryManag
 
     fun start() {
         CoroutineScope(Dispatchers.IO).launch {
+            job?.cancel()
+            job?.join()
             job = launch {
                 for (event in timerChannel) {
                     val managerInstance = manager.get()

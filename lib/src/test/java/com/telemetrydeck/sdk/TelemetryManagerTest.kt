@@ -1,11 +1,17 @@
 package com.telemetrydeck.sdk
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
 import java.net.URL
 import java.util.*
 
 class TelemetryManagerTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
     @Test
     fun telemetryManager_sets_signal_properties() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
@@ -21,6 +27,7 @@ class TelemetryManagerTest {
         Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
         Assert.assertEquals("type", queuedSignal.type)
         Assert.assertEquals("clientUser", queuedSignal.clientUser)
+        Assert.assertEquals(false, queuedSignal.isTestMode)
     }
 
     @Test
@@ -111,5 +118,66 @@ class TelemetryManagerTest {
             .build(null)
         Assert.assertNotNull(result.logger)
         Assert.assertFalse(result.configuration.showDebugLogs)
+    }
+
+    @Test
+    fun telemetryManager_builder_set_sessionID() {
+        val sessionID = UUID.randomUUID()
+        val sut = TelemetryManager.Builder()
+        val result = sut
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .sessionID(sessionID)
+            .build(null)
+        Assert.assertEquals(sessionID, result.configuration.sessionID)
+    }
+
+    @Test
+    fun telemetryManager_newSession_resets_sessionID() {
+        val sessionID = UUID.randomUUID()
+        val builder = TelemetryManager.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .sessionID(sessionID)
+            .build(null)
+        sut.newSession()
+        Assert.assertNotEquals(sessionID, sut.configuration.sessionID)
+    }
+
+    @Test
+    fun telemetryManager_newSession_set_preferred_sessionID() {
+        val sessionID = UUID.randomUUID()
+        val wantedSessionID = UUID.randomUUID()
+        Assert.assertNotEquals(sessionID, wantedSessionID)
+        val builder = TelemetryManager.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .sessionID(sessionID)
+            .build(null)
+        sut.newSession(wantedSessionID)
+        Assert.assertEquals(wantedSessionID, sut.configuration.sessionID)
+    }
+
+    @Test
+    fun telemetryManager_testMode_on_added_to_signals() {
+        val builder = TelemetryManager.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .testMode(true)
+            .build(null)
+        sut.queue("type")
+
+        Assert.assertEquals(true, sut.signalQueue[0].isTestMode)
+    }
+
+    @Test
+    fun telemetryManager_testMode_off_added_to_signals() {
+        val builder = TelemetryManager.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .testMode(false)
+            .build(null)
+        sut.queue("type")
+
+        Assert.assertEquals(false, sut.signalQueue[0].isTestMode)
     }
 }

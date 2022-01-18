@@ -20,11 +20,12 @@ class AppLifecycleTelemetryProvider : TelemetryProvider,
             this.manager?.get()?.logger?.error("ActivityLifecycleTelemetryProvider requires a context but received null. No signals will be sent.")
         }
         this.manager = WeakReference(manager)
-        ctx?.registerActivityLifecycleCallbacks(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this);
+        ctx?.registerActivityLifecycleCallbacks(this)
     }
 
     override fun stop() {
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
         manager?.clear()
         manager = null
     }

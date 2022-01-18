@@ -2,6 +2,8 @@ package com.telemetrydeck.sdk
 
 import android.app.Application
 import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.se.omapi.Session
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.util.*
@@ -16,6 +18,10 @@ class TelemetryManager(
 
     var signalQueue: MutableList<Signal> = mutableListOf()
     var logger: DebugLogger? = null
+
+    override fun newSession(sessionID: UUID) {
+        this.configuration.sessionID = sessionID
+    }
 
     override fun queue(
         signalType: String,
@@ -82,13 +88,14 @@ class TelemetryManager(
         }
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
-            configuration.telemetryAppID,
-            signalType,
-            clientUser ?: configuration.defaultUser ?: "",
-            payload
+            appID=configuration.telemetryAppID,
+            type=signalType,
+            clientUser=clientUser ?: configuration.defaultUser ?: "",
+            payload=payload.asMultiValueDimension,
+            isTestMode = configuration.testMode
         )
         signal.sessionID = this.configuration.sessionID.toString()
-        logger?.debug("Created a signal ${signal.type}")
+        logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}")
         return signal
     }
 
@@ -96,6 +103,7 @@ class TelemetryManager(
     companion object : TelemetryManagerSignals {
         internal val defaultTelemetryProviders: List<TelemetryProvider>
             get() = listOf(
+                SessionProvider(),
                 AppLifecycleTelemetryProvider(),
                 EnvironmentMetadataProvider()
             )
@@ -150,6 +158,10 @@ class TelemetryManager(
             return null
         }
 
+        override fun newSession(sessionID: UUID) {
+            getInstance()?.newSession(sessionID)
+        }
+
         override fun queue(
             signalType: String,
             clientUser: String?,
@@ -193,6 +205,7 @@ class TelemetryManager(
         private var sessionID: UUID? = null,
         private var testMode: Boolean? = null,
         private var showDebugLogs: Boolean? = null,
+        private var sendNewSessionBeganSignal: Boolean? = null,
         private var apiBaseURL: URL? = null,
         private var logger: DebugLogger? = null
     ) {
@@ -222,6 +235,10 @@ class TelemetryManager(
 
         fun appID(id: UUID) = apply {
             appID = id
+        }
+
+        fun sendNewSessionBeganSignal(sendNewSessionBeganSignal: Boolean) = apply {
+            this.sendNewSessionBeganSignal = sendNewSessionBeganSignal
         }
 
         fun baseURL(url: URL) = apply {
@@ -255,8 +272,8 @@ class TelemetryManager(
         fun build(context: Application?): TelemetryManager {
             var config = this.configuration
             val appID = this.appID
-
             // check if configuration is already set or create a new instance using appID
+            val initConfiguration = config == null
             if (config == null) {
                 if (appID == null) {
                     throw Exception("AppID must be set.")
@@ -289,6 +306,11 @@ class TelemetryManager(
             val testMode = this.testMode
             if (testMode != null) {
                 config.testMode = testMode
+            } else {
+                // do not change testMode if it was provided through a configuration object
+                if (initConfiguration) {
+                    config.testMode = 0 != (context?.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
+                }
             }
 
             val showDebugLogs = this.showDebugLogs
@@ -304,7 +326,10 @@ class TelemetryManager(
                 config.apiBaseURL = apiBaseURL
             }
 
-
+            val sendNewSessionBeganSignal = sendNewSessionBeganSignal
+            if (sendNewSessionBeganSignal != null) {
+                config.sendNewSessionBeganSignal = sendNewSessionBeganSignal
+            }
 
             val manager = TelemetryManager(config, providers)
             manager.logger = logger

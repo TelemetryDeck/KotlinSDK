@@ -2,21 +2,26 @@ package com.telemetrydeck.sdk
 
 import android.app.Application
 import android.icu.util.VersionInfo
-import android.util.Log
 import java.util.*
 
 /**
  * Adds environment and device information to outgoing Signals.
  */
 class EnvironmentMetadataProvider : TelemetryProvider {
-    private val tag: String = "TELEMETRYDECK"
     private var enabled: Boolean = true
     private var metadata = mutableMapOf<String, String>()
 
-    init {
+    override fun register(ctx: Application?, manager: TelemetryManager) {
+        if (ctx != null) {
+            val appVersion = ManifestMetadataReader.getAppVersion(ctx)
+            if (!appVersion.isNullOrEmpty()) {
+                metadata["appVersion"] = appVersion
+            }
+        } else {
+            manager.logger?.error("EnvironmentMetadataProvider requires a context but received null. Signals will contain incomplete metadata.")
+        }
         if (android.os.Build.VERSION.RELEASE.isNullOrEmpty()) {
-            Log.e(
-                tag,
+            manager.logger?.error(
                 "EnvironmentMetadataProvider found no platform version information (android.os.Build.VERSION.RELEASE). Signal payloads will not be enriched."
             )
         } else {
@@ -30,19 +35,18 @@ class EnvironmentMetadataProvider : TelemetryProvider {
         }
 
         metadata["locale"] = Locale.getDefault().displayName
-        metadata["brand"] = android.os.Build.BRAND
-        metadata["targetEnvironment"] = android.os.Build.DEVICE
+        if (android.os.Build.BRAND != null) {
+            metadata["brand"] = android.os.Build.BRAND
+        }
+        if (android.os.Build.DEVICE != null) {
+            metadata["targetEnvironment"] = android.os.Build.DEVICE
+        }
+        if (android.os.Build.MODEL != null && android.os.Build.PRODUCT != null) {
+            metadata["modelName"] = "${android.os.Build.MODEL} (${android.os.Build.PRODUCT})"
+        }
         metadata["architecture"] = System.getProperty("os.arch") ?: ""
-        metadata["modelName"] = "${android.os.Build.MODEL} (${android.os.Build.PRODUCT})"
         metadata["operatingSystem"] = "Android"
         metadata["telemetryClientVersion"] = BuildConfig.LIBRARY_PACKAGE_NAME
-    }
-
-    override fun register(ctx: Application?, manager: TelemetryManager) {
-        if (ctx == null) {
-            manager.logger?.error("EnvironmentMetadataProvider requires a context but received null. Signals will contain incomplete metadata.")
-        }
-        metadata["appVersion"] = ManifestMetadataReader.getAppVersion(ctx!!) ?: ""
         this.enabled = true
     }
 

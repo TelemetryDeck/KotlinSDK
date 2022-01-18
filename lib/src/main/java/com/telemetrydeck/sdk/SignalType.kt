@@ -10,4 +10,5 @@ enum class SignalType(val type: String) {
     ActivityDestroyed("ActivityDestroyed"),
     AppBackground("AppBackground"),
     AppForeground("AppForeground"),
+    NewSessionBegan("NewSessionBegan"),
 }

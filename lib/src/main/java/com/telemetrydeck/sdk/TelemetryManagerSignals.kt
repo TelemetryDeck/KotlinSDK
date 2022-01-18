@@ -1,6 +1,15 @@
 package com.telemetrydeck.sdk
 
+import java.util.*
+
 interface TelemetryManagerSignals {
+
+    /**
+     * All future signals belong to a new session.
+     *
+     * Calling this method sets a new SessionID for new Signals. Previously queued signals are not affected.
+     */
+    fun newSession(sessionID: UUID = UUID.randomUUID())
 
     /**
      * Queue a signal to be send as soon as possible
