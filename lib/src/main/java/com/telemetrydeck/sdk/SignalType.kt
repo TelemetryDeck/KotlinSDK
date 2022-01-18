@@ -8,7 +8,6 @@ enum class SignalType(val type: String) {
     ActivityStopped("ActivityStopped"),
     ActivitySaveInstanceState("ActivitySaveInstanceState"),
     ActivityDestroyed("ActivityDestroyed"),
-    ConfigurationChanged("ConfigurationChanged"),
-    LowMemory("LowMemory"),
-    AppBackgrounded("AppBackgrounded"),
+    AppBackground("AppBackground"),
+    AppForeground("AppForeground"),
 }

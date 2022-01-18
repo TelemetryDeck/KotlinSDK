@@ -10,7 +10,7 @@ import java.util.*
 class TelemetryManager(
     val configuration: TelemetryManagerConfiguration,
     val providers: List<TelemetryProvider> = listOf(
-        ActivityLifecycleTelemetryProvider()
+        AppLifecycleTelemetryProvider()
     )
 ) : TelemetryManagerSignals {
 
@@ -88,6 +88,7 @@ class TelemetryManager(
             payload
         )
         signal.sessionID = this.configuration.sessionID.toString()
+        logger?.debug("Created a signal ${signal.type}")
         return signal
     }
 
@@ -95,7 +96,6 @@ class TelemetryManager(
     companion object : TelemetryManagerSignals {
         internal val defaultTelemetryProviders: List<TelemetryProvider>
             get() = listOf(
-                ActivityLifecycleTelemetryProvider(),
                 AppLifecycleTelemetryProvider(),
                 EnvironmentMetadataProvider()
             )

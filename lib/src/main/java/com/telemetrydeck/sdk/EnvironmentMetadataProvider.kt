@@ -5,6 +5,9 @@ import android.icu.util.VersionInfo
 import android.util.Log
 import java.util.*
 
+/**
+ * Adds environment and device information to outgoing Signals.
+ */
 class EnvironmentMetadataProvider : TelemetryProvider {
     private val tag: String = "TELEMETRYDECK"
     private var enabled: Boolean = true
