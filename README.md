@@ -6,7 +6,7 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 
 // TODO: Select a repository for hosting the library e.g. jitpack.io, maven central,...
 
-Make sure your app is using SDK 24 or later
+Make sure your app is using SDK 28 or later
 
 Add the following to your app's `build.gradle`:
 
@@ -47,7 +47,7 @@ In addition, the following optional properties are supported:
 
 
 
-### Initialize programatically
+### Initialize programmatically
 
 For greater control you can manually start the TelemetryManager client
 
@@ -57,7 +57,7 @@ val builder = TelemetryManager.Builder()
             .showDebugLogs(true)
             .defaultUser("Person")
 
-        TelemetryManager.start(application, builder)
+TelemetryManager.start(application, builder)
 
 ```
 
@@ -84,7 +84,7 @@ TelemetryManager.queue("appLaunchedRegularly")
 
 ## Requirements
 
-* SDK 24 or later
+* SDK 28 or later
 
 * Kotlin 1.6.10 or later
 
