@@ -1,10 +1,12 @@
 # TelemetryDeck SDK
 
-This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android application. Sign up for a free account at [telemetrydeck.com](http://telemetrydeck.com)
+This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your
+Android application. Sign up for a free account at [telemetrydeck.com](http://telemetrydeck.com)
 
 ## Installation
 
-// TODO: Select a repository for hosting the library e.g. [jitpack.io](http://jitpack.io), maven central,...
+// TODO: Select a repository for hosting the library e.g. [jitpack.io](http://jitpack.io), maven
+central,...
 
 Add the following to your app's `build.gradle`:
 
@@ -15,21 +17,26 @@ implementation project(':lib')
 
 ### Permission for internet access
 
-Sending signals requires access to the internet so the following permission should be added to the app's `AndroidManifest.xml`
+Sending signals requires access to the internet so the following permission should be added to the
+app's `AndroidManifest.xml`
 
 ```xml
+
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
 ### Using the application manifest
 
-The TelemetryManager can be initialized automatically by adding the application key to the `application` section of the app's `AndroidManifest.xml`:
+The TelemetryManager can be initialized automatically by adding the application key to
+the `application` section of the app's `AndroidManifest.xml`:
 
 ```xml
-<application>
-...
 
-<meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+<application>
+    ...
+
+    <meta-data android:name="com.telemetrydeck.sdk.appID"
+        android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
 
 </application>
 ```
@@ -49,9 +56,9 @@ For greater control you can manually start the TelemetryManager client
 
 ```kotlin
 val builder = TelemetryManager.Builder()
-            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
-            .showDebugLogs(true)
-            .defaultUser("Person")
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .showDebugLogs(true)
+    .defaultUser("Person")
 
 TelemetryManager.start(application, builder)
 ```
@@ -72,12 +79,13 @@ TelemetryManager.queue("appLaunchedRegularly")
 
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryManager in order to queue or send signals.
+Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a
+reference to the TelemetryManager in order to queue or send signals.
 
 To create a provider, implement the `TelemetryProvider` interface:
 
 ```kotlin
-class CustomProvider: TelemetryProvider {
+class CustomProvider : TelemetryProvider {
     override fun register(ctx: Application?, manager: TelemetryManager) {
         //...
     }
@@ -96,25 +104,27 @@ To use a custom provider, register it using the `TelemetryManager.Builder` :
 
 ```kotlin
 val builder = TelemetryManager.Builder()
-            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
-            .addProvider(CustomProvider())
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .addProvider(CustomProvider())
 ```
 
-When a signal is received by TelemetryManager, it can be enriched with platform and environment specific information. TelemetryManager calls the `enrich` method allowing every registered provider to add additional payload to a signal.
+When a signal is received by TelemetryManager, it can be enriched with platform and environment
+specific information. TelemetryManager calls the `enrich` method allowing every registered provider
+to add additional payload to a signal.
 
 ```kotlin
 override fun enrich(
-        signalType: String,
-        clientUser: String?,
-        additionalPayload: Map<String, String>
-    ): Map<String, String> {
-        val signalPayload = additionalPayload.toMutableMap()
-        val today = LocalDateTime.now().dayOfWeek
-        if (today == DayOfWeek.MONDAY) {
-            signalPayload["isMonday"] = "yes"
-        }
-        return signalPayload
+    signalType: String,
+    clientUser: String?,
+    additionalPayload: Map<String, String>
+): Map<String, String> {
+    val signalPayload = additionalPayload.toMutableMap()
+    val today = LocalDateTime.now().dayOfWeek
+    if (today == DayOfWeek.MONDAY) {
+        signalPayload["isMonday"] = "yes"
     }
+    return signalPayload
+}
 ```
 
 ## Requirements
