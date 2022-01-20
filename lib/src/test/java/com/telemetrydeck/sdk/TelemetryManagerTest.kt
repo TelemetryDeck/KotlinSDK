@@ -1,9 +1,12 @@
 package com.telemetrydeck.sdk
 
+import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.*
+import org.mockito.kotlin.verify
 import java.net.URL
 import java.util.*
 
@@ -179,5 +182,43 @@ class TelemetryManagerTest {
         sut.queue("type")
 
         Assert.assertEquals(false, sut.cache?.empty()?.get(0)?.isTestMode)
+    }
+
+    @Test
+    fun telemetryManager_addProvider_appends_after_default_providers() {
+        val builder = TelemetryManager.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .addProvider(TestProvider())
+            .build(null)
+        sut.queue("type")
+
+        Assert.assertEquals(4, sut.providers.count())
+        Assert.assertTrue(sut.providers[3] is TestProvider)
+    }
+
+    @Test
+    fun telemetryManager_addProvider_custom_provider_is_registered() {
+        val provider = TestProvider()
+        Assert.assertFalse(provider.registered)
+
+        val builder = TelemetryManager.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .addProvider(provider)
+            .build(null)
+
+        Assert.assertTrue(provider.registered)
+    }
+}
+
+open class TestProvider: TelemetryProvider {
+    var registered = false
+    override fun register(ctx: Application?, manager: TelemetryManager) {
+        registered = true
+    }
+
+    override fun stop() {
+        //
     }
 }

@@ -222,7 +222,7 @@ class TelemetryManager(
         /**
          * Append a custom TelemetryProvider which can produce or enrich signals
          */
-        fun addProvider(provider: TelemetryProvider) {
+        fun addProvider(provider: TelemetryProvider) = apply {
             if (additionalProviders == null) {
                 additionalProviders = mutableListOf()
             }
