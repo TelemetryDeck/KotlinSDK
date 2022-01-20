@@ -39,8 +39,8 @@ class SessionProviderTest {
 
         sut.onStart(lifecycleOwner)
 
-        Assert.assertEquals(1, manager.signalQueue.count())
-        Assert.assertEquals(SignalType.NewSessionBegan.type, manager.signalQueue[0].type)
+        Assert.assertEquals(1, manager.cache?.count())
+        Assert.assertEquals(SignalType.NewSessionBegan.type, manager.cache?.empty()?.get(0)?.type)
     }
 
     @Test
@@ -52,8 +52,8 @@ class SessionProviderTest {
 
         sut.onStart(lifecycleOwner)
 
-        Assert.assertEquals(1, manager.signalQueue.count())
-        Assert.assertEquals(SignalType.NewSessionBegan.type, manager.signalQueue[0].type)
+        Assert.assertEquals(1, manager.cache?.count())
+        Assert.assertEquals(SignalType.NewSessionBegan.type, manager.cache?.empty()?.get(0)?.type)
     }
 
     @Test
@@ -65,7 +65,7 @@ class SessionProviderTest {
 
         sut.onStart(lifecycleOwner)
 
-        Assert.assertEquals(0, manager.signalQueue.count())
+        Assert.assertEquals(0, manager.cache?.count())
     }
 
 

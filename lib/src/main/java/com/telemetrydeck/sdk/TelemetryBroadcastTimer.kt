@@ -24,9 +24,7 @@ internal class TelemetryBroadcastTimer(val manager: WeakReference<TelemetryManag
                     val managerInstance = manager.get()
                         ?: // can't broadcast without a manager to provide signals
                         continue
-                    val signals =  managerInstance.signalQueue.toList()
-                    managerInstance.signalQueue.clear()
-
+                    val signals =  managerInstance.cache?.empty() ?: emptyList()
                     if (signals.isEmpty()) {
                         // no signals to broadcast
                         logger?.debug("No signals to broadcast")

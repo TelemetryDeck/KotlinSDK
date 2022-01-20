@@ -16,14 +16,14 @@ class TelemetryManagerTest {
     fun telemetryManager_sets_signal_properties() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
-        val manager = TelemetryManager(config)
+        val manager =  TelemetryManager.Builder().configuration(config).build(null)
 
         manager.queue("type", "clientUser", emptyMap())
 
-        val queuedSignal = manager.signalQueue.first()
+        val queuedSignal = manager.cache?.empty()?.first()
 
         Assert.assertNotNull(queuedSignal)
-        Assert.assertEquals(UUID.fromString(appID), queuedSignal.appID)
+        Assert.assertEquals(UUID.fromString(appID), queuedSignal!!.appID)
         Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
         Assert.assertEquals("type", queuedSignal.type)
         Assert.assertEquals("clientUser", queuedSignal.clientUser)
@@ -166,7 +166,7 @@ class TelemetryManagerTest {
             .build(null)
         sut.queue("type")
 
-        Assert.assertEquals(true, sut.signalQueue[0].isTestMode)
+        Assert.assertEquals(true, sut.cache?.empty()?.get(0)?.isTestMode)
     }
 
     @Test
@@ -178,6 +178,6 @@ class TelemetryManagerTest {
             .build(null)
         sut.queue("type")
 
-        Assert.assertEquals(false, sut.signalQueue[0].isTestMode)
+        Assert.assertEquals(false, sut.cache?.empty()?.get(0)?.isTestMode)
     }
 }

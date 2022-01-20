@@ -16,7 +16,7 @@ class TelemetryManager(
     )
 ) : TelemetryManagerSignals {
 
-    var signalQueue: MutableList<Signal> = mutableListOf()
+    var cache: SignalCache? = null
     var logger: DebugLogger? = null
 
     override fun newSession(sessionID: UUID) {
@@ -28,7 +28,7 @@ class TelemetryManager(
         clientUser: String?,
         additionalPayload: Map<String, String>
     ) {
-        signalQueue.add(createSignal(signalType, clientUser, additionalPayload))
+        cache?.add(createSignal(signalType, clientUser, additionalPayload))
     }
 
     override fun queue(
@@ -334,9 +334,12 @@ class TelemetryManager(
             val manager = TelemetryManager(config, providers)
             manager.logger = logger
             manager.installProviders(context)
+
             val broadcaster = TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
             broadcaster.start()
             manager.broadcastTimer = broadcaster
+
+            manager.cache = MemorySignalCache()
             return manager
         }
     }
