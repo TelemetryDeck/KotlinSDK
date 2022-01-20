@@ -11,7 +11,10 @@ internal class ManifestMetadataReader {
 
         fun getConfigurationFromManifest(context: Context): TelemetryManagerConfiguration? {
             val bundle = getMetaData(context)
-            return getConfigurationFromManifest(bundle)
+            if (bundle != null) {
+                return getConfigurationFromManifest(bundle)
+            }
+            return null
         }
 
         fun getAppVersion(context: Context): String? {
@@ -24,7 +27,7 @@ internal class ManifestMetadataReader {
             return null
         }
 
-        private fun getMetaData(context: Context): Bundle {
+        private fun getMetaData(context: Context): Bundle? {
             val appInfo = context.packageManager.getApplicationInfo(
                 context.packageName,
                 PackageManager.GET_META_DATA

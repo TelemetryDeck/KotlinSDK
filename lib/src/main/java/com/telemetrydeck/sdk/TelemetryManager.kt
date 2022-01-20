@@ -95,7 +95,7 @@ class TelemetryManager(
             isTestMode = configuration.testMode
         )
         signal.sessionID = this.configuration.sessionID.toString()
-        logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}")
+        logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}, test ${signal.isTestMode}")
         return signal
     }
 
