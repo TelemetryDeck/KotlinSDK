@@ -23,6 +23,10 @@ class TelemetryManager(
         this.configuration.sessionID = sessionID
     }
 
+    override fun newDefaultUser(user: String?) {
+        this.configuration.defaultUser = user
+    }
+
     override fun queue(
         signalType: String,
         clientUser: String?,
@@ -160,6 +164,10 @@ class TelemetryManager(
 
         override fun newSession(sessionID: UUID) {
             getInstance()?.newSession(sessionID)
+        }
+
+        override fun newDefaultUser(user: String?) {
+            getInstance()?.newDefaultUser(user)
         }
 
         override fun queue(

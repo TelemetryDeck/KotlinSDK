@@ -11,6 +11,14 @@ interface TelemetryManagerSignals {
      */
     fun newSession(sessionID: UUID = UUID.randomUUID())
 
+
+    /**
+     * Set the default user for future signals
+     *
+     */
+    fun newDefaultUser(user: String?)
+
+
     /**
      * Queue a signal to be send as soon as possible
      */
@@ -19,6 +27,7 @@ interface TelemetryManagerSignals {
         clientUser: String? = null,
         additionalPayload: Map<String, String> = emptyMap()
     )
+
 
     /**
      * Queue a signal to be send as soon as possible
@@ -29,6 +38,7 @@ interface TelemetryManagerSignals {
         additionalPayload: Map<String, String> = emptyMap()
     )
 
+
     /**
      * Send a signal immediately
      */
@@ -37,6 +47,7 @@ interface TelemetryManagerSignals {
         clientUser: String? = null,
         additionalPayload: Map<String, String> = emptyMap()
     )
+
 
     /**
      * Send a signal immediately

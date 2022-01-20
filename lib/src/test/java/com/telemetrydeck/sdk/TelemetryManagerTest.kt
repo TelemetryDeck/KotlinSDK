@@ -161,6 +161,17 @@ class TelemetryManagerTest {
     }
 
     @Test
+    fun telemetryManager_newDefaultUser_changes_defaultUser() {
+        val builder = TelemetryManager.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .defaultUser("user1")
+            .build(null)
+        sut.newDefaultUser("user2")
+        Assert.assertEquals("user2", sut.configuration.defaultUser)
+    }
+
+    @Test
     fun telemetryManager_testMode_on_added_to_signals() {
         val builder = TelemetryManager.Builder()
         val sut = builder
