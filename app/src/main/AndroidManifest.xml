@@ -22,8 +22,8 @@
             </intent-filter>
         </activity>
 
-        <meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
-        <meta-data android:name="com.telemetrydeck.sdk.showDebugLogs" android:value="true" />
+<!--        <meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />-->
+<!--        <meta-data android:name="com.telemetrydeck.sdk.showDebugLogs" android:value="true" />-->
     </application>
 
 </manifest>

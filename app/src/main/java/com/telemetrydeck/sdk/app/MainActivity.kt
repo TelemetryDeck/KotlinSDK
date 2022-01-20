@@ -20,6 +20,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+//        val builder = TelemetryManager.Builder()
+//            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+//            .showDebugLogs(true)
+//            .defaultUser("Person Name")
+//
+//        TelemetryManager.start(application, builder)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
