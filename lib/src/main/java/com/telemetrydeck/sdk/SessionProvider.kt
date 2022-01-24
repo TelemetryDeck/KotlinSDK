@@ -14,7 +14,7 @@ class SessionProvider: TelemetryProvider, DefaultLifecycleObserver {
 
     override fun register(ctx: Application?, manager: TelemetryManager) {
         this.manager = WeakReference(manager)
-        ProcessLifecycleOwner.get().lifecycle.addObserver(this);
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
     override fun stop() {

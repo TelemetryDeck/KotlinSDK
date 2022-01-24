@@ -10,14 +10,14 @@ internal class TelemetryManagerDebugLogger {
         private var enabled: Boolean = true
         override fun error(message: String) {
             if (enabled) {
-                println("E/$tag: $message");
+                println("E/$tag: $message")
             }
 
         }
 
         override fun debug(message: String) {
             if (enabled) {
-                println("D/$tag: $message");
+                println("D/$tag: $message")
             }
         }
 

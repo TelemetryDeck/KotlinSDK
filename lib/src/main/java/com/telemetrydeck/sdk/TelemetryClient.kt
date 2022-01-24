@@ -14,8 +14,8 @@ import java.util.*
 /**
  * The HTTP client to communicate with TelemetryDeck's API
  */
-internal class TelemetryClient(val telemetryAppID: UUID, val apiBaseURL: URL, val showDebugLogs: Boolean, val debugLogger: DebugLogger?) {
-    val client: HttpClient = HttpClient(CIO) {
+internal class TelemetryClient(private val telemetryAppID: UUID, private val apiBaseURL: URL, private val showDebugLogs: Boolean, private val debugLogger: DebugLogger?) {
+    private val client: HttpClient = HttpClient(CIO) {
         install(JsonFeature)
         if (showDebugLogs && debugLogger != null) {
             install(Logging) {

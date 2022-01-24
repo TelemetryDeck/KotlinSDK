@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        TelemetryManager.newDefaultUser("It's me :)")
 //        val builder = TelemetryManager.Builder()
 //            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 //            .showDebugLogs(true)

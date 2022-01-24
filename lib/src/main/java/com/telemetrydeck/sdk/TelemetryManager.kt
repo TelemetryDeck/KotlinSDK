@@ -3,7 +3,6 @@ package com.telemetrydeck.sdk
 import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import android.se.omapi.Session
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -162,7 +161,7 @@ class TelemetryManager(
             }
         }
 
-        fun getInstance(): TelemetryManager? {
+        private fun getInstance(): TelemetryManager? {
             val knownInstance = instance
             if (knownInstance != null) {
                 return knownInstance
@@ -225,12 +224,17 @@ class TelemetryManager(
         private var apiBaseURL: URL? = null,
         private var logger: DebugLogger? = null
     ) {
+        /**
+         * Set the TelemetryManager configuration.
+         * Use this method to directly set all configuration fields and bypass any default values.
+         *
+         */
         fun configuration(config: TelemetryManagerConfiguration) = apply {
             this.configuration = config
         }
 
         /**
-         * Override the default set of TelemetryProviders
+         * Override the default set of TelemetryProviders.
          */
         fun providers(providerList: List<TelemetryProvider>) =
             apply { this.providers = providerList }
@@ -281,6 +285,9 @@ class TelemetryManager(
             this.showDebugLogs = showDebugLogs
         }
 
+        /**
+         * Provide a custom logger implementation to be used by TelemetryManager.
+         */
         fun logger(debugLogger: DebugLogger?) = apply {
             this.logger = debugLogger
         }

@@ -4,16 +4,16 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
 import java.lang.ref.WeakReference
 
-internal class TelemetryBroadcastTimer(val manager: WeakReference<TelemetryManager>, val debugLogger: WeakReference<DebugLogger>) {
+internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryManager>, debugLogger: WeakReference<DebugLogger>) {
 
     // broadcast begins with a 10s delay after initialization and fires every 10s.
-    val timerChannel = ticker(delayMillis = 10_000, initialDelayMillis = 10_000)
-    var logger: DebugLogger? = null
+    private val timerChannel = ticker(delayMillis = 10_000, initialDelayMillis = 10_000)
+    private var logger: DebugLogger? = null
 
     init {
         this.logger = debugLogger.get()
     }
-    var job: Job? = null
+    private var job: Job? = null
 
     fun start() {
         CoroutineScope(Dispatchers.IO).launch {

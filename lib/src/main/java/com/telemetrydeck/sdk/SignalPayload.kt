@@ -1,17 +1,15 @@
 package com.telemetrydeck.sdk
 
-import android.icu.util.VersionInfo
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.encodeToStringMap
-import java.util.*
 
 @Serializable
 data class SignalPayload(
     var additionalPayload: Map<String, String> = emptyMap()
 ) {
 
-    val asMap: Map<String, Any> by lazy {
+    private val asMap: Map<String, Any> by lazy {
         Properties.encodeToStringMap(this).filterKeys { !it.startsWith("additionalPayload") }
     }
 
