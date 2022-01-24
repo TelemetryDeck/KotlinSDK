@@ -29,7 +29,7 @@ class TelemetryManagerTest {
         Assert.assertEquals(UUID.fromString(appID), queuedSignal!!.appID)
         Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
         Assert.assertEquals("type", queuedSignal.type)
-        Assert.assertEquals("clientUser", queuedSignal.clientUser)
+        Assert.assertEquals("6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149", queuedSignal.clientUser)
         Assert.assertEquals(false, queuedSignal.isTestMode)
     }
 
@@ -214,7 +214,7 @@ class TelemetryManagerTest {
         Assert.assertFalse(provider.registered)
 
         val builder = TelemetryManager.Builder()
-        val sut = builder
+        builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .addProvider(provider)
             .build(null)

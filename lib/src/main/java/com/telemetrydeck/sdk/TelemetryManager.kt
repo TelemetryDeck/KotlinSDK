@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo
 import android.se.omapi.Session
 import java.lang.ref.WeakReference
 import java.net.URL
+import java.security.MessageDigest
 import java.util.*
 
 
@@ -90,11 +91,13 @@ class TelemetryManager(
         for (provider in this.providers) {
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
+        val userValue = clientUser ?: configuration.defaultUser ?: ""
+        val hashedUser = hashString(userValue, "SHA-256")
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
             appID=configuration.telemetryAppID,
             type=signalType,
-            clientUser=clientUser ?: configuration.defaultUser ?: "",
+            clientUser=hashedUser,
             payload=payload.asMultiValueDimension,
             isTestMode = configuration.testMode
         )
@@ -103,6 +106,11 @@ class TelemetryManager(
         return signal
     }
 
+    private fun hashString(input: String, algorithm: String): String    {
+        return MessageDigest.getInstance(algorithm)
+            .digest(input.toByteArray())
+            .fold("", { str, it -> str + "%02x".format(it) })
+    }
 
     companion object : TelemetryManagerSignals {
         internal val defaultTelemetryProviders: List<TelemetryProvider>
@@ -292,7 +300,7 @@ class TelemetryManager(
             // check if providers have been provided or use a default list
             var providers = this.providers
             if (providers == null) {
-                providers = TelemetryManager.defaultTelemetryProviders
+                providers = defaultTelemetryProviders
             }
             // check for additional providers that should be appended
             if (additionalProviders != null) {
