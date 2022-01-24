@@ -6,6 +6,6 @@ dependencyResolutionManagement {
         jcenter() // Warning: this repository is going to shut down soon
     }
 }
-rootProject.name = "Telemetry Deck Demo"
+rootProject.name = "TelemetryDeck SDK"
 include ':app'
 include ':lib'
