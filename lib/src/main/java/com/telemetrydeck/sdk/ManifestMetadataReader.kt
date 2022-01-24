@@ -1,6 +1,7 @@
 package com.telemetrydeck.sdk
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import java.net.URL
@@ -12,7 +13,7 @@ internal class ManifestMetadataReader {
         fun getConfigurationFromManifest(context: Context): TelemetryManagerConfiguration? {
             val bundle = getMetaData(context)
             if (bundle != null) {
-                return getConfigurationFromManifest(bundle)
+                return getConfigurationFromManifest(context, bundle)
             }
             return null
         }
@@ -35,7 +36,11 @@ internal class ManifestMetadataReader {
             return appInfo.metaData
         }
 
-        private fun getConfigurationFromManifest(bundle: Bundle): TelemetryManagerConfiguration? {
+        /**
+         * Creates an instance of TelemetryManagerConfiguration by reading the manifest.
+         *
+         */
+        private fun getConfigurationFromManifest(context: Context, bundle: Bundle): TelemetryManagerConfiguration? {
             val appID = bundle.getString(ManifestSettings.AppID.key) ?: return null
             val config = TelemetryManagerConfiguration(appID)
 
@@ -59,6 +64,8 @@ internal class ManifestMetadataReader {
 
             if (bundle.containsKey(ManifestSettings.TestMode.key)) {
                 config.testMode = bundle.getBoolean(ManifestSettings.TestMode.key)
+            } else {
+                config.testMode = 0 != (context.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
             }
 
             val defaultUser = bundle.getString(ManifestSettings.DefaultUser.key)
