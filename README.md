@@ -1,12 +1,10 @@
 # TelemetryDeck SDK
 
-This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your
-Android application. Sign up for a free account at [telemetrydeck.com](http://telemetrydeck.com)
+This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android application. Sign up for a free account at [telemetrydeck.com](http://telemetrydeck.com)
 
 ## Installation
 
-// TODO: Select a repository for hosting the library e.g. [jitpack.io](http://jitpack.io), maven
-central,...
+// TODO: Select a repository for hosting the library e.g. [jitpack.io](http://jitpack.io), maven central,...
 
 Add the following to your app's `build.gradle`:
 
@@ -17,26 +15,21 @@ implementation project(':lib')
 
 ### Permission for internet access
 
-Sending signals requires access to the internet so the following permission should be added to the
-app's `AndroidManifest.xml`
+Sending signals requires access to the internet so the following permission should be added to the app's `AndroidManifest.xml`
 
 ```xml
-
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
 ### Using the application manifest
 
-The TelemetryManager can be initialized automatically by adding the application key to
-the `application` section of the app's `AndroidManifest.xml`:
+The TelemetryManager can be initialized automatically by adding the application key to the `application` section of the app's `AndroidManifest.xml`:
 
 ```xml
-
 <application>
-    ...
+...
 
-    <meta-data android:name="com.telemetrydeck.sdk.appID"
-        android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+<meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
 
 </application>
 ```
@@ -56,9 +49,9 @@ For greater control you can manually start the TelemetryManager client
 
 ```kotlin
 val builder = TelemetryManager.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
-    .showDebugLogs(true)
-    .defaultUser("Person")
+            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            .showDebugLogs(true)
+            .defaultUser("Person")
 
 TelemetryManager.start(application, builder)
 ```
@@ -79,52 +72,71 @@ TelemetryManager.queue("appLaunchedRegularly")
 
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a
-reference to the TelemetryManager in order to queue or send signals.
+Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryManager in order to queue or send signals.
 
 To create a provider, implement the `TelemetryProvider` interface:
 
 ```kotlin
-class CustomProvider : TelemetryProvider {
+class CustomProvider: TelemetryProvider {
     override fun register(ctx: Application?, manager: TelemetryManager) {
-        //...
+        // configure and start the provider
     }
 
     override fun stop() {
-        //...
+        // deactivate the provider
     }
 }
 ```
 
 Setup and start the provider during the `register` method.
 
-NB: Do not retain references to the application context or the TelemetryManager.
+Tips:
 
-To use a custom provider, register it using the `TelemetryManager.Builder` :
+- Do not retain a strong reference to the application context or the TelemetryManager.
+- You can use `WeakReference<TelemetryManager>` if you need to be able to call the TelemetryManager at a later time.
+
+To use your custom provider, register it using the `TelemetryManager.Builder` :
 
 ```kotlin
 val builder = TelemetryManager.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
-    .addProvider(CustomProvider())
+            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            .addProvider(CustomProvider())
 ```
 
-When a signal is received by TelemetryManager, it can be enriched with platform and environment
-specific information. TelemetryManager calls the `enrich` method allowing every registered provider
-to add additional payload to a signal.
+When a signal is received by TelemetryManager, it can be enriched with platform and environment specific information. TelemetryManager calls the `enrich` method allowing every registered provider to add additional payload to a signal.
 
 ```kotlin
 override fun enrich(
-    signalType: String,
-    clientUser: String?,
-    additionalPayload: Map<String, String>
-): Map<String, String> {
-    val signalPayload = additionalPayload.toMutableMap()
-    val today = LocalDateTime.now().dayOfWeek
-    if (today == DayOfWeek.MONDAY) {
-        signalPayload["isMonday"] = "yes"
+        signalType: String,
+        clientUser: String?,
+        additionalPayload: Map<String, String>
+    ): Map<String, String> {
+        val signalPayload = additionalPayload.toMutableMap()
+        val today = LocalDateTime.now().dayOfWeek
+        if (today == DayOfWeek.MONDAY) {
+            signalPayload["isMonday"] = "yes"
+        }
+        return signalPayload
     }
-    return signalPayload
-}
+```
+
+TelemetryManager also makes use of providers in order to provide lifecycle and environment integration out of the box. Feel free to examine how they work and inspire your own implementations. You can also completely disable or override the default providers with your own.
+
+- `SessionProvider` - Monitors the app lifecycle in order to broadcast the NewSessionBegan signal. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
+- `AppLifecycleTelemetryProvider` - Emits signals for application and activity lifecycle events.
+- `EnvironmentMetadataProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metdata  for all signals before sending them.
+
+```kotlin
+// Append a custom provider
+val builder = TelemetryManager.Builder()
+           .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+           .addProvider(CustomProvider())
+
+
+// Replace all default providers
+val builder = TelemetryManager.Builder()
+            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            .providers(listOf(CustomProvider(), AnotherProvider()))
 ```
 
 ## Requirements
@@ -132,4 +144,3 @@ override fun enrich(
 - SDK 28 or later
 - Kotlin 1.6.10 or later
 - Java Compatibility Version 1.8
-
