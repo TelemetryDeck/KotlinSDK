@@ -1,6 +1,6 @@
 # KotlinClient
 
-This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android applications. Sign up for a free account at [telemetrydeck.com](http://telemetrydeck.com)
+This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android applications. Sign up for a free account at [telemetrydeck.com](https://telemetrydeck.com)
 
 ## Installation
 
