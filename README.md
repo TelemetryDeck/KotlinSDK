@@ -1,107 +1,146 @@
 # KotlinClient
-Kotlin Client for sending Signals to TelemetryDeck
 
-## Spec
-In general, TelemetryDeck Signals are sent as HTTP requests to TelemetryDeck's signal ingestion API. Currently, one signal per request is accepted, but in the future, an array of Signal will also be supported, to collect signals before sending them off in bulk. Here's the [documentation for the Swift library](https://telemetrydeck.com/pages/sending-signals.html) for reference.
+This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android applications. Sign up for a free account at [telemetrydeck.com](http://telemetrydeck.com)
 
-The library should be initialized at app startup with the app identifier. This is how that looks in Swift:
+## Installation
 
-```swift
-let configuration = TelemetryManagerConfiguration(appID: "YOUR-APP-UNIQUE-IDENTIFIER")
-TelemetryManager.initialize(with: configuration)
+// TODO: Select a repository for hosting the library e.g. [jitpack.io](http://jitpack.io), maven central,...
+
+Add the following to your app's `build.gradle`:
+
+```groovy
+// TODO: replace with published package reference
+implementation project(':lib')
 ```
 
-Sending signals is one non-blocking call. Here is how that looks in swift:
+### Permission for internet access
 
-```swift
-// with no additional payload and default user 
-TelemetryManager.send("applicationDidFinishLaunching")
+Sending signals requires access to the internet so the following permission should be added to the app's `AndroidManifest.xml`
 
-// with custom payload and custom user id
-TelemetryManager.send(
-    "applicationDidFinishLaunching",
-    for: "myverycooluser@example.org",
-    with: [
-        "numberOfTimesPizzaModeHasActivated": "\(dataStore.pizzaMode.count)",
-        "pizzaCheeseMode": "\(dataStore.pizzaCheeseMode)"
-    ])
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
 ```
 
-Further reading: [How to send Signals via JavaScript](https://telemetrydeck.com/pages/website-telemetry.html).
+### Using the application manifest
 
-### API Endpoint
+The TelemetryManager can be initialized automatically by adding the application key to the `application` section of the app's `AndroidManifest.xml`:
 
-Signals should be sent as JSON body to this URL:
+```xml
+<application>
+...
 
+<meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+
+</application>
 ```
-https://nom.telemetrydeck.com/api/v1/apps/<YOUR-APP-ID>/signals/
+
+In addition, the following optional properties are supported:
+
+- `com.telemetrydeck.sdk.showDebugLogs`
+- `com.telemetrydeck.sdk.apiBaseURL`
+- `com.telemetrydeck.sdk.sendNewSessionBeganSignal`
+- `com.telemetrydeck.sdk.sessionID`
+- `com.telemetrydeck.sdk.testMode`
+- `com.telemetrydeck.sdk.defaultUser`
+
+### Programatically
+
+For greater control you can manually start the TelemetryManager client
+
+```kotlin
+val builder = TelemetryManager.Builder()
+            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            .showDebugLogs(true)
+            .defaultUser("Person")
+
+TelemetryManager.start(application, builder)
 ```
 
-where `<YOUR-APP-ID>` is the App ID of the app the signal was generated in. Users can get the App ID from the Telemetry Viewer App.
+## Sending Signals
 
-These are the headers that should be sent with the HTTP request:
+To send a signal immediately
 
-- Accept: 'application/json'
-- Content-Type: 'application/json'
+```kotlin
+TelemetryManager.send("appLaunchedRegularly")
+```
 
-### Signal Type: `type`
+To enqueue a signal to be sent by TelemetryManager at a later time
 
-Signals always have a type. This a short string that describes the event that caused the signal to be sent. It is recommended to use short, camel-cased half-sentences. 
+```kotlin
+TelemetryManager.queue("appLaunchedRegularly")
+```
 
-### Signal Client User: `clientUser`
+## Custom Telemetry
 
-Signals have a `clientUser` property, which stores a string. All signals with the same client user property will be assumed to originate from the same user. 
+Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryManager in order to queue or send signals.
 
-Whatever string a developer hands into the `clientUser` property, it **must** be hashed before being sent to the server, so that the information, e.g. an email address, cannot be traced back to that user.
+To create a provider, implement the `TelemetryProvider` interface:
 
-If the developer hands a null value into the the `clientUser` property, the library should use a reasonable default value, such as a device ID, or an app specific ID. On iOS, this default is the [identifierForVendor](https://developer.apple.com/documentation/uikit/uidevice/1620059-identifierforvendor) UUID, which allows us to recognize recurrign users without infringing on their privacy.
+```kotlin
+class CustomProvider: TelemetryProvider {
+    override fun register(ctx: Application?, manager: TelemetryManager) {
+        // configure and start the provider
+    }
 
-### Payload Metadata: `payload`
-
-Signals have a metadata payload dictionary that contains things like platform, os version, and any data a user adds throw in there. This is highly useful for filtering and aggregation insights.
-
-The default client library should automatically send a base payload with these keys:
-
-- platform, i.e. "Android", "Linux" or "Windows"
-- systemVersion, i.e. "Android 6.0.1"
-- appVersion, the app version
-- buildNumber, the apps build number (if applicable)
-- modelName, a description of the device the app runs on, e.g. "Samsung Note 4 6.0 MARSHMALLOW"
-- architecture, i.e. "arm64" or "intel64"
-
-If the user passes in a dictionary of String keys and String values, this dictionary should be appended to the default payload. If duplicate keys are present, the user's values should take precedent and overwrite the default values.
-
-### Session ID: `sessionID`
-
-Clients are encouraged to pass on a session ID, which should stay the same until the session ends. What defines a session might be different depending on various circumstances. In an app, it should usually be until the app enters the background, or is closed. On a website, a cookie that stays until the browser window is closed might be the correct approach.
-
-### Optional Generation Date: `receivedAt`
-
-The signal JSON can optionally include a date parameter `receivedAt`, which should contain the point in time the signal was generated, in ISO 8601 format with time zone. If this parameter is not present, or set to null, the server will use the point in time the Signal was received. This feature can be used to cache up signals when no network connection is present. When in doubt, default to not setting the `receivedAt` parameter.
-
-### Signal JSON
-
-Here is an example signal:
-
-```json
-{
-    "type":"PlayAction",
-    "clientUser":"C00010FFBAAAAAADDEADFA11",
-    "sessionID": "DEADBEEF",
-    "payload": {
-      "isAppStore": "true",
-      "platform": "iOS",
-      "targetEnvironment": "native",
-      "buildNumber": "2",
-      "signalClientUser": "C00010FFBAAAAAADDEADFA11",
-      "isSimulator": "false",
-      "modelName": "iPhone12,1",
-      "operatingSystem": "iOS",
-      "isTestFlight": "false",
-      "appVersion": "3.12.0",
-      "architecture": "arm64",
-      "systemVersion": "iOS  14.4.2",
-      "signalType": "PlayAction"
+    override fun stop() {
+        // deactivate the provider
     }
 }
 ```
+
+Setup and start the provider during the `register` method.
+
+Tips:
+
+- Do not retain a strong reference to the application context or the TelemetryManager.
+- You can use `WeakReference<TelemetryManager>` if you need to be able to call the TelemetryManager at a later time.
+
+To use your custom provider, register it using the `TelemetryManager.Builder` :
+
+```kotlin
+val builder = TelemetryManager.Builder()
+            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            .addProvider(CustomProvider())
+```
+
+When a signal is received by TelemetryManager, it can be enriched with platform and environment specific information. TelemetryManager calls the `enrich` method allowing every registered provider to add additional payload to a signal.
+
+```kotlin
+override fun enrich(
+        signalType: String,
+        clientUser: String?,
+        additionalPayload: Map<String, String>
+    ): Map<String, String> {
+        val signalPayload = additionalPayload.toMutableMap()
+        val today = LocalDateTime.now().dayOfWeek
+        if (today == DayOfWeek.MONDAY) {
+            signalPayload["isMonday"] = "yes"
+        }
+        return signalPayload
+    }
+```
+
+TelemetryManager also makes use of providers in order to provide lifecycle and environment integration out of the box. Feel free to examine how they work and inspire your own implementations. You can also completely disable or override the default providers with your own.
+
+- `SessionProvider` - Monitors the app lifecycle in order to broadcast the NewSessionBegan signal. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
+- `AppLifecycleTelemetryProvider` - Emits signals for application and activity lifecycle events.
+- `EnvironmentMetadataProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metdata  for all signals before sending them.
+
+```kotlin
+// Append a custom provider
+val builder = TelemetryManager.Builder()
+           .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+           .addProvider(CustomProvider())
+
+
+// Replace all default providers
+val builder = TelemetryManager.Builder()
+            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            .providers(listOf(CustomProvider(), AnotherProvider()))
+```
+
+## Requirements
+
+- SDK 28 or later
+- Kotlin 1.6.10 or later
+- Java Compatibility Version 1.8
