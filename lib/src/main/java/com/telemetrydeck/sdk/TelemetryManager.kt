@@ -358,11 +358,16 @@ class TelemetryManager(
             manager.logger = logger
             manager.installProviders(context)
 
-            val broadcaster = TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
-            broadcaster.start()
-            manager.broadcastTimer = broadcaster
+             val broadcaster = TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
+             broadcaster.start()
+             manager.broadcastTimer = broadcaster
 
-            manager.cache = MemorySignalCache()
+            if (context != null) {
+                manager.cache = PersistentSignalCache(context.cacheDir, logger)
+            } else {
+                manager.cache = MemorySignalCache()
+            }
+
             return manager
         }
     }
