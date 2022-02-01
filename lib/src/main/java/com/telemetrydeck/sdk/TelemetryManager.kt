@@ -68,7 +68,12 @@ class TelemetryManager(
     suspend fun send(
         signals: List<Signal>
     ) {
-        val client = TelemetryClient(configuration.telemetryAppID, configuration.apiBaseURL, configuration.showDebugLogs, logger)
+        val client = TelemetryClient(
+            configuration.telemetryAppID,
+            configuration.apiBaseURL,
+            configuration.showDebugLogs,
+            logger
+        )
         client.send(signals)
     }
 
@@ -94,10 +99,10 @@ class TelemetryManager(
         val hashedUser = hashString(userValue, "SHA-256")
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
-            appID=configuration.telemetryAppID,
-            type=signalType,
-            clientUser=hashedUser,
-            payload=payload.asMultiValueDimension,
+            appID = configuration.telemetryAppID,
+            type = signalType,
+            clientUser = hashedUser,
+            payload = payload.asMultiValueDimension,
             isTestMode = configuration.testMode
         )
         signal.sessionID = this.configuration.sessionID.toString()
@@ -105,7 +110,7 @@ class TelemetryManager(
         return signal
     }
 
-    private fun hashString(input: String, algorithm: String): String    {
+    private fun hashString(input: String, algorithm: String): String {
         return MessageDigest.getInstance(algorithm)
             .digest(input.toByteArray())
             .fold("", { str, it -> str + "%02x".format(it) })
@@ -332,7 +337,8 @@ class TelemetryManager(
             } else {
                 // do not change testMode if it was provided through a configuration object
                 if (initConfiguration) {
-                    config.testMode = 0 != (context?.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
+                    config.testMode = 0 != (context?.applicationInfo?.flags
+                        ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
                 }
             }
 
@@ -358,9 +364,10 @@ class TelemetryManager(
             manager.logger = logger
             manager.installProviders(context)
 
-             val broadcaster = TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
-             broadcaster.start()
-             manager.broadcastTimer = broadcaster
+            val broadcaster =
+                TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
+            broadcaster.start()
+            manager.broadcastTimer = broadcaster
 
             if (context != null) {
                 manager.cache = PersistentSignalCache(context.cacheDir, logger)
