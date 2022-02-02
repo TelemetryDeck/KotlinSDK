@@ -98,15 +98,6 @@ afterEvaluate {
                 artifactId = 'final'
                 version = '1.0'
             }
-            // Creates a Maven publication called “debug”.
-            debug(MavenPublication) {
-                // Applies the component for the debug build variant.
-                from components.debug
-
-                groupId = 'com.telemetrydeck.sdk'
-                artifactId = 'final-debug'
-                version = '1.0'
-            }
         }
     }
 }
