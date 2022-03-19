@@ -3,6 +3,8 @@ package com.telemetrydeck.sdk
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
 import java.lang.ref.WeakReference
+import java.util.*
+import kotlin.math.abs
 
 internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryManager>, debugLogger: WeakReference<DebugLogger>) {
 
@@ -15,6 +17,16 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
     }
     private var job: Job? = null
 
+    companion object {
+        fun filterOldSignals(signals: List<Signal>): List<Signal> {
+            val now = Date().time
+            return signals.filter {
+                // ignore signals older than 24h
+                (abs(now - it.receivedAt.time) / 1000) <= 24 * 60 * 60
+            }
+        }
+    }
+
     fun start() {
         CoroutineScope(Dispatchers.IO).launch {
             job?.cancel()
@@ -24,7 +36,8 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
                     val managerInstance = manager.get()
                         ?: // can't broadcast without a manager to provide signals
                         continue
-                    val signals =  managerInstance.cache?.empty() ?: emptyList()
+
+                    val signals =  filterOldSignals(managerInstance.cache?.empty() ?: emptyList())
                     if (signals.isEmpty()) {
                         // no signals to broadcast
                         logger?.debug("No signals to broadcast")
@@ -32,8 +45,7 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
                     }
 
                     logger?.debug("Broadcasting ${signals.count()} queued signals")
-                    val success = managerInstance.send(signals)
-                    if (!success) {
+                    if (managerInstance.send(signals).isFailure) {
                         logger?.debug("Re-enqueueing ${signals.count()} signals")
                         for (failedSignal in signals) {
                             managerInstance.cache?.add(failedSignal)
