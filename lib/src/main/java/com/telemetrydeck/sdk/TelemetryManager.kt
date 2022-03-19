@@ -67,14 +67,20 @@ class TelemetryManager(
 
     suspend fun send(
         signals: List<Signal>
-    ) {
-        val client = TelemetryClient(
-            configuration.telemetryAppID,
-            configuration.apiBaseURL,
-            configuration.showDebugLogs,
-            logger
-        )
-        client.send(signals)
+    ): Boolean {
+        return try {
+            val client = TelemetryClient(
+                configuration.telemetryAppID,
+                configuration.apiBaseURL,
+                configuration.showDebugLogs,
+                logger
+            )
+            client.send(signals)
+            true
+        } catch(e: Exception) {
+            logger?.error("Failed to send signals due to an error ${e} ${e.stackTraceToString()}")
+            false
+        }
     }
 
     internal var broadcastTimer: TelemetryBroadcastTimer? = null

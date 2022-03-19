@@ -32,7 +32,13 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
                     }
 
                     logger?.debug("Broadcasting ${signals.count()} queued signals")
-                    managerInstance.send(signals)
+                    val success = managerInstance.send(signals)
+                    if (!success) {
+                        logger?.debug("Re-enqueueing ${signals.count()} signals")
+                        for (failedSignal in signals) {
+                            managerInstance.cache?.add(failedSignal)
+                        }
+                    }
                 }
             }
         }
