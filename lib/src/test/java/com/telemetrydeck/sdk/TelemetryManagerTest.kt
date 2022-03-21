@@ -5,8 +5,6 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.*
-import org.mockito.kotlin.verify
 import java.net.URL
 import java.util.*
 
@@ -220,6 +218,21 @@ class TelemetryManagerTest {
             .build(null)
 
         Assert.assertTrue(provider.registered)
+    }
+
+    @Test
+    fun telemetryBroadcastTimer_can_filter_older_signals() {
+        // an old signal is received longer than 24h ago
+        val okSignal = Signal(appID = UUID.randomUUID(), "okSignal", "user", SignalPayload())
+        val oldSignal = Signal(appID = UUID.randomUUID(), "oldSignal", "user", SignalPayload())
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -2)
+        oldSignal.receivedAt = calendar.time
+
+        val filteredSignals = TelemetryBroadcastTimer.filterOldSignals(listOf(okSignal, oldSignal))
+
+        Assert.assertEquals(1, filteredSignals.count())
+        Assert.assertEquals("okSignal", filteredSignals[0].type)
     }
 }
 

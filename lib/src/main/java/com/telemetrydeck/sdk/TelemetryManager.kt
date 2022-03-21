@@ -7,6 +7,8 @@ import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
 import java.util.*
+import kotlin.Result.Companion.failure
+import kotlin.Result.Companion.success
 
 
 class TelemetryManager(
@@ -47,34 +49,40 @@ class TelemetryManager(
         signalType: String,
         clientUser: String?,
         additionalPayload: Map<String, String>
-    ) {
-        send(createSignal(signalType, clientUser, additionalPayload))
+    ): Result<Unit> {
+        return send(createSignal(signalType, clientUser, additionalPayload))
     }
 
     override suspend fun send(
         signalType: SignalType,
         clientUser: String?,
         additionalPayload: Map<String, String>
-    ) {
-        send(signalType.type, clientUser, additionalPayload)
+    ): Result<Unit> {
+        return send(signalType.type, clientUser, additionalPayload)
     }
 
     suspend fun send(
         signal: Signal
-    ) {
-        send(listOf(signal))
+    ): Result<Unit> {
+        return send(listOf(signal))
     }
 
     suspend fun send(
         signals: List<Signal>
-    ) {
-        val client = TelemetryClient(
-            configuration.telemetryAppID,
-            configuration.apiBaseURL,
-            configuration.showDebugLogs,
-            logger
-        )
-        client.send(signals)
+    ): Result<Unit> {
+        return try {
+            val client = TelemetryClient(
+                configuration.telemetryAppID,
+                configuration.apiBaseURL,
+                configuration.showDebugLogs,
+                logger
+            )
+            client.send(signals)
+            success(Unit)
+        } catch(e: Exception) {
+            logger?.error("Failed to send signals due to an error ${e} ${e.stackTraceToString()}")
+            failure(e)
+        }
     }
 
     internal var broadcastTimer: TelemetryBroadcastTimer? = null
@@ -202,16 +210,24 @@ class TelemetryManager(
             signalType: String,
             clientUser: String?,
             additionalPayload: Map<String, String>
-        ) {
-            getInstance()?.send(signalType, clientUser, additionalPayload)
+        ): Result<Unit> {
+            val result = getInstance()?.send(signalType, clientUser, additionalPayload)
+            if (result != null) {
+                return result
+            }
+            return failure(NullPointerException())
         }
 
         override suspend fun send(
             signalType: SignalType,
             clientUser: String?,
             additionalPayload: Map<String, String>
-        ) {
-            getInstance()?.send(signalType, clientUser, additionalPayload)
+        ): Result<Unit> {
+            val result = getInstance()?.send(signalType, clientUser, additionalPayload)
+            if (result != null) {
+                return result
+            }
+            return failure(NullPointerException())
         }
     }
 

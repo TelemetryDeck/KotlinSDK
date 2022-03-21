@@ -9,7 +9,7 @@ data class Signal(
      * When was this signal generated
      */
     @Serializable(with = DateSerializer::class)
-    var receivedAt: Date? = null,
+    var receivedAt: Date = Date(),
 
     /**
      * The App ID of this signal

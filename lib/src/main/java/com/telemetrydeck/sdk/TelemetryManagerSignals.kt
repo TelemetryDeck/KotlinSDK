@@ -46,7 +46,7 @@ interface TelemetryManagerSignals {
         signalType: String,
         clientUser: String? = null,
         additionalPayload: Map<String, String> = emptyMap()
-    )
+    ): Result<Unit>
 
 
     /**
@@ -56,5 +56,5 @@ interface TelemetryManagerSignals {
         signalType: SignalType,
         clientUser: String? = null,
         additionalPayload: Map<String, String> = emptyMap()
-    )
+    ): Result<Unit>
 }
