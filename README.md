@@ -4,16 +4,30 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 
 ## Installation
 
-// TODO: Select a repository for hosting the library e.g. [jitpack.io](http://jitpack.io), maven central,...
-
-Add the following to your app's `build.gradle`:
+The TelemetryDeck is distributed using [jitpack](https://jitpack.io/), so you'll need to add the jitpack dependency to your `settings.gradle` file:
 
 ```groovy
-// TODO: replace with published package reference
-implementation project(':lib')
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' } // <-- add this line
+    }
+}
 ```
 
-### Permission for internet access
+After that is done, add the following to your `build.gradle` file, under `dependencies`:
+
+```groovy
+dependencies {
+    // ...
+    // Please replace 1.0.0 with the latest version of the SDK
+    implementation 'com.github.TelemetryDeck:KotlinSDK:1.0.0'
+}
+```
+
+## Permission for internet access
 
 Sending signals requires access to the internet so the following permission should be added to the app's `AndroidManifest.xml`
 
@@ -34,6 +48,8 @@ The TelemetryManager can be initialized automatically by adding the application 
 </application>
 ```
 
+Replace `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX` with your TelemetryDeck App ID.
+
 In addition, the following optional properties are supported:
 
 - `com.telemetrydeck.sdk.showDebugLogs`
@@ -43,9 +59,9 @@ In addition, the following optional properties are supported:
 - `com.telemetrydeck.sdk.testMode`
 - `com.telemetrydeck.sdk.defaultUser`
 
-### Programatically
+### Programatic Usage
 
-For greater control you can manually start the TelemetryManager client
+For greater control you can instead manually start the TelemetryManager client
 
 ```kotlin
 val builder = TelemetryManager.Builder()
@@ -124,7 +140,7 @@ TelemetryManager also makes use of providers in order to provide lifecycle and e
 
 - `SessionProvider` - Monitors the app lifecycle in order to broadcast the NewSessionBegan signal. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
 - `AppLifecycleTelemetryProvider` - Emits signals for application and activity lifecycle events.
-- `EnvironmentMetadataProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metdata  for all signals before sending them.
+- `EnvironmentMetadataProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metdata for all signals before sending them.
 
 ```kotlin
 // Append a custom provider
@@ -141,6 +157,6 @@ val builder = TelemetryManager.Builder()
 
 ## Requirements
 
-- SDK 28 or later
+- SDK 21 or later
 - Kotlin 1.6.10 or later
 - Java Compatibility Version 1.8
