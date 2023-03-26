@@ -29,9 +29,15 @@ class EnvironmentMetadataProvider : TelemetryProvider {
             val sdkVersion = android.os.Build.VERSION.SDK_INT
             metadata["systemVersion"] = "Android SDK: $sdkVersion ($release)"
 
-            val versionInfo = VersionInfo.getInstance(release)
-            metadata["majorSystemVersion"] = versionInfo.major.toString()
-            metadata["majorMinorSystemVersion"] = "${versionInfo.major}.${versionInfo.minor}"
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                val versionInfo = VersionInfo.getInstance(release)
+                metadata["majorSystemVersion"] = versionInfo.major.toString()
+                metadata["majorMinorSystemVersion"] = "${versionInfo.major}.${versionInfo.minor}"
+            } else {
+                val versionInfo = release.split(".")
+                metadata["majorSystemVersion"] = versionInfo.elementAtOrNull(0) ?: "0"
+                metadata["majorMinorSystemVersion"] = "${versionInfo.elementAtOrNull(0) ?: "0"}.${versionInfo.elementAtOrNull(1) ?: "0"}"
+            }
         }
 
         metadata["locale"] = Locale.getDefault().displayName
