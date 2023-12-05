@@ -4,7 +4,7 @@ enum class SignalType(val type: String) {
     ActivityCreated("ActivityCreated"),
     ActivityStarted("ActivityStarted"),
     ActivityResumed("ActivityResumed"),
-    ActivityPaused("onActivityPaused"),
+    ActivityPaused("ActivityPaused"),
     ActivityStopped("ActivityStopped"),
     ActivitySaveInstanceState("ActivitySaveInstanceState"),
     ActivityDestroyed("ActivityDestroyed"),
