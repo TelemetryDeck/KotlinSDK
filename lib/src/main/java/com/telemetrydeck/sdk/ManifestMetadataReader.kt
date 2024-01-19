@@ -73,6 +73,11 @@ internal class ManifestMetadataReader {
                 config.defaultUser = defaultUser
             }
 
+            val salt = bundle.getString(ManifestSettings.Salt.key)
+            if(salt != null) {
+                config.salt = salt
+            }
+
             return config
         }
     }

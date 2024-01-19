@@ -8,4 +8,5 @@ internal enum class ManifestSettings(val key: String) {
     SessionID("com.telemetrydeck.sdk.sessionID"),
     TestMode("com.telemetrydeck.sdk.testMode"),
     DefaultUser("com.telemetrydeck.sdk.defaultUser"),
+    Salt("com.telemetrydeck.sdk.salt"),
 }

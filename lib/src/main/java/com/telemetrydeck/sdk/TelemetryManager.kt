@@ -104,6 +104,7 @@ class TelemetryManager(
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
         val userValue = clientUser ?: configuration.defaultUser ?: ""
+        val userValueWithSalt = userValue +( configuration.salt ?: "")
         val hashedUser = hashString(userValue, "SHA-256")
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
@@ -243,7 +244,8 @@ class TelemetryManager(
         private var showDebugLogs: Boolean? = null,
         private var sendNewSessionBeganSignal: Boolean? = null,
         private var apiBaseURL: URL? = null,
-        private var logger: DebugLogger? = null
+        private var logger: DebugLogger? = null,
+        private var salt: String? = null
     ) {
         /**
          * Set the TelemetryManager configuration.
@@ -306,6 +308,10 @@ class TelemetryManager(
             this.showDebugLogs = showDebugLogs
         }
 
+        fun salt(salt: String?) = apply {
+            this.salt = salt
+        }
+
         /**
          * Provide a custom logger implementation to be used by TelemetryManager.
          */
@@ -356,6 +362,11 @@ class TelemetryManager(
                     config.testMode = 0 != (context?.applicationInfo?.flags
                         ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
                 }
+            }
+
+            var salt = this.salt
+            if (salt != null) {
+                config.salt = salt
             }
 
             val showDebugLogs = this.showDebugLogs
