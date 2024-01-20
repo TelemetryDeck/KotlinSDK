@@ -36,6 +36,7 @@ class TelemetryManagerTest {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
         config.defaultUser = "user"
+        config.salt = "salt"
 
         val sut = TelemetryManager.Builder()
 
@@ -47,6 +48,7 @@ class TelemetryManagerTest {
         Assert.assertEquals(config.sessionID, result.configuration.sessionID)
         Assert.assertEquals(config.showDebugLogs, result.configuration.showDebugLogs)
         Assert.assertEquals(config.testMode, result.configuration.testMode)
+        Assert.assertEquals(config.salt, result.configuration.salt)
     }
 
     @Test
@@ -98,6 +100,16 @@ class TelemetryManagerTest {
                 .defaultUser("Dear Person")
                 .build(null)
         Assert.assertEquals("Dear Person", result.configuration.defaultUser)
+    }
+
+    @Test
+    fun telemetryManager_builder_set_salt() {
+        val sut = TelemetryManager.Builder()
+        val result =
+            sut.appID("32CB6574-6732-4238-879F-582FEBEB6536")
+                .salt("salty")
+                .build(null)
+        Assert.assertEquals("salty", result.configuration.salt)
     }
 
     @Test
