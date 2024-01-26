@@ -67,7 +67,9 @@ class EnvironmentMetadataProvider : TelemetryProvider {
     ): Map<String, String> {
         val signalPayload = additionalPayload.toMutableMap()
         for (item in metadata) {
-            signalPayload[item.key] = item.value
+            if (!signalPayload.containsKey(item.key)) {
+                signalPayload[item.key] = item.value
+            }
         }
         return signalPayload
     }
