@@ -2,8 +2,10 @@ package com.telemetrydeck.sdk
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
+import androidx.core.content.pm.PackageInfoCompat
 import java.net.URL
 import java.util.*
 
@@ -19,13 +21,20 @@ internal class ManifestMetadataReader {
         }
 
         fun getAppVersion(context: Context): String? {
-            try {
-                val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                return packageInfo.versionName
+            return getPackageInfo(context)?.versionName
+        }
+
+        fun getBuildNumber(context: Context): Long? {
+            return getPackageInfo(context)?.let { PackageInfoCompat.getLongVersionCode(it) }
+        }
+
+        private fun getPackageInfo(context: Context): PackageInfo? {
+            return try {
+                 context.packageManager.getPackageInfo(context.packageName, 0)
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
+                null
             }
-            return null
         }
 
         private fun getMetaData(context: Context): Bundle? {
@@ -82,4 +91,3 @@ internal class ManifestMetadataReader {
         }
     }
 }
-

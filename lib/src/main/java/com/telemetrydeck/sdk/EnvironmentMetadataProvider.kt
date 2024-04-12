@@ -17,6 +17,9 @@ class EnvironmentMetadataProvider : TelemetryProvider {
             if (!appVersion.isNullOrEmpty()) {
                 metadata["appVersion"] = appVersion
             }
+            ManifestMetadataReader.getBuildNumber(ctx)?.let { buildNumber ->
+                metadata["buildNumber"] = buildNumber.toString()
+            }
         } else {
             manager.logger?.error("EnvironmentMetadataProvider requires a context but received null. Signals will contain incomplete metadata.")
         }
