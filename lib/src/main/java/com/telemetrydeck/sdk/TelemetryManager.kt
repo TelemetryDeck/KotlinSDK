@@ -112,7 +112,7 @@ class TelemetryManager(
             type = signalType,
             clientUser = hashedUser,
             payload = payload.asMultiValueDimension,
-            isTestMode = configuration.testMode
+            isTestMode = configuration.testMode.toString().lowercase()
         )
         signal.sessionID = this.configuration.sessionID.toString()
         logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}, test ${signal.isTestMode}")

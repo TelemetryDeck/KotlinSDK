@@ -28,7 +28,7 @@ class TelemetryManagerTest {
         Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
         Assert.assertEquals("type", queuedSignal.type)
         Assert.assertEquals("6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149", queuedSignal.clientUser)
-        Assert.assertEquals(false, queuedSignal.isTestMode)
+        Assert.assertEquals("false", queuedSignal.isTestMode)
     }
 
     @Test
@@ -190,7 +190,7 @@ class TelemetryManagerTest {
             .build(null)
         sut.queue("type")
 
-        Assert.assertEquals(true, sut.cache?.empty()?.get(0)?.isTestMode)
+        Assert.assertEquals("true", sut.cache?.empty()?.get(0)?.isTestMode)
     }
 
     @Test
@@ -202,7 +202,7 @@ class TelemetryManagerTest {
             .build(null)
         sut.queue("type")
 
-        Assert.assertEquals(false, sut.cache?.empty()?.get(0)?.isTestMode)
+        Assert.assertEquals("false", sut.cache?.empty()?.get(0)?.isTestMode)
     }
 
     @Test
