@@ -6,7 +6,8 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import java.net.URL
-import java.util.*
+import java.util.Calendar
+import java.util.UUID
 
 class TelemetryManagerTest {
 
@@ -17,7 +18,7 @@ class TelemetryManagerTest {
     fun telemetryManager_sets_signal_properties() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
-        val manager =  TelemetryManager.Builder().configuration(config).build(null)
+        val manager = TelemetryManager.Builder().configuration(config).build(null)
 
         manager.queue("type", "clientUser", emptyMap())
 
@@ -27,7 +28,10 @@ class TelemetryManagerTest {
         Assert.assertEquals(UUID.fromString(appID), queuedSignal!!.appID)
         Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
         Assert.assertEquals("type", queuedSignal.type)
-        Assert.assertEquals("6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149", queuedSignal.clientUser)
+        Assert.assertEquals(
+            "6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149",
+            queuedSignal.clientUser
+        )
         Assert.assertEquals("false", queuedSignal.isTestMode)
     }
 
@@ -257,9 +261,150 @@ class TelemetryManagerTest {
         Assert.assertEquals(1, filteredSignals.count())
         Assert.assertEquals("okSignal", filteredSignals[0].type)
     }
+
+    @Test
+    fun telemetryManager_navigate_source_destination_sets_default_parameters() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        val manager = TelemetryManager.Builder().configuration(config).build(null)
+
+        manager.navigate("source", "destination")
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate the signal type
+        Assert.assertEquals(queuedSignal?.type, "TelemetryDeck.Navigation.pathChanged")
+
+        // validate the navigation status payload
+        // https://github.com/TelemetryDeck/KotlinSDK/issues/28
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
+            "TelemetryDeck.Navigation.schemaVersion:1"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
+            "TelemetryDeck.Navigation.identifier:source -> destination"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
+            "TelemetryDeck.Navigation.sourcePath:source"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
+            "TelemetryDeck.Navigation.destinationPath:destination"
+        )
+    }
+
+    @Test
+    fun telemetryManager_navigate_source_destination_sets_clientUser() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        config.defaultUser = "user"
+        val manager = TelemetryManager.Builder().configuration(config).build(null)
+
+        manager.navigate("source", "destination", "clientUser")
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate that the provided user was used and not default
+        Assert.assertEquals(
+            queuedSignal?.clientUser,
+            "6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149"
+        )
+    }
+
+    @Test
+    fun telemetryManager_navigate_source_destination_uses_default_user() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        config.defaultUser = "clientUser"
+        val manager = TelemetryManager.Builder().configuration(config).build(null)
+
+        manager.navigate("source", "destination")
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate that the default user was used
+        Assert.assertEquals(
+            queuedSignal?.clientUser,
+            "6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149"
+        )
+    }
+
+    @Test
+    fun telemetryManager_navigate_destination_no_previous_source() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        val manager = TelemetryManager.Builder().configuration(config).build(null)
+
+        manager.navigate("destination")
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate the signal type
+        Assert.assertEquals(queuedSignal?.type, "TelemetryDeck.Navigation.pathChanged")
+
+        // validate the navigation status payload
+        // https://github.com/TelemetryDeck/KotlinSDK/issues/28
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
+            "TelemetryDeck.Navigation.schemaVersion:1"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
+            "TelemetryDeck.Navigation.identifier: -> destination"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
+            "TelemetryDeck.Navigation.sourcePath:"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
+            "TelemetryDeck.Navigation.destinationPath:destination"
+        )
+    }
+
+    @Test
+    fun telemetryManager_navigate_destination_uses_previous_destination_as_source() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        val manager = TelemetryManager.Builder().configuration(config).build(null)
+
+        manager.navigate("destination1")
+        manager.navigate("destination2")
+
+        val queuedSignal = manager.cache?.empty()?.last()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate the signal type
+        Assert.assertEquals(queuedSignal?.type, "TelemetryDeck.Navigation.pathChanged")
+
+        // validate the navigation status payload
+        // https://github.com/TelemetryDeck/KotlinSDK/issues/28
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
+            "TelemetryDeck.Navigation.schemaVersion:1"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
+            "TelemetryDeck.Navigation.identifier:destination1 -> destination2"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
+            "TelemetryDeck.Navigation.sourcePath:destination1"
+        )
+        Assert.assertEquals(
+            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
+            "TelemetryDeck.Navigation.destinationPath:destination2"
+        )
+    }
 }
 
-open class TestProvider: TelemetryProvider {
+open class TestProvider : TelemetryProvider {
     var registered = false
     override fun register(ctx: Application?, manager: TelemetryManager) {
         registered = true
