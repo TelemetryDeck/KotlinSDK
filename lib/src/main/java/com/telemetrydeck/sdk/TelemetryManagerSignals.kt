@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk
 
-import java.util.*
+import java.util.UUID
 
 interface TelemetryManagerSignals {
 
@@ -37,6 +37,13 @@ interface TelemetryManagerSignals {
         clientUser: String? = null,
         additionalPayload: Map<String, String> = emptyMap()
     )
+
+    /**
+     * Send a signal that represents a navigation event with a source and a destination
+     *
+     * @see <a href="https://telemetrydeck.com/docs/articles/navigation-signals/">Navigation Signals</a>
+     * */
+    fun navigate(sourcePath: String, destinationPath: String, clientUser: String? = null)
 
 
     /**

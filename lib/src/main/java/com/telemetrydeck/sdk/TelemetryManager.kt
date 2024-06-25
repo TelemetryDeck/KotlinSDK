@@ -6,7 +6,7 @@ import android.content.pm.ApplicationInfo
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
-import java.util.*
+import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
@@ -20,6 +20,7 @@ class TelemetryManager(
 
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
+    var navigationStatus: NavigationStatus = MemoryNavigationStatus()
 
     override fun newSession(sessionID: UUID) {
         this.configuration.sessionID = sessionID
@@ -43,6 +44,19 @@ class TelemetryManager(
         additionalPayload: Map<String, String>
     ) {
         queue(signalType.type, clientUser, additionalPayload)
+    }
+
+    override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
+        navigationStatus.applyDestination(destinationPath)
+
+        val payload: Map<String, String> = mapOf(
+            PayloadParameters.TelemetryDeckNavigationSchemaVersion.type to "1",
+            PayloadParameters.TelemetryDeckNavigationIdentifier.type to "$sourcePath -> $destinationPath",
+            PayloadParameters.TelemetryDeckNavigationSourcePath.type to sourcePath,
+            PayloadParameters.TelemetryDeckNavigationDestinationPath.type to destinationPath
+        )
+
+        queue(SignalType.TelemetryDeckNavigationPathChanged, clientUser, payload)
     }
 
     override suspend fun send(
@@ -79,7 +93,7 @@ class TelemetryManager(
             )
             client.send(signals)
             success(Unit)
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             logger?.error("Failed to send signals due to an error ${e} ${e.stackTraceToString()}")
             failure(e)
         }
@@ -104,7 +118,7 @@ class TelemetryManager(
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
         val userValue = clientUser ?: configuration.defaultUser ?: ""
-        val userValueWithSalt = userValue +( configuration.salt ?: "")
+        val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValue, "SHA-256")
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
@@ -205,6 +219,10 @@ class TelemetryManager(
             additionalPayload: Map<String, String>
         ) {
             getInstance()?.queue(signalType, clientUser, additionalPayload)
+        }
+
+        override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
+            getInstance()?.navigate(sourcePath, destinationPath, clientUser)
         }
 
         override suspend fun send(
@@ -364,7 +382,7 @@ class TelemetryManager(
                 }
             }
 
-            var salt = this.salt
+            val salt = this.salt
             if (salt != null) {
                 config.salt = salt
             }

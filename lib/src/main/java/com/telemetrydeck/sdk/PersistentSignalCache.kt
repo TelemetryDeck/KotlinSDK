@@ -1,14 +1,13 @@
 package com.telemetrydeck.sdk
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
-import java.lang.Exception
 
-class PersistentSignalCache(private var signalQueue: MutableList<Signal> = mutableListOf()): SignalCache {
+class PersistentSignalCache(private var signalQueue: MutableList<Signal> = mutableListOf()) :
+    SignalCache {
     val cacheFileName: String = "telemetrydeck.json"
-    var file: File? = null
+    private var file: File? = null
 
     constructor(cacheDir: File, logger: DebugLogger?) : this() {
         if (!cacheDir.isDirectory) {
@@ -56,7 +55,7 @@ class PersistentSignalCache(private var signalQueue: MutableList<Signal> = mutab
         }
     }
 
-    fun saveSignals() {
+    private fun saveSignals() {
         file?.createNewFile()
         val json = Json.encodeToString(signalQueue)
         file?.writeText(json)
