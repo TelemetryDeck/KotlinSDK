@@ -39,11 +39,18 @@ interface TelemetryManagerSignals {
     )
 
     /**
-     * Send a signal that represents a navigation event with a source and a destination
+     * Send a signal that represents a navigation event with a source and a destination.
      *
      * @see <a href="https://telemetrydeck.com/docs/articles/navigation-signals/">Navigation Signals</a>
      * */
     fun navigate(sourcePath: String, destinationPath: String, clientUser: String? = null)
+
+    /**
+     * Send a signal that represents a navigation event with a destination and a default source.
+     *
+     * @see <a href="https://telemetrydeck.com/docs/articles/navigation-signals/">Navigation Signals</a>
+     * */
+    fun navigate(destinationPath: String, clientUser: String? = null)
 
 
     /**

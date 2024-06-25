@@ -9,4 +9,8 @@ class MemoryNavigationStatus(private var previousNavigationPath: String? = null)
     override fun applyDestination(path: String) {
         previousNavigationPath = path
     }
+
+    override fun getLastDestination(): String {
+        return previousNavigationPath ?: ""
+    }
 }

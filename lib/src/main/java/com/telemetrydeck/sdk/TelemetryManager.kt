@@ -20,7 +20,7 @@ class TelemetryManager(
 
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
-    var navigationStatus: NavigationStatus = MemoryNavigationStatus()
+    private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
 
     override fun newSession(sessionID: UUID) {
         this.configuration.sessionID = sessionID
@@ -57,6 +57,10 @@ class TelemetryManager(
         )
 
         queue(SignalType.TelemetryDeckNavigationPathChanged, clientUser, payload)
+    }
+
+    override fun navigate(destinationPath: String, clientUser: String?) {
+        navigate(navigationStatus.getLastDestination(), destinationPath, clientUser)
     }
 
     override suspend fun send(
@@ -222,7 +226,11 @@ class TelemetryManager(
         }
 
         override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
-            getInstance()?.navigate(sourcePath, destinationPath, clientUser)
+            getInstance()?.navigate(sourcePath, destinationPath, clientUser = clientUser)
+        }
+
+        override fun navigate(destinationPath: String, clientUser: String?) {
+            getInstance()?.navigate(destinationPath, clientUser = clientUser)
         }
 
         override suspend fun send(
