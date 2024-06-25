@@ -105,7 +105,7 @@ class TelemetryManager(
         }
         val userValue = clientUser ?: configuration.defaultUser ?: ""
         val userValueWithSalt = userValue +( configuration.salt ?: "")
-        val hashedUser = hashString(userValue, "SHA-256")
+        val hashedUser = hashString(userValueWithSalt, "SHA-256")
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
             appID = configuration.telemetryAppID,
