@@ -10,6 +10,9 @@ class MemoryNavigationStatus(private var previousNavigationPath: String? = null)
         previousNavigationPath = path
     }
 
+    /**
+     * Returns the last destination path or an empty string if none has been provided.
+     */
     override fun getLastDestination(): String {
         return previousNavigationPath ?: ""
     }
