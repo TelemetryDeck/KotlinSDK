@@ -36,6 +36,17 @@ class TelemetryManagerTest {
     }
 
     @Test
+    fun telemetryManager_applies_custom_salt() {
+        val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
+        val config = TelemetryManagerConfiguration(appID)
+        config.salt = "my salt"
+        val manager =  TelemetryManager.Builder().configuration(config).build(null)
+        manager.queue("type", "clientUser", emptyMap())
+        val queuedSignal = manager.cache?.empty()?.first()
+        Assert.assertEquals("9a68a3790deb1db66f80855b8e7c5a97df8002ef90d3039f9e16c94cfbd11d99", queuedSignal?.clientUser)
+    }
+
+    @Test
     fun telemetryManager_builder_set_configuration() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
