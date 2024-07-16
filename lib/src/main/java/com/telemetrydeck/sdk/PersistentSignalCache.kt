@@ -56,6 +56,8 @@ class PersistentSignalCache(private var signalQueue: MutableList<Signal> = mutab
     }
 
     private fun saveSignals() {
+        // make sure the parent folder exists before writing
+        file?.parentFile?.mkdirs()
         file?.createNewFile()
         val json = Json.encodeToString(signalQueue)
         file?.writeText(json)
