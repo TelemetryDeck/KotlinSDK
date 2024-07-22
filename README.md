@@ -27,6 +27,12 @@ dependencies {
 }
 ```
 
+If needed, update your `gradle.settings` to reference Kotlin version compatible with 1.9.25, e.g.:
+
+```
+id "org.jetbrains.kotlin.android" version "1.9.25" apply false
+```
+
 ## Permission for internet access
 
 Sending signals requires access to the internet so the following permission should be added to the app's `AndroidManifest.xml`
@@ -157,6 +163,5 @@ val builder = TelemetryManager.Builder()
 
 ## Requirements
 
-- SDK 21 or later
-- Kotlin 1.6.10 or later
-- Java Compatibility Version 1.8
+- Android API 21 or later
+- Kotlin 1.9.25 or later
