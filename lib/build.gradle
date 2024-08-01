@@ -35,6 +35,14 @@ android {
         resources.excludes += "DebugProbesKt.bin"
     }
     namespace 'com.telemetrydeck.sdk'
+
+    android {
+        publishing {
+            singleVariant('release') {
+                withSourcesJar()
+            }
+        }
+    }
 }
 
 def ktor_version = '2.3.7'
@@ -97,8 +105,21 @@ afterEvaluate {
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.telemetrydeck.sdk'
                 artifactId = 'final'
-                version = '2.0'
+                version = '2.2.0'
+            }
+        }
+        repositories {
+            maven {
+                name = 'sonatype'
+                url = layout.buildDirectory.dir("repo")
             }
         }
     }
+}
+
+tasks.register('generateRepo', Zip) {
+    def publishTask = tasks.named('publishReleasePublicationToSonatypeRepository')
+    from publishTask.map { it.getRepository().getUrl() }
+    into 'kotlinsdk'
+    archiveFileName.set('kotlinsdk.zip')
 }
