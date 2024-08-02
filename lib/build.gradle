@@ -1,8 +1,10 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'org.jetbrains.kotlin.plugin.serialization' version "1.6.10"
-    id 'maven-publish'
+    id "com.vanniktech.maven.publish" version "0.29.0"
 }
 
 android {
@@ -35,14 +37,6 @@ android {
         resources.excludes += "DebugProbesKt.bin"
     }
     namespace 'com.telemetrydeck.sdk'
-
-    android {
-        publishing {
-            singleVariant('release') {
-                withSourcesJar()
-            }
-        }
-    }
 }
 
 def ktor_version = '2.3.7'
@@ -90,36 +84,37 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     }
 }
 
+mavenPublishing {
+    coordinates("com.telemetrydeck", "kotlin-sdk", "2.2.0")
 
-// Because the components are created only during the afterEvaluate phase, you must
-// configure your publications using the afterEvaluate() lifecycle method.
-afterEvaluate {
-    publishing {
-        // https://docs.gradle.org/current/userguide/publishing_maven.html
-        publications {
-            // Creates a Maven publication called "release".
-            release(MavenPublication) {
-                // Applies the component for the release build variant.
-                from components.release
+    pom {
+        name = 'TelemetryDeck SDK'
+        description = "Kotlin SDK for TelemetryDeck, a privacy-conscious analytics service for apps and websites"
+        url = "https://telemetrydeck.com"
 
-                // You can then customize attributes of the publication as shown below.
-                groupId = 'com.telemetrydeck.sdk'
-                artifactId = 'final'
-                version = '2.2.0'
+        licenses {
+            license {
+                name = "MIT License"
+                url = "https://raw.githubusercontent.com/TelemetryDeck/KotlinSDK/main/LICENSE"
             }
         }
-        repositories {
-            maven {
-                name = 'sonatype'
-                url = layout.buildDirectory.dir("repo")
+
+        developers {
+            developer {
+                id = "winsmith"
+                name = "Daniel Jilg"
+                url = "https://github.com/winsmith"
+                organization = "TelemetryDeck GmbH"
             }
+        }
+
+        scm {
+            url = "https://github.com/TelemetryDeck/KotlinSDK"
         }
     }
-}
+    // Configure publishing to Maven Central
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-tasks.register('generateRepo', Zip) {
-    def publishTask = tasks.named('publishReleasePublicationToSonatypeRepository')
-    from publishTask.map { it.getRepository().getUrl() }
-    into 'kotlinsdk'
-    archiveFileName.set('kotlinsdk.zip')
+    // Enable GPG signing for all publications
+    signAllPublications()
 }
