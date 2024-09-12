@@ -112,9 +112,11 @@ mavenPublishing {
             url = "https://github.com/TelemetryDeck/KotlinSDK"
         }
     }
-    // Configure publishing to Maven Central
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-    // Enable GPG signing for all publications
-    signAllPublications()
+// publishToMavenCentral and signAllPublications are configured in gradle.properties
+//    // Configure publishing to Maven Central
+//    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+//
+//    // Enable GPG signing for all publications
+//    signAllPublications()
 }
