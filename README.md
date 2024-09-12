@@ -65,7 +65,7 @@ In addition, the following optional properties are supported:
 - `com.telemetrydeck.sdk.testMode`
 - `com.telemetrydeck.sdk.defaultUser`
 
-### Programatic Usage
+### Programmatic Usage
 
 For greater control you can instead manually start the TelemetryDeck client
 
@@ -94,13 +94,14 @@ TelemetryDeck.queue("appLaunchedRegularly")
 
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryDeck client in order to queue or send signals.
+Another way to send signals is to register a custom `TelemetryProvider`. A provider maintains a reference to the TelemetryDeck client in order to queue or send signals based on environment or other triggers.
+
 
 To create a provider, implement the `TelemetryProvider` interface:
 
 ```kotlin
 class CustomProvider: TelemetryProvider {
-    override fun register(ctx: Application?, manager: TelemetryDeckClient) {
+    override fun register(ctx: Application?, client: TelemetryDeckClient) {
         // configure and start the provider
     }
 
@@ -117,7 +118,7 @@ Tips:
 - Do not retain a strong reference to the application context or the TelemetryDeck client instance.
 - You can use `WeakReference<TelemetryDeck>` if you need to be able to call the TelemetryDeck at a later time.
 
-To use your custom provider, register it using the `TelemetryDeck.Builder` :
+To use your custom provider, register it by calling `addProvider` using the `TelemetryDeck.Builder` :
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
@@ -145,11 +146,11 @@ override fun enrich(
     }
 ```
 
-TelemetryDeck also makes use of providers in order to provide lifecycle and environment integration out of the box. Feel free to examine how they work and inspire your own implementations. You can also completely disable or override the default providers with your own.
+We use providers internally to provide lifecycle and environment integration out of the box. Feel free to examine how they work and inspire your own implementations. You can also completely disable or override the default providers with your own.
 
 - `SessionProvider` - Monitors the app lifecycle in order to broadcast the NewSessionBegan signal. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
 - `AppLifecycleTelemetryProvider` - Emits signals for application and activity lifecycle events.
-- `EnvironmentMetadataProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metdata for all signals before sending them.
+- `EnvironmentMetadataProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 
 ```kotlin
 // Append a custom provider
@@ -163,6 +164,15 @@ val builder = TelemetryDeck.Builder()
             .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
             .providers(listOf(CustomProvider(), AnotherProvider()))
 ```
+
+
+### Migrating providers to 3.0+
+
+To adapt to the updated `TelemetryProvider` interface, please perform the following changes:
+
+* Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckClient)`
+* To access the logger, use `client.debugLogger`
+* To access the signal cache, use `client.signalCache`
 
 ## Requirements
 

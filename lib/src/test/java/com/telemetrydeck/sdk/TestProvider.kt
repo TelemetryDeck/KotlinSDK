@@ -4,7 +4,7 @@ import android.app.Application
 
 open class TestProvider : TelemetryProvider {
     var registered = false
-    override fun register(ctx: Application?, manager: TelemetryDeckClient) {
+    override fun register(ctx: Application?, client: TelemetryDeckClient) {
         registered = true
     }
 

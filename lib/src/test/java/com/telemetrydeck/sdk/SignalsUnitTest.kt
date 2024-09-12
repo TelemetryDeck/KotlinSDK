@@ -43,7 +43,7 @@ class SignalsUnitTest {
         val decodedSignal = Json.decodeFromString<Signal>(signalJson)
 
         // date equality comparison with precision up to milliseconds
-        assertEquals(receivedDate.time, decodedSignal.receivedAt?.time)
+        assertEquals(receivedDate.time, decodedSignal.receivedAt.time)
     }
 
     @Test

@@ -12,8 +12,8 @@ import java.lang.ref.WeakReference
 class SessionProvider: TelemetryProvider, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryDeckClient>? = null
 
-    override fun register(ctx: Application?, manager: TelemetryDeckClient) {
-        this.manager = WeakReference(manager)
+    override fun register(ctx: Application?, client: TelemetryDeckClient) {
+        this.manager = WeakReference(client)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 

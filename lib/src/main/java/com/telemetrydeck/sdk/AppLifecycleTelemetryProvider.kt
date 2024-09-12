@@ -15,11 +15,11 @@ class AppLifecycleTelemetryProvider : TelemetryProvider,
     Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryDeckClient>? = null
 
-    override fun register(ctx: Application?, manager: TelemetryDeckClient) {
+    override fun register(ctx: Application?, client: TelemetryDeckClient) {
         if (ctx == null) {
             this.manager?.get()?.debugLogger?.error("AppLifecycleTelemetryProvider requires a context but received null. No signals will be sent.")
         }
-        this.manager = WeakReference(manager)
+        this.manager = WeakReference(client)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         ctx?.registerActivityLifecycleCallbacks(this)
     }
