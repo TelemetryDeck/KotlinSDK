@@ -2,7 +2,7 @@ package com.telemetrydeck.sdk
 
 import java.util.UUID
 
-interface TelemetryManagerSignals {
+interface TelemetryDeckClient {
 
     /**
      * All future signals belong to a new session.

@@ -11,7 +11,7 @@ class EnvironmentMetadataProvider : TelemetryProvider {
     private var enabled: Boolean = true
     private var metadata = mutableMapOf<String, String>()
 
-    override fun register(ctx: Application?, manager: TelemetryManagerSignals) {
+    override fun register(ctx: Application?, manager: TelemetryDeckClient) {
         if (ctx != null) {
             val appVersion = ManifestMetadataReader.getAppVersion(ctx)
             if (!appVersion.isNullOrEmpty()) {

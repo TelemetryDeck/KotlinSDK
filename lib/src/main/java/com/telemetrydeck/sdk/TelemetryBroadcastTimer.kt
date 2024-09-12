@@ -3,10 +3,8 @@ package com.telemetrydeck.sdk
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
 import java.lang.ref.WeakReference
-import java.util.*
-import kotlin.math.abs
 
-internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryManagerSignals>, debugLogger: WeakReference<DebugLogger>) {
+internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryDeckClient>, debugLogger: WeakReference<DebugLogger>) {
 
     // broadcast begins with a 10s delay after initialization and fires every 10s.
     private val timerChannel = ticker(delayMillis = 10_000, initialDelayMillis = 10_000)

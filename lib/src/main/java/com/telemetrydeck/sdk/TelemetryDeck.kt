@@ -16,7 +16,7 @@ class TelemetryDeck(
         AppLifecycleTelemetryProvider()
 
     )
-): TelemetryManagerSignals {
+): TelemetryDeckClient {
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
     private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
@@ -154,7 +154,7 @@ class TelemetryDeck(
             .fold("", { str, it -> str + "%02x".format(it) })
     }
 
-    companion object : TelemetryManagerSignals {
+    companion object : TelemetryDeckClient {
         internal val defaultTelemetryProviders: List<TelemetryProvider>
             get() = listOf(
                 SessionProvider(),

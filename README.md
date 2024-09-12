@@ -94,13 +94,13 @@ TelemetryDeck.queue("appLaunchedRegularly")
 
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryDeck in order to queue or send signals.
+Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryDeck client in order to queue or send signals.
 
 To create a provider, implement the `TelemetryProvider` interface:
 
 ```kotlin
 class CustomProvider: TelemetryProvider {
-    override fun register(ctx: Application?, manager: TelemetryDeck) {
+    override fun register(ctx: Application?, manager: TelemetryDeckClient) {
         // configure and start the provider
     }
 
@@ -114,7 +114,7 @@ Setup and start the provider during the `register` method.
 
 Tips:
 
-- Do not retain a strong reference to the application context or the TelemetryDeck.
+- Do not retain a strong reference to the application context or the TelemetryDeck client instance.
 - You can use `WeakReference<TelemetryDeck>` if you need to be able to call the TelemetryDeck at a later time.
 
 To use your custom provider, register it using the `TelemetryDeck.Builder` :
@@ -125,7 +125,7 @@ val builder = TelemetryDeck.Builder()
             .addProvider(CustomProvider())
 ```
 
-When a signal is received by TelemetryDeck, it can be enriched with platform and environment specific information. TelemetryDeck calls the `enrich` method allowing every registered provider to add additional payload to a signal.
+In the implementation of your custom `TelemetryProvider`, we offer a callback function where you can append additional payload attributes to the signal. The `enrich` call is made right before sending the signal:
 
 ```kotlin
 override fun enrich(
@@ -133,11 +133,14 @@ override fun enrich(
         clientUser: String?,
         additionalPayload: Map<String, String>
     ): Map<String, String> {
+        // retrieve the payload of signal
         val signalPayload = additionalPayload.toMutableMap()
+        // add additional attributes of your choice
         val today = LocalDateTime.now().dayOfWeek
         if (today == DayOfWeek.MONDAY) {
             signalPayload["isMonday"] = "yes"
         }
+        // return the enriched payload
         return signalPayload
     }
 ```

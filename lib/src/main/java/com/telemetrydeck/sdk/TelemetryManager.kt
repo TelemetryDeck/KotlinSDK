@@ -3,7 +3,6 @@ package com.telemetrydeck.sdk
 import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import com.telemetrydeck.sdk.TelemetryDeck.Companion
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -17,7 +16,7 @@ class TelemetryManager(
     val providers: List<TelemetryProvider> = listOf(
         AppLifecycleTelemetryProvider()
     ),
-) : TelemetryManagerSignals {
+) : TelemetryDeckClient {
 
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
@@ -156,7 +155,7 @@ class TelemetryManager(
             .fold("", { str, it -> str + "%02x".format(it) })
     }
 
-    companion object : TelemetryManagerSignals {
+    companion object : TelemetryDeckClient {
         internal val defaultTelemetryProviders: List<TelemetryProvider>
             get() = listOf(
                 SessionProvider(),
