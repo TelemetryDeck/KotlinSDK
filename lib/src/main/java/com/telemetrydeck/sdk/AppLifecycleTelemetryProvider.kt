@@ -13,11 +13,11 @@ import java.lang.ref.WeakReference
  */
 class AppLifecycleTelemetryProvider : TelemetryProvider,
     Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
-    private var manager: WeakReference<TelemetryManager>? = null
+    private var manager: WeakReference<TelemetryManagerSignals>? = null
 
-    override fun register(ctx: Application?, manager: TelemetryManager) {
+    override fun register(ctx: Application?, manager: TelemetryManagerSignals) {
         if (ctx == null) {
-            this.manager?.get()?.logger?.error("AppLifecycleTelemetryProvider requires a context but received null. No signals will be sent.")
+            this.manager?.get()?.debugLogger?.error("AppLifecycleTelemetryProvider requires a context but received null. No signals will be sent.")
         }
         this.manager = WeakReference(manager)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)

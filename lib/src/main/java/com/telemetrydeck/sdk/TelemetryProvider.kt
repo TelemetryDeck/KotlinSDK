@@ -10,7 +10,7 @@ interface TelemetryProvider {
      * Registers the provider with the telemetry manager.
      * The provider keeps a weak reference to telemetry manager in order to queue or send signals.
      */
-    fun register(ctx: Application?, manager: TelemetryManager)
+    fun register(ctx: Application?, manager: TelemetryManagerSignals)
 
     /**
      * Calling stop deactivates the provider and prevents future signals from being sent.

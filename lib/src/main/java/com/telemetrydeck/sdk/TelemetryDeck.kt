@@ -3,7 +3,6 @@ package com.telemetrydeck.sdk
 import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import com.telemetrydeck.sdk.TelemetryDeck.Companion
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -11,14 +10,13 @@ import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
-@Deprecated("Use TelemetryDeck instead", ReplaceWith("TelemetryDeck"))
-class TelemetryManager(
+class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
     val providers: List<TelemetryProvider> = listOf(
         AppLifecycleTelemetryProvider()
-    ),
-) : TelemetryManagerSignals {
 
+    )
+): TelemetryManagerSignals {
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
     private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
@@ -136,7 +134,7 @@ class TelemetryManager(
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt, "SHA-256")
-        
+
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
             appID = configuration.telemetryAppID,
@@ -166,13 +164,13 @@ class TelemetryManager(
 
         // TelemetryManager singleton
         @Volatile
-        private var instance: TelemetryManager? = null
+        private var instance: TelemetryDeck? = null
 
         /**
          * Builds and starts the application instance of `TelemetryManager`.
          * Calling this method multiple times has no effect.
          */
-        fun start(context: Application, builder: Builder): TelemetryManager {
+        fun start(context: Application, builder: Builder): TelemetryDeck {
             val knownInstance = instance
             if (knownInstance != null) {
                 return knownInstance
@@ -206,7 +204,7 @@ class TelemetryManager(
             }
         }
 
-        private fun getInstance(): TelemetryManager? {
+        private fun getInstance(): TelemetryDeck? {
             val knownInstance = instance
             if (knownInstance != null) {
                 return knownInstance
@@ -289,7 +287,6 @@ class TelemetryManager(
     }
 
 
-    @Deprecated("Use TelemetryDeck.Builder instead", ReplaceWith("TelemetryDeck.Builder"))
     data class Builder(
         private var configuration: TelemetryManagerConfiguration? = null,
         private var providers: List<TelemetryProvider>? = null,
@@ -376,7 +373,7 @@ class TelemetryManager(
             this.logger = debugLogger
         }
 
-        fun build(context: Application?): TelemetryManager {
+        fun build(context: Application?): TelemetryDeck {
             var config = this.configuration
             val appID = this.appID
             // check if configuration is already set or create a new instance using appID
@@ -444,7 +441,7 @@ class TelemetryManager(
                 config.sendNewSessionBeganSignal = sendNewSessionBeganSignal
             }
 
-            val manager = TelemetryManager(config, providers)
+            val manager = TelemetryDeck(config, providers)
             manager.logger = logger
             manager.installProviders(context)
 

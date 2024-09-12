@@ -10,16 +10,17 @@ import java.util.Date
 import java.util.UUID
 import kotlin.math.abs
 
-class TelemetryManagerTest {
+class TelemetryDeckTests {
+
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Test
-    fun telemetryManager_sets_signal_properties() {
+    fun telemetryDeck_sets_signal_properties() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
-        val manager = TelemetryManager.Builder().configuration(config).build(null)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
 
         manager.queue("type", "clientUser", emptyMap())
 
@@ -37,24 +38,24 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_applies_custom_salt() {
+    fun telemetryDeck_applies_custom_salt() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
         config.salt = "my salt"
-        val manager =  TelemetryManager.Builder().configuration(config).build(null)
+        val manager =  TelemetryDeck.Builder().configuration(config).build(null)
         manager.queue("type", "clientUser", emptyMap())
         val queuedSignal = manager.cache?.empty()?.first()
         Assert.assertEquals("9a68a3790deb1db66f80855b8e7c5a97df8002ef90d3039f9e16c94cfbd11d99", queuedSignal?.clientUser)
     }
 
     @Test
-    fun telemetryManager_builder_set_configuration() {
+    fun telemetryDeck_builder_set_configuration() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
         config.defaultUser = "user"
         config.salt = "salt"
 
-        val sut = TelemetryManager.Builder()
+        val sut = TelemetryDeck.Builder()
 
         val result = sut.configuration(config).build(null)
 
@@ -68,9 +69,9 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_set_app_ID() {
+    fun telemetryDeck_builder_set_app_ID() {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
-        val sut = TelemetryManager.Builder()
+        val sut = TelemetryDeck.Builder()
 
         val result = sut.appID(appID).build(null)
 
@@ -80,8 +81,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_set_baseURL() {
-        val sut = TelemetryManager.Builder()
+    fun telemetryDeck_builder_set_baseURL() {
+        val sut = TelemetryDeck.Builder()
         val result =
             sut.appID("32CB6574-6732-4238-879F-582FEBEB6536").baseURL("https://telemetrydeck.com")
                 .build(null)
@@ -90,8 +91,8 @@ class TelemetryManagerTest {
 
 
     @Test
-    fun telemetryManager_builder_set_testMode() {
-        val sut = TelemetryManager.Builder()
+    fun telemetryDeck_builder_set_testMode() {
+        val sut = TelemetryDeck.Builder()
         val result = sut
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .testMode(true)
@@ -100,8 +101,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_testMode_off_by_default() {
-        val sut = TelemetryManager.Builder()
+    fun telemetryDeck_builder_testMode_off_by_default() {
+        val sut = TelemetryDeck.Builder()
         val result = sut
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .build(null)
@@ -109,8 +110,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_set_defaultUser() {
-        val sut = TelemetryManager.Builder()
+    fun telemetryDeck_builder_set_defaultUser() {
+        val sut = TelemetryDeck.Builder()
         val result =
             sut.appID("32CB6574-6732-4238-879F-582FEBEB6536")
                 .defaultUser("Dear Person")
@@ -119,8 +120,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_set_salt() {
-        val sut = TelemetryManager.Builder()
+    fun telemetryDeck_builder_set_salt() {
+        val sut = TelemetryDeck.Builder()
         val result =
             sut.appID("32CB6574-6732-4238-879F-582FEBEB6536")
                 .salt("salty")
@@ -129,8 +130,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_set_showDebugLogs() {
-        val sut = TelemetryManager.Builder()
+    fun telemetryDeck_builder_set_showDebugLogs() {
+        val sut = TelemetryDeck.Builder()
         val result =
             sut
                 .appID("32CB6574-6732-4238-879F-582FEBEB6536")
@@ -140,8 +141,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_installs_default_logger_with_logging_disabled() {
-        val sut = TelemetryManager.Builder()
+    fun telemetryDeck_builder_installs_default_logger_with_logging_disabled() {
+        val sut = TelemetryDeck.Builder()
         val result = sut
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .build(null)
@@ -150,9 +151,9 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_builder_set_sessionID() {
+    fun telemetryDeck_builder_set_sessionID() {
         val sessionID = UUID.randomUUID()
-        val sut = TelemetryManager.Builder()
+        val sut = TelemetryDeck.Builder()
         val result = sut
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .sessionID(sessionID)
@@ -161,9 +162,9 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_newSession_resets_sessionID() {
+    fun telemetryDeck_newSession_resets_sessionID() {
         val sessionID = UUID.randomUUID()
-        val builder = TelemetryManager.Builder()
+        val builder = TelemetryDeck.Builder()
         val sut = builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .sessionID(sessionID)
@@ -173,11 +174,11 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_newSession_set_preferred_sessionID() {
+    fun telemetryDeck_newSession_set_preferred_sessionID() {
         val sessionID = UUID.randomUUID()
         val wantedSessionID = UUID.randomUUID()
         Assert.assertNotEquals(sessionID, wantedSessionID)
-        val builder = TelemetryManager.Builder()
+        val builder = TelemetryDeck.Builder()
         val sut = builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .sessionID(sessionID)
@@ -187,8 +188,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_newDefaultUser_changes_defaultUser() {
-        val builder = TelemetryManager.Builder()
+    fun telemetryDeck_newDefaultUser_changes_defaultUser() {
+        val builder = TelemetryDeck.Builder()
         val sut = builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .defaultUser("user1")
@@ -198,8 +199,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_testMode_on_added_to_signals() {
-        val builder = TelemetryManager.Builder()
+    fun telemetryDeck_testMode_on_added_to_signals() {
+        val builder = TelemetryDeck.Builder()
         val sut = builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .testMode(true)
@@ -210,8 +211,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_testMode_off_added_to_signals() {
-        val builder = TelemetryManager.Builder()
+    fun telemetryDeck_testMode_off_added_to_signals() {
+        val builder = TelemetryDeck.Builder()
         val sut = builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .testMode(false)
@@ -222,8 +223,8 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_addProvider_appends_after_default_providers() {
-        val builder = TelemetryManager.Builder()
+    fun telemetryDeck_addProvider_appends_after_default_providers() {
+        val builder = TelemetryDeck.Builder()
         val sut = builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .addProvider(TestProvider())
@@ -235,11 +236,11 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_addProvider_custom_provider_is_registered() {
+    fun telemetryDeck_addProvider_custom_provider_is_registered() {
         val provider = TestProvider()
         Assert.assertFalse(provider.registered)
 
-        val builder = TelemetryManager.Builder()
+        val builder = TelemetryDeck.Builder()
         builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .addProvider(provider)
@@ -264,9 +265,9 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_navigate_source_destination_sets_default_parameters() {
+    fun telemetryDeck_navigate_source_destination_sets_default_parameters() {
         val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
-        val manager = TelemetryManager.Builder().configuration(config).build(null)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
 
         manager.navigate("source", "destination")
 
@@ -298,10 +299,10 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_navigate_source_destination_sets_clientUser() {
+    fun telemetryDeck_navigate_source_destination_sets_clientUser() {
         val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
         config.defaultUser = "user"
-        val manager = TelemetryManager.Builder().configuration(config).build(null)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
 
         manager.navigate("source", "destination", "clientUser")
 
@@ -317,10 +318,10 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_navigate_source_destination_uses_default_user() {
+    fun telemetryDeck_navigate_source_destination_uses_default_user() {
         val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
         config.defaultUser = "clientUser"
-        val manager = TelemetryManager.Builder().configuration(config).build(null)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
 
         manager.navigate("source", "destination")
 
@@ -336,9 +337,9 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_navigate_destination_no_previous_source() {
+    fun telemetryDeck_navigate_destination_no_previous_source() {
         val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
-        val manager = TelemetryManager.Builder().configuration(config).build(null)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
 
         manager.navigate("destination")
 
@@ -370,9 +371,9 @@ class TelemetryManagerTest {
     }
 
     @Test
-    fun telemetryManager_navigate_destination_uses_previous_destination_as_source() {
+    fun telemetryDeck_navigate_destination_uses_previous_destination_as_source() {
         val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
-        val manager = TelemetryManager.Builder().configuration(config).build(null)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
 
         manager.navigate("destination1")
         manager.navigate("destination2")
@@ -412,4 +413,3 @@ class TelemetryManagerTest {
         }
     }
 }
-

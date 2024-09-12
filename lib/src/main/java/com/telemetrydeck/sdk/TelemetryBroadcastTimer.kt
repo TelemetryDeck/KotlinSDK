@@ -6,7 +6,7 @@ import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.math.abs
 
-internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryManager>, debugLogger: WeakReference<DebugLogger>) {
+internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryManagerSignals>, debugLogger: WeakReference<DebugLogger>) {
 
     // broadcast begins with a 10s delay after initialization and fires every 10s.
     private val timerChannel = ticker(delayMillis = 10_000, initialDelayMillis = 10_000)
@@ -16,16 +16,6 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
         this.logger = debugLogger.get()
     }
     private var job: Job? = null
-
-    companion object {
-        fun filterOldSignals(signals: List<Signal>): List<Signal> {
-            val now = Date().time
-            return signals.filter {
-                // ignore signals older than 24h
-                (abs(now - it.receivedAt.time) / 1000) <= 24 * 60 * 60
-            }
-        }
-    }
 
     fun start() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -37,18 +27,25 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
                         ?: // can't broadcast without a manager to provide signals
                         continue
 
-                    val signals =  filterOldSignals(managerInstance.cache?.empty() ?: emptyList())
-                    if (signals.isEmpty()) {
-                        // no signals to broadcast
-                        logger?.debug("No signals to broadcast")
+                    val cache = managerInstance.signalCache
+
+                    if (cache == null) {
+                        logger?.debug("Signal cache is not available")
                         continue
                     }
 
-                    logger?.debug("Broadcasting ${signals.count()} queued signals")
-                    if (managerInstance.send(signals).isFailure) {
-                        logger?.debug("Re-enqueueing ${signals.count()} signals")
+                    val signals =  cache.empty()
+                    if (signals.isEmpty()) {
+                        // no signals to broadcast
+                        logger?.debug("Signal cache is empty, no signals to broadcast")
+                        continue
+                    }
+
+                    logger?.debug("Broadcasting ${signals.count()} cached signals")
+                    if (managerInstance.signal(signals).isFailure) {
+                        logger?.debug("Failed to broadcast cached signals, re-enqueueing ${signals.count()} signals for later")
                         for (failedSignal in signals) {
-                            managerInstance.cache?.add(failedSignal)
+                            cache.add(failedSignal)
                         }
                     }
                 }

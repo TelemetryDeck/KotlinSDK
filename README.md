@@ -43,7 +43,7 @@ Sending signals requires access to the internet so the following permission shou
 
 ### Using the application manifest
 
-The TelemetryManager can be initialized automatically by adding the application key to the `application` section of the app's `AndroidManifest.xml`:
+The TelemetryDeck can be initialized automatically by adding the application key to the `application` section of the app's `AndroidManifest.xml`:
 
 ```xml
 <application>
@@ -67,15 +67,15 @@ In addition, the following optional properties are supported:
 
 ### Programatic Usage
 
-For greater control you can instead manually start the TelemetryManager client
+For greater control you can instead manually start the TelemetryDeck client
 
 ```kotlin
-val builder = TelemetryManager.Builder()
+val builder = TelemetryDeck.Builder()
             .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
             .showDebugLogs(true)
             .defaultUser("Person")
 
-TelemetryManager.start(application, builder)
+TelemetryDeck.start(application, builder)
 ```
 
 ## Sending Signals
@@ -83,24 +83,24 @@ TelemetryManager.start(application, builder)
 To send a signal immediately
 
 ```kotlin
-TelemetryManager.send("appLaunchedRegularly")
+TelemetryDeck.send("appLaunchedRegularly")
 ```
 
-To enqueue a signal to be sent by TelemetryManager at a later time
+To enqueue a signal to be sent by TelemetryDeck at a later time
 
 ```kotlin
-TelemetryManager.queue("appLaunchedRegularly")
+TelemetryDeck.queue("appLaunchedRegularly")
 ```
 
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryManager in order to queue or send signals.
+Another way to send signals is to register a custom `TelemetryProvider` . A provider maintains a reference to the TelemetryDeck in order to queue or send signals.
 
 To create a provider, implement the `TelemetryProvider` interface:
 
 ```kotlin
 class CustomProvider: TelemetryProvider {
-    override fun register(ctx: Application?, manager: TelemetryManager) {
+    override fun register(ctx: Application?, manager: TelemetryDeck) {
         // configure and start the provider
     }
 
@@ -114,18 +114,18 @@ Setup and start the provider during the `register` method.
 
 Tips:
 
-- Do not retain a strong reference to the application context or the TelemetryManager.
-- You can use `WeakReference<TelemetryManager>` if you need to be able to call the TelemetryManager at a later time.
+- Do not retain a strong reference to the application context or the TelemetryDeck.
+- You can use `WeakReference<TelemetryDeck>` if you need to be able to call the TelemetryDeck at a later time.
 
-To use your custom provider, register it using the `TelemetryManager.Builder` :
+To use your custom provider, register it using the `TelemetryDeck.Builder` :
 
 ```kotlin
-val builder = TelemetryManager.Builder()
+val builder = TelemetryDeck.Builder()
             .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
             .addProvider(CustomProvider())
 ```
 
-When a signal is received by TelemetryManager, it can be enriched with platform and environment specific information. TelemetryManager calls the `enrich` method allowing every registered provider to add additional payload to a signal.
+When a signal is received by TelemetryDeck, it can be enriched with platform and environment specific information. TelemetryDeck calls the `enrich` method allowing every registered provider to add additional payload to a signal.
 
 ```kotlin
 override fun enrich(
@@ -142,7 +142,7 @@ override fun enrich(
     }
 ```
 
-TelemetryManager also makes use of providers in order to provide lifecycle and environment integration out of the box. Feel free to examine how they work and inspire your own implementations. You can also completely disable or override the default providers with your own.
+TelemetryDeck also makes use of providers in order to provide lifecycle and environment integration out of the box. Feel free to examine how they work and inspire your own implementations. You can also completely disable or override the default providers with your own.
 
 - `SessionProvider` - Monitors the app lifecycle in order to broadcast the NewSessionBegan signal. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
 - `AppLifecycleTelemetryProvider` - Emits signals for application and activity lifecycle events.
@@ -150,13 +150,13 @@ TelemetryManager also makes use of providers in order to provide lifecycle and e
 
 ```kotlin
 // Append a custom provider
-val builder = TelemetryManager.Builder()
+val builder = TelemetryDeck.Builder()
            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
            .addProvider(CustomProvider())
 
 
 // Replace all default providers
-val builder = TelemetryManager.Builder()
+val builder = TelemetryDeck.Builder()
             .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
             .providers(listOf(CustomProvider(), AnotherProvider()))
 ```

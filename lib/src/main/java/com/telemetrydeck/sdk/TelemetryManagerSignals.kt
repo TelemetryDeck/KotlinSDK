@@ -71,4 +71,17 @@ interface TelemetryManagerSignals {
         clientUser: String? = null,
         additionalPayload: Map<String, String> = emptyMap()
     ): Result<Unit>
+
+
+    /**
+     * Send multiple signals immediately.
+     */
+    suspend fun signal(signals: List<Signal>): Result<Unit>
+
+
+    val signalCache: SignalCache?
+
+    val debugLogger: DebugLogger?
+
+    val configuration: TelemetryManagerConfiguration?
 }

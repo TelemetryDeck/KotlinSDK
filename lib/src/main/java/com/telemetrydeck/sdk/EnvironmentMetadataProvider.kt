@@ -11,7 +11,7 @@ class EnvironmentMetadataProvider : TelemetryProvider {
     private var enabled: Boolean = true
     private var metadata = mutableMapOf<String, String>()
 
-    override fun register(ctx: Application?, manager: TelemetryManager) {
+    override fun register(ctx: Application?, manager: TelemetryManagerSignals) {
         if (ctx != null) {
             val appVersion = ManifestMetadataReader.getAppVersion(ctx)
             if (!appVersion.isNullOrEmpty()) {
@@ -21,10 +21,10 @@ class EnvironmentMetadataProvider : TelemetryProvider {
                 metadata["buildNumber"] = buildNumber.toString()
             }
         } else {
-            manager.logger?.error("EnvironmentMetadataProvider requires a context but received null. Signals will contain incomplete metadata.")
+            manager.debugLogger?.error("EnvironmentMetadataProvider requires a context but received null. Signals will contain incomplete metadata.")
         }
         if (android.os.Build.VERSION.RELEASE.isNullOrEmpty()) {
-            manager.logger?.error(
+            manager.debugLogger?.error(
                 "EnvironmentMetadataProvider found no platform version information (android.os.Build.VERSION.RELEASE). Signal payloads will not be enriched."
             )
         } else {
