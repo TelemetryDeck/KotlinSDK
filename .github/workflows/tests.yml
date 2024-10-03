@@ -2,8 +2,8 @@ name: Run Tests
 
 on:
   push:
-#    branches:
-#      - main
+    branches:
+      - main
   pull_request:
 
 # prevent concurrent builds from running at the same time
