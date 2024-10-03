@@ -22,7 +22,7 @@ class TelemetryDeckTests {
         val config = TelemetryManagerConfiguration(appID)
         val manager = TelemetryDeck.Builder().configuration(config).build(null)
 
-        manager.queue("type", "clientUser", emptyMap())
+        manager.signal("type", "clientUser", emptyMap())
 
         val queuedSignal = manager.cache?.empty()?.first()
 
@@ -43,7 +43,7 @@ class TelemetryDeckTests {
         val config = TelemetryManagerConfiguration(appID)
         config.salt = "my salt"
         val manager =  TelemetryDeck.Builder().configuration(config).build(null)
-        manager.queue("type", "clientUser", emptyMap())
+        manager.signal("type", "clientUser", emptyMap())
         val queuedSignal = manager.cache?.empty()?.first()
         Assert.assertEquals("9a68a3790deb1db66f80855b8e7c5a97df8002ef90d3039f9e16c94cfbd11d99", queuedSignal?.clientUser)
     }
@@ -81,10 +81,21 @@ class TelemetryDeckTests {
     }
 
     @Test
-    fun telemetryDeck_builder_set_baseURL() {
+    fun telemetryDeck_builder_set_baseURL_From_String() {
         val sut = TelemetryDeck.Builder()
         val result =
-            sut.appID("32CB6574-6732-4238-879F-582FEBEB6536").baseURL("https://telemetrydeck.com")
+            sut.appID("32CB6574-6732-4238-879F-582FEBEB6536")
+                .baseURL("https://telemetrydeck.com")
+                .build(null)
+        Assert.assertEquals(URL("https://telemetrydeck.com"), result.configuration.apiBaseURL)
+    }
+
+    @Test
+    fun telemetryDeck_builder_set_baseURL_FromUrl() {
+        val sut = TelemetryDeck.Builder()
+        val result =
+            sut.appID("32CB6574-6732-4238-879F-582FEBEB6536")
+                .baseURL(URL("https://telemetrydeck.com"))
                 .build(null)
         Assert.assertEquals(URL("https://telemetrydeck.com"), result.configuration.apiBaseURL)
     }
@@ -205,7 +216,7 @@ class TelemetryDeckTests {
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .testMode(true)
             .build(null)
-        sut.queue("type")
+        sut.signal("type")
 
         Assert.assertEquals("true", sut.cache?.empty()?.get(0)?.isTestMode)
     }
@@ -217,7 +228,7 @@ class TelemetryDeckTests {
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
             .testMode(false)
             .build(null)
-        sut.queue("type")
+        sut.signal("type")
 
         Assert.assertEquals("false", sut.cache?.empty()?.get(0)?.isTestMode)
     }
@@ -227,17 +238,17 @@ class TelemetryDeckTests {
         val builder = TelemetryDeck.Builder()
         val sut = builder
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")
-            .addProvider(TestProvider())
+            .addProvider(TestTelemetryDeckProvider())
             .build(null)
-        sut.queue("type")
+        sut.signal("type")
 
         Assert.assertEquals(4, sut.providers.count())
-        Assert.assertTrue(sut.providers[3] is TestProvider)
+        Assert.assertTrue(sut.providers[3] is TestTelemetryDeckProvider)
     }
 
     @Test
     fun telemetryDeck_addProvider_custom_provider_is_registered() {
-        val provider = TestProvider()
+        val provider = TestTelemetryDeckProvider()
         Assert.assertFalse(provider.registered)
 
         val builder = TelemetryDeck.Builder()

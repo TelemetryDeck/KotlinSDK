@@ -1,20 +1,23 @@
-package com.telemetrydeck.sdk
+package com.telemetrydeck.sdk.providers
+
 
 import android.app.Application
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.telemetrydeck.sdk.SignalType
+import com.telemetrydeck.sdk.TelemetryDeckClient
+import com.telemetrydeck.sdk.TelemetryDeckProvider
 import java.lang.ref.WeakReference
 
 /**
  * Monitors the app lifecycle in order to broadcast the NewSessionBegan signal.
  */
-@Deprecated("Use SessionActivityProvider", ReplaceWith("SessionActivityProvider", "com.telemetrydeck.sdk.providers.SessionActivityProvider"))
-class SessionProvider: TelemetryProvider, DefaultLifecycleObserver {
-    private var manager: WeakReference<TelemetryManager>? = null
+class SessionAppProvider: TelemetryDeckProvider, DefaultLifecycleObserver {
+    private var manager: WeakReference<TelemetryDeckClient>? = null
 
-    override fun register(ctx: Application?, manager: TelemetryManager) {
-        this.manager = WeakReference(manager)
+    override fun register(ctx: Application?, client: TelemetryDeckClient) {
+        this.manager = WeakReference(client)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
@@ -24,7 +27,7 @@ class SessionProvider: TelemetryProvider, DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
         if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
-            manager?.get()?.queue(
+            manager?.get()?.signal(
                 SignalType.NewSessionBegan
             )
         }

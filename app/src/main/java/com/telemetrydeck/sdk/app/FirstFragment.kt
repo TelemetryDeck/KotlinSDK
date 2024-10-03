@@ -1,13 +1,13 @@
 package com.telemetrydeck.sdk.app
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.telemetrydeck.sdk.TelemetryManager
+import com.telemetrydeck.sdk.TelemetryDeck
 import com.telemetrydeck.sdk.app.databinding.FragmentFirstBinding
 import kotlinx.coroutines.launch
 
@@ -25,7 +25,7 @@ class FirstFragment : Fragment() {
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
@@ -37,7 +37,7 @@ class FirstFragment : Fragment() {
 
         binding.buttonFirst.setOnClickListener {
             lifecycleScope.launch {
-                TelemetryManager.send("firstButtonPressed")
+                TelemetryDeck.send("firstButtonPressed")
             }
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
         }

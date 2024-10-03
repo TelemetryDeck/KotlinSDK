@@ -19,8 +19,8 @@ class TelemetryDeckInitProvider : ContentProvider() {
         }
 
         try {
-            val config = ManifestMetadataReader.getConfigurationFromManifest(appContext)
-            if (config == null) {
+            val metadata = ManifestMetadataReader.getConfigurationFromManifest(appContext)
+            if (metadata == null) {
                 Log.e(
                     tag,
                     "No valid TelemetryDeck SDK configuration found in application manifest."
@@ -28,9 +28,19 @@ class TelemetryDeckInitProvider : ContentProvider() {
                 return false
             }
 
-            val builder = TelemetryManager.Builder()
-            builder.configuration(config)
-            TelemetryManager.start(appContext, builder)
+            when (metadata.version) {
+                TelemetryDeckManifestVersion.V1 -> {
+                    val builder = TelemetryManager.Builder()
+                    builder.configuration(metadata.config)
+                    TelemetryManager.start(appContext, builder)
+                }
+                TelemetryDeckManifestVersion.V2 -> {
+                    val builder = TelemetryDeck.Builder()
+                    builder.configuration(metadata.config)
+                    TelemetryDeck.start(appContext, builder)
+                }
+            }
+
         } catch (e: Exception) {
             Log.e(tag, "Failed to parse TelemetryDeck SDK configuration:", e)
         }

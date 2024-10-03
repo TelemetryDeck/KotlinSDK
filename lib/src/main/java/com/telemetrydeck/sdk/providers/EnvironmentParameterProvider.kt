@@ -1,18 +1,29 @@
-package com.telemetrydeck.sdk
+package com.telemetrydeck.sdk.providers
 
 import android.app.Application
 import android.icu.util.VersionInfo
-import java.util.*
+import com.telemetrydeck.sdk.BuildConfig
+import com.telemetrydeck.sdk.ManifestMetadataReader
+import com.telemetrydeck.sdk.TelemetryDeckClient
+import com.telemetrydeck.sdk.TelemetryDeckProvider
+import java.lang.ref.WeakReference
+import java.util.Locale
 
 /**
- * Adds environment and device information to outgoing Signals.
+ * This provider enriches outgoing signals with additional parameters describing the current environment.
+ *
+ * - information about the specific app build, such as version, build number, or SDKs compiled with.
+ * - information about the device running the application, such as operating system, model name, or architecture.
+ * - information about the TelemetryDeck SDK, such as its name or version number.
  */
-@Deprecated("Use EnvironmentParameterProvider", ReplaceWith("EnvironmentParameterProvider", "com.telemetrydeck.sdk.providers.EnvironmentParameterProvider"))
-class EnvironmentMetadataProvider : TelemetryProvider {
+class EnvironmentParameterProvider  : TelemetryDeckProvider {
     private var enabled: Boolean = true
+    private var manager: WeakReference<TelemetryDeckClient>? = null
     private var metadata = mutableMapOf<String, String>()
 
-    override fun register(ctx: Application?, manager: TelemetryManager) {
+    override fun register(ctx: Application?, client: TelemetryDeckClient) {
+        this.manager = WeakReference(client)
+
         if (ctx != null) {
             val appVersion = ManifestMetadataReader.getAppVersion(ctx)
             if (!appVersion.isNullOrEmpty()) {
@@ -22,10 +33,11 @@ class EnvironmentMetadataProvider : TelemetryProvider {
                 metadata["buildNumber"] = buildNumber.toString()
             }
         } else {
-            manager.logger?.error("EnvironmentMetadataProvider requires a context but received null. Signals will contain incomplete metadata.")
+            this.manager?.get()?.debugLogger?.error("EnvironmentParameterProvider requires a context but received null. Signals will contain incomplete metadata.")
         }
+
         if (android.os.Build.VERSION.RELEASE.isNullOrEmpty()) {
-            manager.logger?.error(
+            this.manager?.get()?.debugLogger?.error(
                 "EnvironmentMetadataProvider found no platform version information (android.os.Build.VERSION.RELEASE). Signal payloads will not be enriched."
             )
         } else {

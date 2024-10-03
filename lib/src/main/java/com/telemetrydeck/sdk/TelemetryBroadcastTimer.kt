@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
 import java.lang.ref.WeakReference
 
-internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryDeckClient>, debugLogger: WeakReference<DebugLogger>) {
+internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryDeckSignalProcessor>, debugLogger: WeakReference<DebugLogger>) {
 
     // broadcast begins with a 10s delay after initialization and fires every 10s.
     private val timerChannel = ticker(delayMillis = 10_000, initialDelayMillis = 10_000)
@@ -40,7 +40,7 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
                     }
 
                     logger?.debug("Broadcasting ${signals.count()} cached signals")
-                    if (managerInstance.signal(signals).isFailure) {
+                    if (managerInstance.sendAll(signals).isFailure) {
                         logger?.debug("Failed to broadcast cached signals, re-enqueueing ${signals.count()} signals for later")
                         for (failedSignal in signals) {
                             cache.add(failedSignal)

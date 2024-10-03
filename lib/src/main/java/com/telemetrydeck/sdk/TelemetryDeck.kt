@@ -3,6 +3,9 @@ package com.telemetrydeck.sdk
 import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
+import com.telemetrydeck.sdk.providers.SessionActivityProvider
+import com.telemetrydeck.sdk.providers.SessionAppProvider
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -12,11 +15,10 @@ import kotlin.Result.Companion.success
 
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
-    val providers: List<TelemetryProvider> = listOf(
-        AppLifecycleTelemetryProvider()
-
+    val providers: List<TelemetryDeckProvider> = listOf(
+       SessionAppProvider()
     )
-): TelemetryDeckClient {
+): TelemetryDeckClient, TelemetryDeckSignalProcessor {
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
     private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
@@ -35,22 +37,6 @@ class TelemetryDeck(
         this.configuration.defaultUser = user
     }
 
-    override fun queue(
-        signalType: String,
-        clientUser: String?,
-        additionalPayload: Map<String, String>
-    ) {
-        cache?.add(createSignal(signalType, clientUser, additionalPayload))
-    }
-
-    override fun queue(
-        signalType: SignalType,
-        clientUser: String?,
-        additionalPayload: Map<String, String>
-    ) {
-        queue(signalType.type, clientUser, additionalPayload)
-    }
-
     override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
         navigationStatus.applyDestination(destinationPath)
 
@@ -61,7 +47,7 @@ class TelemetryDeck(
             PayloadParameters.TelemetryDeckNavigationDestinationPath.type to destinationPath
         )
 
-        queue(SignalType.TelemetryDeckNavigationPathChanged, clientUser, payload)
+        signal(SignalType.TelemetryDeckNavigationPathChanged.type, params = payload, customUserID = clientUser)
     }
 
     override fun navigate(destinationPath: String, clientUser: String?) {
@@ -84,17 +70,40 @@ class TelemetryDeck(
         return send(signalType.type, clientUser, additionalPayload)
     }
 
-    override suspend fun signal(signals: List<Signal>): Result<Unit> {
+    override suspend fun sendAll(signals: List<Signal>): Result<Unit> {
         return send(signals)
     }
 
-    suspend fun send(
+    override fun signal(
+        signalName: String,
+        params: Map<String, String>,
+        floatValue: Double?,
+        customUserID: String?
+    ) {
+        // TODO: floatValue
+        cache?.add(createSignal(signalType = signalName, clientUser = customUserID, additionalPayload = params))
+    }
+
+    override fun signal(signalName: String, customUserID: String?, params: Map<String, String>) {
+        cache?.add(createSignal(signalType = signalName, clientUser = customUserID, additionalPayload = params))
+    }
+
+    override fun signal(
+        signalType: SignalType,
+        params: Map<String, String>,
+        floatValue: Double?,
+        customUserID: String?
+    ) {
+        cache?.add(createSignal(signalType = signalType.type, clientUser = customUserID, additionalPayload = params))
+    }
+
+    private suspend fun send(
         signal: Signal
     ): Result<Unit> {
         return send(listOf(signal))
     }
 
-    suspend fun send(
+    private suspend fun send(
         signals: List<Signal>
     ): Result<Unit> {
         return try {
@@ -107,7 +116,7 @@ class TelemetryDeck(
             client.send(signals)
             success(Unit)
         } catch (e: Exception) {
-            logger?.error("Failed to send signals due to an error ${e} ${e.stackTraceToString()}")
+            logger?.error("Failed to send signals due to an error $e ${e.stackTraceToString()}")
             failure(e)
         }
     }
@@ -133,7 +142,7 @@ class TelemetryDeck(
         val userValue = clientUser ?: configuration.defaultUser ?: ""
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
-        val hashedUser = hashString(userValueWithSalt, "SHA-256")
+        val hashedUser = hashString(userValueWithSalt)
 
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
@@ -148,18 +157,18 @@ class TelemetryDeck(
         return signal
     }
 
-    private fun hashString(input: String, algorithm: String): String {
+    private fun hashString(input: String, algorithm: String = "SHA-256"): String {
         return MessageDigest.getInstance(algorithm)
             .digest(input.toByteArray())
-            .fold("", { str, it -> str + "%02x".format(it) })
+            .fold("") { str, it -> str + "%02x".format(it) }
     }
 
     companion object : TelemetryDeckClient {
-        internal val defaultTelemetryProviders: List<TelemetryProvider>
+        internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
             get() = listOf(
-                SessionProvider(),
-                AppLifecycleTelemetryProvider(),
-                EnvironmentMetadataProvider()
+                SessionActivityProvider(),
+                SessionAppProvider(),
+                EnvironmentParameterProvider()
             )
 
         // TelemetryManager singleton
@@ -220,22 +229,6 @@ class TelemetryDeck(
             getInstance()?.newDefaultUser(user)
         }
 
-        override fun queue(
-            signalType: String,
-            clientUser: String?,
-            additionalPayload: Map<String, String>
-        ) {
-            getInstance()?.queue(signalType, clientUser, additionalPayload)
-        }
-
-        override fun queue(
-            signalType: SignalType,
-            clientUser: String?,
-            additionalPayload: Map<String, String>
-        ) {
-            getInstance()?.queue(signalType, clientUser, additionalPayload)
-        }
-
         override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
             getInstance()?.navigate(sourcePath, destinationPath, clientUser = clientUser)
         }
@@ -268,12 +261,38 @@ class TelemetryDeck(
             return failure(NullPointerException())
         }
 
-        override suspend fun signal(signals: List<Signal>): Result<Unit> {
-            val result = getInstance()?.signal(signals)
+        override suspend fun sendAll(signals: List<Signal>): Result<Unit> {
+            val result = getInstance()?.sendAll(signals)
             if (result != null) {
                 return result
             }
             return failure(NullPointerException())
+        }
+
+        override fun signal(
+            signalName: String,
+            params: Map<String, String>,
+            floatValue: Double?,
+            customUserID: String?
+        ) {
+            getInstance()?.signal(signalName, params, floatValue, customUserID)
+        }
+
+        override fun signal(
+            signalName: String,
+            customUserID: String?,
+            params: Map<String, String>
+        ) {
+            getInstance()?.signal(signalName = signalName, customUserID = customUserID, params = params)
+        }
+
+        override fun signal(
+            signalType: SignalType,
+            params: Map<String, String>,
+            floatValue: Double?,
+            customUserID: String?
+        ) {
+            getInstance()?.signal(signalType.type, params, floatValue, customUserID)
         }
 
         override val signalCache: SignalCache?
@@ -289,8 +308,8 @@ class TelemetryDeck(
 
     data class Builder(
         private var configuration: TelemetryManagerConfiguration? = null,
-        private var providers: List<TelemetryProvider>? = null,
-        private var additionalProviders: MutableList<TelemetryProvider>? = null,
+        private var providers: List<TelemetryDeckProvider>? = null,
+        private var additionalProviders: MutableList<TelemetryDeckProvider>? = null,
         private var appID: UUID? = null,
         private var defaultUser: String? = null,
         private var sessionID: UUID? = null,
@@ -313,13 +332,13 @@ class TelemetryDeck(
         /**
          * Override the default set of TelemetryProviders.
          */
-        fun providers(providerList: List<TelemetryProvider>) =
+        fun providers(providerList: List<TelemetryDeckProvider>) =
             apply { this.providers = providerList }
 
         /**
-         * Append a custom TelemetryProvider which can produce or enrich signals
+         * Append a custom [TelemetryDeckProvider] which can produce or enrich signals
          */
-        fun addProvider(provider: TelemetryProvider) = apply {
+        fun addProvider(provider: TelemetryDeckProvider) = apply {
             if (additionalProviders == null) {
                 additionalProviders = mutableListOf()
             }
@@ -367,7 +386,7 @@ class TelemetryDeck(
         }
 
         /**
-         * Provide a custom logger implementation to be used by TelemetryManager.
+         * Provide a custom logger implementation to be used by [TelemetryDeck] when logging internal messages.
          */
         fun logger(debugLogger: DebugLogger?) = apply {
             this.logger = debugLogger

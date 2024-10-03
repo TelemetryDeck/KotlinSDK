@@ -10,13 +10,13 @@ import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
-@Deprecated("Use TelemetryDeck instead", ReplaceWith("TelemetryDeck"))
+@Deprecated("Use TelemetryDeck instead", ReplaceWith("TelemetryDeck", "com.telemetrydeck.sdk.TelemetryDeck"))
 class TelemetryManager(
-    override val configuration: TelemetryManagerConfiguration,
+    val configuration: TelemetryManagerConfiguration,
     val providers: List<TelemetryProvider> = listOf(
         AppLifecycleTelemetryProvider()
-    ),
-) : TelemetryDeckClient {
+    )
+) : TelemetryManagerSignals, TelemetryDeckSignalProcessor {
 
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
@@ -27,6 +27,24 @@ class TelemetryManager(
 
     override val debugLogger: DebugLogger?
         get() = this.logger
+
+    override suspend fun sendAll(
+        signals: List<Signal>
+    ): Result<Unit> {
+        return try {
+            val client = TelemetryClient(
+                configuration.telemetryAppID,
+                configuration.apiBaseURL,
+                configuration.showDebugLogs,
+                logger
+            )
+            client.send(signals)
+            success(Unit)
+        } catch (e: Exception) {
+            logger?.error("Failed to send signals due to an error ${e} ${e.stackTraceToString()}")
+            failure(e)
+        }
+    }
 
     override fun newSession(sessionID: UUID) {
         this.configuration.sessionID = sessionID
@@ -85,10 +103,6 @@ class TelemetryManager(
         return send(signalType.type, clientUser, additionalPayload)
     }
 
-    override suspend fun signal(signals: List<Signal>): Result<Unit> {
-        return send(signals)
-    }
-
     suspend fun send(
         signal: Signal
     ): Result<Unit> {
@@ -135,7 +149,7 @@ class TelemetryManager(
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt, "SHA-256")
-        
+
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
             appID = configuration.telemetryAppID,
@@ -155,7 +169,7 @@ class TelemetryManager(
             .fold("", { str, it -> str + "%02x".format(it) })
     }
 
-    companion object : TelemetryDeckClient {
+    companion object : TelemetryManagerSignals {
         internal val defaultTelemetryProviders: List<TelemetryProvider>
             get() = listOf(
                 SessionProvider(),
@@ -268,27 +282,9 @@ class TelemetryManager(
             }
             return failure(NullPointerException())
         }
-
-        override suspend fun signal(signals: List<Signal>): Result<Unit> {
-            val result = getInstance()?.signal(signals)
-            if (result != null) {
-                return result
-            }
-            return failure(NullPointerException())
-        }
-
-        override val signalCache: SignalCache?
-            get() = getInstance()?.signalCache
-
-        override val debugLogger: DebugLogger?
-            get() = getInstance()?.debugLogger
-
-        override val configuration: TelemetryManagerConfiguration?
-            get() = getInstance()?.configuration
     }
 
 
-    @Deprecated("Use TelemetryDeck.Builder instead", ReplaceWith("TelemetryDeck.Builder"))
     data class Builder(
         private var configuration: TelemetryManagerConfiguration? = null,
         private var providers: List<TelemetryProvider>? = null,
@@ -369,7 +365,7 @@ class TelemetryManager(
         }
 
         /**
-         * Provide a custom logger implementation to be used by TelemetryManager.
+         * Provide a custom logger implementation to be used by [TelemetryManager].
          */
         fun logger(debugLogger: DebugLogger?) = apply {
             this.logger = debugLogger

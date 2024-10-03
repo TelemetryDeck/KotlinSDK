@@ -2,9 +2,9 @@ package com.telemetrydeck.sdk
 
 import android.app.Application
 
-open class TestProvider : TelemetryProvider {
+open class TestTelemetryDeckProvider : TelemetryDeckProvider {
     var registered = false
-    override fun register(ctx: Application?, manager: TelemetryManager) {
+    override fun register(ctx: Application?, client: TelemetryDeckClient) {
         registered = true
     }
 
@@ -12,4 +12,3 @@ open class TestProvider : TelemetryProvider {
         //
     }
 }
-

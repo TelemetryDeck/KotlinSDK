@@ -3,15 +3,14 @@ package com.telemetrydeck.sdk
 import android.app.Application
 
 /**
- * Generic interface for plugins which can create Signals
+ * Generic interface for plugins which can enrich Signals
  */
-@Deprecated("Use TelemetryDeckProvider", ReplaceWith("TelemetryDeckProvider"))
-interface TelemetryProvider {
+interface TelemetryDeckProvider {
     /**
      * Registers the provider with the telemetry manager.
      * The provider keeps a weak reference to telemetry manager in order to queue or send signals.
      */
-    fun register(ctx: Application?, manager: TelemetryManager)
+    fun register(ctx: Application?, client: TelemetryDeckClient)
 
     /**
      * Calling stop deactivates the provider and prevents future signals from being sent.

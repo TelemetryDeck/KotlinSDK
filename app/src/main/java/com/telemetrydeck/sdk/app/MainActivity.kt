@@ -9,7 +9,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.snackbar.Snackbar
-import com.telemetrydeck.sdk.TelemetryManager
+import com.telemetrydeck.sdk.TelemetryDeck
 import com.telemetrydeck.sdk.app.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -20,13 +20,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        TelemetryManager.newDefaultUser("It's me :)")
-//        val builder = TelemetryManager.Builder()
+//        TelemetryDeck is automatically configured and started based on settings in the app manifest.
+//        You can also configure it programmatically instead:
+//
+//        val builder = TelemetryDeck.Builder()
 //            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 //            .showDebugLogs(true)
 //            .defaultUser("Person Name")
-//
-//        TelemetryManager.start(application, builder)
+//        TelemetryDeck.start(application, builder)
+
+        // let's change the user hash
+        TelemetryDeck.newDefaultUser("It's me :)")
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
