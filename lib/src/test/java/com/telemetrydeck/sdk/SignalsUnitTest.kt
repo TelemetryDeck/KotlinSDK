@@ -1,16 +1,12 @@
 package com.telemetrydeck.sdk
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.net.URL
-import java.util.*
-
-// TODO: Local cache
-// TODO: BUG USE COPY for data classes
-// TODO: Detect app start from lifecycle instead of first activity
+import java.util.Date
+import java.util.UUID
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -43,7 +39,7 @@ class SignalsUnitTest {
         val decodedSignal = Json.decodeFromString<Signal>(signalJson)
 
         // date equality comparison with precision up to milliseconds
-        assertEquals(receivedDate.time, decodedSignal.receivedAt.time)
+        assertEquals(receivedDate, decodedSignal.receivedAt)
     }
 
     @Test

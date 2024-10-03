@@ -6,6 +6,11 @@ on:
 #      - main
   pull_request:
 
+# prevent concurrent builds from running at the same time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test Kotlin SDK for TelemetryDeck
@@ -23,5 +28,5 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Upload Artifacts
+      - name: Run test
         run: ./gradlew lib:test
