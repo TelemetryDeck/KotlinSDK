@@ -95,10 +95,5 @@ interface TelemetryDeckClient {
         params: Map<String, String> = emptyMap(),
     )
 
-
-    val signalCache: SignalCache?
-
-    val debugLogger: DebugLogger?
-
     val configuration: TelemetryManagerConfiguration?
 }

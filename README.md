@@ -280,9 +280,9 @@ Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvid
 
 To adopt the new interface:
 
-* Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckClient)`
+* Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckSignalProcessor)`
 
-You now have access to the entire `TelemetryDeckClient` interface:
+The `TelemetryDeckSignalProcessor` interface offers a subset of the `TelemetryDeck` client API which gives you access to: 
 
 * To access the logger, use can use `client.debugLogger`
 * To access the signal cache, use `client.signalCache`
