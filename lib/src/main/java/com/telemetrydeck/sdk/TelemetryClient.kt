@@ -21,7 +21,6 @@ import java.util.UUID
  * The HTTP client to communicate with TelemetryDeck's API
  */
 internal class TelemetryClient(
-    private val telemetryAppID: UUID,
     private val apiBaseURL: URL,
     private val showDebugLogs: Boolean,
     private val debugLogger: DebugLogger?
@@ -54,7 +53,7 @@ internal class TelemetryClient(
 
     fun getServiceUrl(): URL {
         val baseUri = apiBaseURL.toURI()
-        val serviceUri = baseUri.resolve("/api/v1/apps/${telemetryAppID}/signals/multiple/")
+        val serviceUri = baseUri.resolve("/v2/")
         serviceUri.normalize()
         return serviceUri.toURL()
     }

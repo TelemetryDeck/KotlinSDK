@@ -88,13 +88,13 @@ class SignalsUnitTest {
     @Test
     fun telemetryClient_correct_service_url() {
         val appID = UUID.fromString("32CB6574-6732-4238-879F-582FEBEB6536")
-        val client = TelemetryClient(appID, URL("https://nom.telemetrydeck.com"), false, null)
+        val client = TelemetryClient(URL("https://nom.telemetrydeck.com"), false, null)
 
         val endpointUrl = client.getServiceUrl()
 
         // date equality comparison with precision up to milliseconds
         assertEquals(
-            "https://nom.telemetrydeck.com/api/v1/apps/$appID/signals/multiple/",
+            "https://nom.telemetrydeck.com/v2/",
             endpointUrl.toString()
         )
     }

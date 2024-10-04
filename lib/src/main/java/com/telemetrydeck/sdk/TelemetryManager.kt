@@ -36,7 +36,6 @@ class TelemetryManager(
     ): Result<Unit> {
         return try {
             val client = TelemetryClient(
-                configuration.telemetryAppID,
                 configuration.apiBaseURL,
                 configuration.showDebugLogs,
                 logger
@@ -117,7 +116,6 @@ class TelemetryManager(
     ): Result<Unit> {
         return try {
             val client = TelemetryClient(
-                configuration.telemetryAppID,
                 configuration.apiBaseURL,
                 configuration.showDebugLogs,
                 logger

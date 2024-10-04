@@ -45,12 +45,6 @@ class EnvironmentParameterProvider : TelemetryDeckProvider {
                     "$appVersion (build $buildNumber)"
             }
 
-            // determine the current time zone
-            val timeZoneInfo = getTimeZone(ctx.applicationContext, this.manager?.get()?.debugLogger)
-            if (timeZoneInfo != null) {
-                metadata[Device.TimeZone.paramName] = timeZoneInfo.displayName
-            }
-
         } else {
             this.manager?.get()?.debugLogger?.error("EnvironmentParameterProvider requires a context but received null. Signals will contain incomplete metadata.")
         }

@@ -106,7 +106,7 @@ By default, TelemetryDeck SDK for Kotlin will include the following environment 
 | `TelemetryDeck.Device.screenResolutionHeight`  | `PlatformContextProvider`      |
 | `TelemetryDeck.Device.screenResolutionWidth`   | `PlatformContextProvider`      |
 | `TelemetryDeck.Device.brand`                   | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.timeZone`                | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.timeZone`                | `PlatformContextProvider`      |
 | `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
 | `TelemetryDeck.AppInfo.version`                | `EnvironmentParameterProvider` |
 | `TelemetryDeck.AppInfo.versionAndBuildNumber`  | `EnvironmentParameterProvider` |

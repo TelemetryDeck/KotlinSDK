@@ -108,7 +108,6 @@ class TelemetryDeck(
     ): Result<Unit> {
         return try {
             val client = TelemetryClient(
-                configuration.telemetryAppID,
                 configuration.apiBaseURL,
                 configuration.showDebugLogs,
                 logger

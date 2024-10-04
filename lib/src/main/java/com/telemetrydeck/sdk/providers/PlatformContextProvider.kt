@@ -10,6 +10,7 @@ import com.telemetrydeck.sdk.platform.getAppInstallationInfo
 import com.telemetrydeck.sdk.platform.getDeviceOrientation
 import com.telemetrydeck.sdk.platform.getDisplayMetrics
 import com.telemetrydeck.sdk.platform.getLocaleName
+import com.telemetrydeck.sdk.platform.getTimeZone
 import java.lang.ref.WeakReference
 
 class PlatformContextProvider : TelemetryDeckProvider {
@@ -87,15 +88,21 @@ class PlatformContextProvider : TelemetryDeckProvider {
         // get current display metrics
         val displayMetrics = getDisplayMetrics(ctx, this.manager?.get()?.debugLogger)
         if (displayMetrics != null) {
-            attributes[Device.ScreenWidth.paramName] = "$displayMetrics.width"
-            attributes[Device.ScreenHeight.paramName] = "$displayMetrics.height"
-            attributes[Device.ScreenDensity.paramName] = "$displayMetrics.density"
+            attributes[Device.ScreenWidth.paramName] = "${displayMetrics.width}"
+            attributes[Device.ScreenHeight.paramName] = "${displayMetrics.height}"
+            attributes[Device.ScreenDensity.paramName] = "${displayMetrics.density}"
         }
 
         // read the default locale
         val localeName: String? = getLocaleName(ctx, this.manager?.get()?.debugLogger)
         if (localeName != null) {
             attributes[RunContext.Locale.paramName] = localeName
+        }
+
+        // determine the current time zone
+        val timeZoneInfo = getTimeZone(ctx, this.manager?.get()?.debugLogger)
+        if (timeZoneInfo != null) {
+            attributes[Device.TimeZone.paramName] = timeZoneInfo.id
         }
 
         return attributes
