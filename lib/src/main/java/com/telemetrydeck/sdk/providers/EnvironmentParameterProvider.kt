@@ -46,7 +46,7 @@ class EnvironmentParameterProvider : TelemetryDeckProvider {
             }
 
             // determine the current time zone
-            val timeZoneInfo = getTimeZone(ctx.applicationContext)
+            val timeZoneInfo = getTimeZone(ctx.applicationContext, this.manager?.get()?.debugLogger)
             if (timeZoneInfo != null) {
                 metadata[Device.TimeZone.paramName] = timeZoneInfo.displayName
             }

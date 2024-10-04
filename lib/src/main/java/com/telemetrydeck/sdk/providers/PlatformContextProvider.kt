@@ -1,20 +1,27 @@
 package com.telemetrydeck.sdk.providers
 
 import android.app.Application
+import android.content.Context
 import com.telemetrydeck.sdk.TelemetryDeckClient
 import com.telemetrydeck.sdk.TelemetryDeckProvider
-import com.telemetrydeck.sdk.platform.getAppInstallationInfo
+import com.telemetrydeck.sdk.params.Device
 import com.telemetrydeck.sdk.params.RunContext
+import com.telemetrydeck.sdk.platform.getAppInstallationInfo
+import com.telemetrydeck.sdk.platform.getDeviceOrientation
+import com.telemetrydeck.sdk.platform.getDisplayMetrics
+import com.telemetrydeck.sdk.platform.getLocaleName
 import java.lang.ref.WeakReference
-import java.util.Locale
 
-class PlatformContextProvider: TelemetryDeckProvider {
+class PlatformContextProvider : TelemetryDeckProvider {
     private var enabled: Boolean = true
     private var manager: WeakReference<TelemetryDeckClient>? = null
+    private var appContext: WeakReference<Context?>? = null
     private var metadata = mutableMapOf<String, String>()
 
     override fun register(ctx: Application?, client: TelemetryDeckClient) {
         this.manager = WeakReference(client)
+        this.appContext = WeakReference(ctx?.applicationContext)
+
         if (ctx == null) {
             this.manager?.get()?.debugLogger?.error("RunContextProvider requires a context but received null. Signals will contain incomplete metadata.")
             this.enabled = false
@@ -25,11 +32,8 @@ class PlatformContextProvider: TelemetryDeckProvider {
             metadata[RunContext.TargetEnvironment.paramName] = android.os.Build.DEVICE
         }
 
-        // read the default locale
-        metadata[RunContext.Locale.paramName] = Locale.getDefault().displayName
-
         // determine if the app was installed by a trusted marketplace
-        val appInfo = getAppInstallationInfo(ctx)
+        val appInfo = getAppInstallationInfo(ctx, this.manager?.get()?.debugLogger)
         if (appInfo != null) {
             metadata[RunContext.IsSideLoaded.paramName] = "${appInfo.isSideLoaded}"
             if (appInfo.sourceMarketPlace != null) {
@@ -56,6 +60,45 @@ class PlatformContextProvider: TelemetryDeckProvider {
                 signalPayload[item.key] = item.value
             }
         }
+
+        for (item in getDynamicAttributes()) {
+            if (!signalPayload.containsKey(item.key)) {
+                signalPayload[item.key] = item.value
+            }
+        }
         return signalPayload
     }
+
+    // TODO: Use onConfigurationChanged instead
+
+    private fun getDynamicAttributes(): Map<String, String> {
+        val ctx = this.appContext?.get()
+            ?: // can't read without a context!
+            return emptyMap()
+
+        val attributes = mutableMapOf<String, String>()
+
+        // get current orientation
+        val deviceOrientation = getDeviceOrientation(ctx, this.manager?.get()?.debugLogger)
+        if (deviceOrientation != null) {
+            attributes[Device.Orientation.paramName] = deviceOrientation.orientationName
+        }
+
+        // get current display metrics
+        val displayMetrics = getDisplayMetrics(ctx, this.manager?.get()?.debugLogger)
+        if (displayMetrics != null) {
+            attributes[Device.ScreenWidth.paramName] = "$displayMetrics.width"
+            attributes[Device.ScreenHeight.paramName] = "$displayMetrics.height"
+            attributes[Device.ScreenDensity.paramName] = "$displayMetrics.density"
+        }
+
+        // read the default locale
+        val localeName: String? = getLocaleName(ctx, this.manager?.get()?.debugLogger)
+        if (localeName != null) {
+            attributes[RunContext.Locale.paramName] = localeName
+        }
+
+        return attributes
+    }
+
 }

@@ -101,6 +101,10 @@ By default, TelemetryDeck will include the following environment parameters for 
 | `TelemetryDeck.Device.systemMajorMinorVersion` | `EnvironmentParameterProvider` |
 | `TelemetryDeck.Device.systemMajorVersion`      | `EnvironmentParameterProvider` |
 | `TelemetryDeck.Device.systemVersion`           | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.orientation`             | `PlatformContextProvider`      |
+| `TelemetryDeck.Device.screenDensity`           | `PlatformContextProvider`      |
+| `TelemetryDeck.Device.screenResolutionHeight`  | `PlatformContextProvider`      |
+| `TelemetryDeck.Device.screenResolutionWidth`   | `PlatformContextProvider`      |
 | `TelemetryDeck.Device.brand`                   | `EnvironmentParameterProvider` |
 | `TelemetryDeck.Device.timeZone`                | `EnvironmentParameterProvider` |
 | `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
@@ -113,6 +117,7 @@ By default, TelemetryDeck will include the following environment parameters for 
 | `TelemetryDeck.RunContext.targetEnvironment`   | `PlatformContextProvider`      |
 | `TelemetryDeck.RunContext.isSideLoaded`        | `PlatformContextProvider`      |
 | `TelemetryDeck.RunContext.sourceMarketplace`   | `PlatformContextProvider`      |
+
 
 See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
@@ -182,6 +187,7 @@ You can also completely disable or override the default providers with your own.
 - `SessionAppProvider` - Emits signals for application and activity lifecycle events. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
 - `SessionActivityProvider` - Emits signals for application and activity lifecycle events. This provider is not enabled by default.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
+- `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
 
 ```kotlin
 // Append a custom provider

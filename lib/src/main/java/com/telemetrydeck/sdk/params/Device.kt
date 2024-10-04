@@ -16,4 +16,8 @@ internal enum class Device(val paramName: String) {
     SystemVersion("TelemetryDeck.Device.systemVersion"),
     Brand("TelemetryDeck.Device.brand"),
     TimeZone("TelemetryDeck.Device.timeZone"),
+    Orientation("TelemetryDeck.Device.orientation"),
+    ScreenDensity("TelemetryDeck.Device.screenDensity"),
+    ScreenHeight("TelemetryDeck.Device.screenResolutionHeight"),
+    ScreenWidth("TelemetryDeck.Device.screenResolutionWidth")
 }
