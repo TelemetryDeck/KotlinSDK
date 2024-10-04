@@ -34,6 +34,7 @@ class TelemetryDeckInitProvider : ContentProvider() {
                     builder.configuration(metadata.config)
                     TelemetryManager.start(appContext, builder)
                 }
+
                 TelemetryDeckManifestVersion.V2 -> {
                     val builder = TelemetryDeck.Builder()
                     builder.configuration(metadata.config)

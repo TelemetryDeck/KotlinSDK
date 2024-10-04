@@ -10,7 +10,10 @@ import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
-@Deprecated("Use TelemetryDeck instead", ReplaceWith("TelemetryDeck", "com.telemetrydeck.sdk.TelemetryDeck"))
+@Deprecated(
+    "Use TelemetryDeck instead",
+    ReplaceWith("TelemetryDeck", "com.telemetrydeck.sdk.TelemetryDeck")
+)
 class TelemetryManager(
     val configuration: TelemetryManagerConfiguration,
     val providers: List<TelemetryProvider> = listOf(

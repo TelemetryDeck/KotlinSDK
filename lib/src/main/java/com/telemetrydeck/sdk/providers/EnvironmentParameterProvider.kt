@@ -6,10 +6,10 @@ import com.telemetrydeck.sdk.BuildConfig
 import com.telemetrydeck.sdk.ManifestMetadataReader
 import com.telemetrydeck.sdk.TelemetryDeckClient
 import com.telemetrydeck.sdk.TelemetryDeckProvider
-import com.telemetrydeck.sdk.platform.getTimeZone
 import com.telemetrydeck.sdk.params.AppInfo
 import com.telemetrydeck.sdk.params.Device
 import com.telemetrydeck.sdk.params.SDK
+import com.telemetrydeck.sdk.platform.getTimeZone
 import java.lang.ref.WeakReference
 
 /**
@@ -85,7 +85,7 @@ class EnvironmentParameterProvider : TelemetryDeckProvider {
         if (android.os.Build.BRAND != null) {
             metadata[Device.Brand.paramName] = android.os.Build.BRAND
         }
-       if (android.os.Build.MODEL != null && android.os.Build.PRODUCT != null) {
+        if (android.os.Build.MODEL != null && android.os.Build.PRODUCT != null) {
             metadata[Device.ModelName.paramName] =
                 "${android.os.Build.MODEL} (${android.os.Build.PRODUCT})"
         }
@@ -95,9 +95,10 @@ class EnvironmentParameterProvider : TelemetryDeckProvider {
 
         // SDK Metadata
         metadata[SDK.Name.paramName] = sdkName
-        // TODO: create a build property to pass the maven coordinates of the library
+
         metadata[SDK.Version.paramName] = BuildConfig.LIBRARY_PACKAGE_NAME
         metadata[SDK.NameAndVersion.paramName] = "$sdkName ${BuildConfig.LIBRARY_PACKAGE_NAME}"
+        metadata[SDK.BuildType.paramName] = BuildConfig.BUILD_TYPE
 
         this.enabled = true
     }

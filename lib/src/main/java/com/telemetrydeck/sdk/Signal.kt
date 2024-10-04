@@ -1,7 +1,8 @@
 package com.telemetrydeck.sdk
 
 import kotlinx.serialization.Serializable
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 @Serializable
 data class Signal(
@@ -50,5 +51,10 @@ data class Signal(
      */
     var floatValue: Double? = null
 ) {
-    constructor(appID: UUID, signalType: String, clientUser: String, payload: SignalPayload) : this(appID=appID, type=signalType, clientUser = clientUser, payload = payload.asMultiValueDimension)
+    constructor(appID: UUID, signalType: String, clientUser: String, payload: SignalPayload) : this(
+        appID = appID,
+        type = signalType,
+        clientUser = clientUser,
+        payload = payload.asMultiValueDimension
+    )
 }

@@ -85,7 +85,7 @@ TelemetryDeck.signal("appLaunchedRegularly")
 
 ### Environment Parameters
 
-By default, TelemetryDeck will include the following environment parameters for each outgoing signal
+By default, TelemetryDeck SDK for Kotlin will include the following environment parameters for each outgoing signal
 
 
 | Signal name                                    | Provider                       |
@@ -113,6 +113,7 @@ By default, TelemetryDeck will include the following environment parameters for 
 | `TelemetryDeck.SDK.name`                       | `EnvironmentParameterProvider` |
 | `TelemetryDeck.SDK.version`                    | `EnvironmentParameterProvider` |
 | `TelemetryDeck.SDK.nameAndVersion`             | `EnvironmentParameterProvider` |
+| `TelemetryDeck.SDK.buildType`                  | `EnvironmentParameterProvider` |
 | `TelemetryDeck.RunContext.locale`              | `PlatformContextProvider`      |
 | `TelemetryDeck.RunContext.targetEnvironment`   | `PlatformContextProvider`      |
 | `TelemetryDeck.RunContext.isSideLoaded`        | `PlatformContextProvider`      |

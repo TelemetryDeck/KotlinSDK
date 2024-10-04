@@ -1,7 +1,7 @@
 package com.telemetrydeck.sdk
 
 import java.net.URL
-import java.util.*
+import java.util.UUID
 
 
 data class TelemetryManagerConfiguration(
@@ -65,5 +65,5 @@ data class TelemetryManagerConfiguration(
      * */
     var salt: String? = null,
 ) {
-    constructor(telemetryAppID: String): this(telemetryAppID=UUID.fromString(telemetryAppID))
+    constructor(telemetryAppID: String) : this(telemetryAppID = UUID.fromString(telemetryAppID))
 }

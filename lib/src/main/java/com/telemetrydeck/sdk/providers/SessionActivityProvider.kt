@@ -14,7 +14,7 @@ import java.lang.ref.WeakReference
 /**
  * Emits signals for application and activity lifecycle events.
  */
-class SessionActivityProvider: TelemetryDeckProvider,
+class SessionActivityProvider : TelemetryDeckProvider,
     Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryDeckClient>? = null
 

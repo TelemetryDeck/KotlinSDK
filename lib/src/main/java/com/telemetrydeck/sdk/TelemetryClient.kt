@@ -1,18 +1,21 @@
 package com.telemetrydeck.sdk
 
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import java.net.URL
-import java.util.*
+import java.util.UUID
 
 /**
  * The HTTP client to communicate with TelemetryDeck's API

@@ -24,9 +24,11 @@ interface TelemetryProvider {
      *
      * TelemetryManager calls this method all providers in order of registration.
      */
-    fun enrich(signalType: String,
-               clientUser: String? = null,
-               additionalPayload: Map<String, String> = emptyMap()): Map<String, String> {
+    fun enrich(
+        signalType: String,
+        clientUser: String? = null,
+        additionalPayload: Map<String, String> = emptyMap()
+    ): Map<String, String> {
         return additionalPayload
     }
 }

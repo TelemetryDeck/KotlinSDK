@@ -7,11 +7,13 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.core.content.pm.PackageInfoCompat
 import java.net.URL
-import java.util.*
+import java.util.UUID
 
 
-
-internal data class ManifestMetadata(val config: TelemetryManagerConfiguration, val version: TelemetryDeckManifestVersion)
+internal data class ManifestMetadata(
+    val config: TelemetryManagerConfiguration,
+    val version: TelemetryDeckManifestVersion
+)
 
 internal class ManifestMetadataReader {
     companion object {
@@ -44,7 +46,7 @@ internal class ManifestMetadataReader {
 
         private fun getPackageInfo(context: Context): PackageInfo? {
             return try {
-                 context.packageManager.getPackageInfo(context.packageName, 0)
+                context.packageManager.getPackageInfo(context.packageName, 0)
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
                 null
@@ -63,12 +65,16 @@ internal class ManifestMetadataReader {
          * Creates an instance of TelemetryManagerConfiguration by reading the manifest.
          * This method is to be used after the grand rename.
          */
-        private fun getGrandRenameConfigurationFromManifest(context: Context, bundle: Bundle): TelemetryManagerConfiguration? {
+        private fun getGrandRenameConfigurationFromManifest(
+            context: Context,
+            bundle: Bundle
+        ): TelemetryManagerConfiguration? {
             val appID = bundle.getString(TelemetryDeckManifestSettings.AppID.key) ?: return null
             val config = TelemetryManagerConfiguration(appID)
 
             if (bundle.containsKey(TelemetryDeckManifestSettings.ShowDebugLogs.key)) {
-                config.showDebugLogs = bundle.getBoolean(TelemetryDeckManifestSettings.ShowDebugLogs.key)
+                config.showDebugLogs =
+                    bundle.getBoolean(TelemetryDeckManifestSettings.ShowDebugLogs.key)
             }
 
             val apiBaseUrl = bundle.getString(TelemetryDeckManifestSettings.ApiBaseURL.key)
@@ -77,7 +83,8 @@ internal class ManifestMetadataReader {
             }
 
             if (bundle.containsKey(TelemetryDeckManifestSettings.SendNewSessionBeganSignal.key)) {
-                config.sendNewSessionBeganSignal = bundle.getBoolean(TelemetryDeckManifestSettings.SendNewSessionBeganSignal.key)
+                config.sendNewSessionBeganSignal =
+                    bundle.getBoolean(TelemetryDeckManifestSettings.SendNewSessionBeganSignal.key)
             }
 
             val sessionID = bundle.getString(TelemetryDeckManifestSettings.SessionID.key)
@@ -88,16 +95,17 @@ internal class ManifestMetadataReader {
             if (bundle.containsKey(TelemetryDeckManifestSettings.TestMode.key)) {
                 config.testMode = bundle.getBoolean(TelemetryDeckManifestSettings.TestMode.key)
             } else {
-                config.testMode = 0 != (context.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
+                config.testMode =
+                    0 != (context.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
             }
 
             val defaultUser = bundle.getString(TelemetryDeckManifestSettings.DefaultUser.key)
-            if(defaultUser != null) {
+            if (defaultUser != null) {
                 config.defaultUser = defaultUser
             }
 
             val salt = bundle.getString(TelemetryDeckManifestSettings.Salt.key)
-            if(salt != null) {
+            if (salt != null) {
                 config.salt = salt
             }
 
@@ -107,7 +115,10 @@ internal class ManifestMetadataReader {
         /**
          * Creates an instance of TelemetryManagerConfiguration by reading the manifest.
          */
-        private fun getConfigurationFromManifest(context: Context, bundle: Bundle): TelemetryManagerConfiguration? {
+        private fun getConfigurationFromManifest(
+            context: Context,
+            bundle: Bundle
+        ): TelemetryManagerConfiguration? {
             val appID = bundle.getString(ManifestSettings.AppID.key) ?: return null
             val config = TelemetryManagerConfiguration(appID)
 
@@ -121,7 +132,8 @@ internal class ManifestMetadataReader {
             }
 
             if (bundle.containsKey(ManifestSettings.SendNewSessionBeganSignal.key)) {
-                config.sendNewSessionBeganSignal = bundle.getBoolean(ManifestSettings.SendNewSessionBeganSignal.key)
+                config.sendNewSessionBeganSignal =
+                    bundle.getBoolean(ManifestSettings.SendNewSessionBeganSignal.key)
             }
 
             val sessionID = bundle.getString(ManifestSettings.SessionID.key)
@@ -132,16 +144,17 @@ internal class ManifestMetadataReader {
             if (bundle.containsKey(ManifestSettings.TestMode.key)) {
                 config.testMode = bundle.getBoolean(ManifestSettings.TestMode.key)
             } else {
-                config.testMode = 0 != (context.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
+                config.testMode =
+                    0 != (context.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_DEBUGGABLE
             }
 
             val defaultUser = bundle.getString(ManifestSettings.DefaultUser.key)
-            if(defaultUser != null) {
+            if (defaultUser != null) {
                 config.defaultUser = defaultUser
             }
 
             val salt = bundle.getString(ManifestSettings.Salt.key)
-            if(salt != null) {
+            if (salt != null) {
                 config.salt = salt
             }
 

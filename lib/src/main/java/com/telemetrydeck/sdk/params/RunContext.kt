@@ -1,11 +1,13 @@
 package com.telemetrydeck.sdk.params
 
 
-//"TelemetryDeck.RunContext.isDebug": "\(Self.isDebug)",
-//"TelemetryDeck.RunContext.isSimulator": "\(Self.isSimulator)",
-//"TelemetryDeck.RunContext.isTestFlight": "\(Self.isTestFlight)",
-//"TelemetryDeck.RunContext.language": Self.appLanguage,
-//"TelemetryDeck.RunContext.targetEnvironment": Self.targetEnvironment,
+// The following are not provided by the Kotlin SDK:
+// TelemetryDeck.RunContext.isDebug
+// TelemetryDeck.RunContext.isSimulator
+// TelemetryDeck.RunContext.isTestFlight
+// TelemetryDeck.RunContext.language
+// TelemetryDeck.UserPreference.language
+// TelemetryDeck.UserPreference.region
 
 internal enum class RunContext(val paramName: String) {
     Locale("TelemetryDeck.RunContext.locale"),

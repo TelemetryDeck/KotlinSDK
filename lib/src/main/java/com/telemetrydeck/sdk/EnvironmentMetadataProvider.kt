@@ -2,12 +2,18 @@ package com.telemetrydeck.sdk
 
 import android.app.Application
 import android.icu.util.VersionInfo
-import java.util.*
+import java.util.Locale
 
 /**
  * Adds environment and device information to outgoing Signals.
  */
-@Deprecated("Use EnvironmentParameterProvider", ReplaceWith("EnvironmentParameterProvider", "com.telemetrydeck.sdk.providers.EnvironmentParameterProvider"))
+@Deprecated(
+    "Use EnvironmentParameterProvider",
+    ReplaceWith(
+        "EnvironmentParameterProvider",
+        "com.telemetrydeck.sdk.providers.EnvironmentParameterProvider"
+    )
+)
 class EnvironmentMetadataProvider : TelemetryProvider {
     private var enabled: Boolean = true
     private var metadata = mutableMapOf<String, String>()
@@ -40,7 +46,8 @@ class EnvironmentMetadataProvider : TelemetryProvider {
             } else {
                 val versionInfo = release.split(".")
                 metadata["majorSystemVersion"] = versionInfo.elementAtOrNull(0) ?: "0"
-                metadata["majorMinorSystemVersion"] = "${versionInfo.elementAtOrNull(0) ?: "0"}.${versionInfo.elementAtOrNull(1) ?: "0"}"
+                metadata["majorMinorSystemVersion"] =
+                    "${versionInfo.elementAtOrNull(0) ?: "0"}.${versionInfo.elementAtOrNull(1) ?: "0"}"
             }
         }
 

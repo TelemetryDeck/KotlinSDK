@@ -11,7 +11,10 @@ import java.lang.ref.WeakReference
 /**
  * Emits signals for application and activity lifecycle events.
  */
-@Deprecated("Use SessionAppProvider", ReplaceWith("SessionAppProvider", "com.telemetrydeck.sdk.providers.SessionAppProvider"))
+@Deprecated(
+    "Use SessionAppProvider",
+    ReplaceWith("SessionAppProvider", "com.telemetrydeck.sdk.providers.SessionAppProvider")
+)
 class AppLifecycleTelemetryProvider : TelemetryProvider,
     Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryManager>? = null

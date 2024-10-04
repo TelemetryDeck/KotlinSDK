@@ -3,10 +3,10 @@ package com.telemetrydeck.sdk
 import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
-import com.telemetrydeck.sdk.providers.SessionAppProvider
 import com.telemetrydeck.sdk.params.Navigation
+import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
+import com.telemetrydeck.sdk.providers.SessionAppProvider
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -17,7 +17,7 @@ import kotlin.Result.Companion.success
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
     val providers: List<TelemetryDeckProvider>
-): TelemetryDeckClient, TelemetryDeckSignalProcessor {
+) : TelemetryDeckClient, TelemetryDeckSignalProcessor {
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
     private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
@@ -46,7 +46,11 @@ class TelemetryDeck(
             Navigation.DestinationPath.paramName to destinationPath
         )
 
-        signal(com.telemetrydeck.sdk.signals.Navigation.PathChanged.signalName, params = params, customUserID = clientUser)
+        signal(
+            com.telemetrydeck.sdk.signals.Navigation.PathChanged.signalName,
+            params = params,
+            customUserID = clientUser
+        )
     }
 
     override fun navigate(destinationPath: String, clientUser: String?) {
@@ -83,12 +87,14 @@ class TelemetryDeck(
     }
 
     override fun signal(signalName: String, customUserID: String?, params: Map<String, String>) {
-        cache?.add(createSignal(
-            signalType = signalName,
-            clientUser = customUserID,
-            additionalPayload = params,
-            floatValue = null
-        ))
+        cache?.add(
+            createSignal(
+                signalType = signalName,
+                clientUser = customUserID,
+                additionalPayload = params,
+                floatValue = null
+            )
+        )
     }
 
     private suspend fun send(
@@ -268,7 +274,11 @@ class TelemetryDeck(
             customUserID: String?,
             params: Map<String, String>
         ) {
-            getInstance()?.signal(signalName = signalName, customUserID = customUserID, params = params)
+            getInstance()?.signal(
+                signalName = signalName,
+                customUserID = customUserID,
+                params = params
+            )
         }
 
         override val signalCache: SignalCache?

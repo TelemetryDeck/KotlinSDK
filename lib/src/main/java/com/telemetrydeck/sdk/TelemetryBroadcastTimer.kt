@@ -1,10 +1,16 @@
 package com.telemetrydeck.sdk
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ticker
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-internal class TelemetryBroadcastTimer(private val manager: WeakReference<TelemetryDeckSignalProcessor>, debugLogger: WeakReference<DebugLogger>) {
+internal class TelemetryBroadcastTimer(
+    private val manager: WeakReference<TelemetryDeckSignalProcessor>,
+    debugLogger: WeakReference<DebugLogger>
+) {
 
     // broadcast begins with a 10s delay after initialization and fires every 10s.
     private val timerChannel = ticker(delayMillis = 10_000, initialDelayMillis = 10_000)
@@ -13,6 +19,7 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
     init {
         this.logger = debugLogger.get()
     }
+
     private var job: Job? = null
 
     fun start() {
@@ -32,7 +39,7 @@ internal class TelemetryBroadcastTimer(private val manager: WeakReference<Teleme
                         continue
                     }
 
-                    val signals =  cache.empty()
+                    val signals = cache.empty()
                     if (signals.isEmpty()) {
                         // no signals to broadcast
                         logger?.debug("Signal cache is empty, no signals to broadcast")

@@ -13,7 +13,7 @@ import java.lang.ref.WeakReference
 /**
  * Monitors the app lifecycle in order to broadcast the NewSessionBegan signal.
  */
-class SessionAppProvider: TelemetryDeckProvider, DefaultLifecycleObserver {
+class SessionAppProvider : TelemetryDeckProvider, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryDeckClient>? = null
 
     override fun register(ctx: Application?, client: TelemetryDeckClient) {

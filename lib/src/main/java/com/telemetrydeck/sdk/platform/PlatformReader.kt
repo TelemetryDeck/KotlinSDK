@@ -70,6 +70,7 @@ internal fun getDeviceOrientation(context: Context, logger: DebugLogger?): Devic
             android.content.res.Configuration.ORIENTATION_PORTRAIT -> DeviceOrientation.Portrait
             @Suppress("DEPRECATION")
             android.content.res.Configuration.ORIENTATION_SQUARE -> DeviceOrientation.Square
+
             else -> DeviceOrientation.Unknown
         }
     } catch (e: Exception) {
