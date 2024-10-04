@@ -166,7 +166,6 @@ class TelemetryDeck(
     companion object : TelemetryDeckClient {
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
             get() = listOf(
-                SessionActivityProvider(),
                 SessionAppProvider(),
                 EnvironmentParameterProvider()
             )

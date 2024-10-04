@@ -49,7 +49,7 @@ The TelemetryDeck can be initialized automatically by adding the application key
 <application>
 ...
 
-<meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+<meta-data android:name="com.telemetrydeck.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
 
 </application>
 ```
@@ -58,12 +58,12 @@ Replace `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX` with your TelemetryDeck App ID.
 
 In addition, the following optional properties are supported:
 
-- `com.telemetrydeck.sdk.showDebugLogs`
-- `com.telemetrydeck.sdk.apiBaseURL`
-- `com.telemetrydeck.sdk.sendNewSessionBeganSignal`
-- `com.telemetrydeck.sdk.sessionID`
-- `com.telemetrydeck.sdk.testMode`
-- `com.telemetrydeck.sdk.defaultUser`
+- `com.telemetrydeck.showDebugLogs`
+- `com.telemetrydeck.apiBaseURL`
+- `com.telemetrydeck.sendNewSessionBeganSignal`
+- `com.telemetrydeck.sessionID`
+- `com.telemetrydeck.testMode`
+- `com.telemetrydeck.defaultUser`
 
 ### Programmatic Usage
 
@@ -89,24 +89,26 @@ TelemetryDeck.send("appLaunchedRegularly")
 To enqueue a signal to be sent by TelemetryDeck at a later time
 
 ```kotlin
-TelemetryDeck.queue("appLaunchedRegularly")
+TelemetryDeck.signal("appLaunchedRegularly")
 ```
 
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryProvider`. A provider maintains a reference to the TelemetryDeck client in order to queue or send signals based on environment or other triggers.
+Another way to send signals is to register a custom `TelemetryDeckProvider`.
+A provider uses the TelemetryDeck client in order to queue or send signals based on environment or other triggers.
 
 
-To create a provider, implement the `TelemetryProvider` interface:
+To create a provider, implement the `TelemetryDeckProvider` interface:
 
 ```kotlin
-class CustomProvider: TelemetryProvider {
+class CustomProvider: TelemetryDeckProvider {
     override fun register(ctx: Application?, client: TelemetryDeckClient) {
         // configure and start the provider
+        // you may retain a WeakReference to client 
     }
 
     override fun stop() {
-        // deactivate the provider
+        // deactivate the provider, perform cleanup work
     }
 }
 ```
@@ -115,18 +117,20 @@ Setup and start the provider during the `register` method.
 
 Tips:
 
-- Do not retain a strong reference to the application context or the TelemetryDeck client instance.
-- You can use `WeakReference<TelemetryDeck>` if you need to be able to call the TelemetryDeck at a later time.
+- Do not retain a strong reference to the application context or TelemetryDeckClient instance.
+- You can use `WeakReference<TelemetryDeckClient>` if you need to be able to call the TelemetryDeck at a later time.
 
 To use your custom provider, register it by calling `addProvider` using the `TelemetryDeck.Builder` :
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
-            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
-            .addProvider(CustomProvider())
+            //    ...
+            .addProvider(CustomProvider()) // <-- Your custom provider
 ```
 
-In the implementation of your custom `TelemetryProvider`, we offer a callback function where you can append additional payload attributes to the signal. The `enrich` call is made right before sending the signal:
+Every time the SDK is about to send signals to our servers, the `enrich` method of every provider will be invoked to give you the opportunity to append additional parameters.
+
+In the implementation of your custom `TelemetryDeckProvider`, you can override the `enrich` method:
 
 ```kotlin
 override fun enrich(
@@ -146,33 +150,83 @@ override fun enrich(
     }
 ```
 
-We use providers internally to provide lifecycle and environment integration out of the box. Feel free to examine how they work and inspire your own implementations. You can also completely disable or override the default providers with your own.
+We use providers internally to provide lifecycle and environment integration out of the box.
+Feel free to examine how they work and inspire your own implementations.
 
-- `SessionProvider` - Monitors the app lifecycle in order to broadcast the NewSessionBegan signal. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
-- `AppLifecycleTelemetryProvider` - Emits signals for application and activity lifecycle events.
-- `EnvironmentMetadataProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
+You can also completely disable or override the default providers with your own.
+
+- `SessionAppProvider` - Emits signals for application and activity lifecycle events. This provider is tasked with resetting the sessionID when `sendNewSessionBeganSignal` is enabled.
+- `SessionActivityProvider` - Emits signals for application and activity lifecycle events. This provider is not enabled by default.
+- `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 
 ```kotlin
 // Append a custom provider
 val builder = TelemetryDeck.Builder()
-           .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+           //    ...
            .addProvider(CustomProvider())
 
 
 // Replace all default providers
 val builder = TelemetryDeck.Builder()
-            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            //    ...
             .providers(listOf(CustomProvider(), AnotherProvider()))
 ```
 
 
 ### Migrating providers to 3.0+
 
-To adapt to the updated `TelemetryProvider` interface, please perform the following changes:
+If you had TelemetryDeck SDK for Kotlin added to your app, you will notice that `TelemetryManager` and related classes have been deprecated.
+You can read more about the motivation behind these changes [here](https://telemetrydeck.com/docs/articles/grand-rename/).
+
+To upgrade, please perform the following changes depending on how you use TelemetryDeck SDK.
+
+#### Using the application manifest
+
+* Adapt the manifest of your app and rename all keys from `com.telemetrydeck.sdk.*` to `com.telemetrydeck.*` for example:
+
+Before:
+```xml
+<meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+```
+
+After:
+```xml
+<meta-data android:name="com.telemetrydeck.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+```
+
+* In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
+* If you were using `send()` to send signals, no further changes are needed!
+* If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
+
+#### Programmatic Usage
+
+* In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
+* If you were using `send()` to send signals, no further changes are needed!
+* If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
+* If you had a custom provider configuration, please replace the corresponding providers as follows:
+
+| Provider (old name)             | Provider (new, 3.0+)                            |
+|---------------------------------|-------------------------------------------------|
+| `AppLifecycleTelemetryProvider` | `SessionAppProvider`, `SessionActivityProvider` |
+| `SessionProvider`               | `SessionAppProvider`                            |
+| `EnvironmentMetadataProvider`   | `EnvironmentParameterProvider`                  |
+
+
+#### Custom Telemetry
+
+
+Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvider`.
+
+To adopt the new interface:
 
 * Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckClient)`
-* To access the logger, use `client.debugLogger`
+
+You now have access to the entire `TelemetryDeckClient` interface:
+
+* To access the logger, use can use `client.debugLogger`
 * To access the signal cache, use `client.signalCache`
+
+
 
 ## Requirements
 
