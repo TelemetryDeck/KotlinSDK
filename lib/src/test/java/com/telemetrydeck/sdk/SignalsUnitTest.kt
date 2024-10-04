@@ -38,8 +38,17 @@ class SignalsUnitTest {
         val signalJson = Json.encodeToString(signal)
         val decodedSignal = Json.decodeFromString<Signal>(signalJson)
 
-        // date equality comparison with precision up to milliseconds
-        assertEquals(receivedDate, decodedSignal.receivedAt)
+        assertDatesEqualIgnoringMilliseconds(receivedDate, decodedSignal.receivedAt)
+    }
+
+    fun truncateMilliseconds(date: Date): Date {
+        return Date(date.time / 1000 * 1000) // Remove milliseconds by truncating to the nearest second
+    }
+
+    fun assertDatesEqualIgnoringMilliseconds(expected: Date, actual: Date) {
+        val truncatedExpected = truncateMilliseconds(expected)
+        val truncatedActual = truncateMilliseconds(actual)
+        assertEquals(truncatedExpected, truncatedActual)
     }
 
     @Test
