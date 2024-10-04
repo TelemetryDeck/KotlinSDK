@@ -5,7 +5,8 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.SessionAppProvider
-import com.telemetrydeck.sdk.signals.Navigation
+import com.telemetrydeck.sdk.params.Navigation
+import com.telemetrydeck.sdk.providers.PlatformContextProvider
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -15,9 +16,7 @@ import kotlin.Result.Companion.success
 
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
-    val providers: List<TelemetryDeckProvider> = listOf(
-       SessionAppProvider()
-    )
+    val providers: List<TelemetryDeckProvider>
 ): TelemetryDeckClient, TelemetryDeckSignalProcessor {
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
@@ -41,13 +40,13 @@ class TelemetryDeck(
         navigationStatus.applyDestination(destinationPath)
 
         val params: Map<String, String> = mapOf(
-            Navigation.SchemaVersion.signalName to "1",
-            Navigation.Identifier.signalName to "$sourcePath -> $destinationPath",
-            Navigation.SourcePath.signalName to sourcePath,
-            Navigation.DestinationPath.signalName to destinationPath
+            Navigation.SchemaVersion.paramName to "1",
+            Navigation.Identifier.paramName to "$sourcePath -> $destinationPath",
+            Navigation.SourcePath.paramName to sourcePath,
+            Navigation.DestinationPath.paramName to destinationPath
         )
 
-        signal(SignalType.TelemetryDeckNavigationPathChanged.type, params = params, customUserID = clientUser)
+        signal(com.telemetrydeck.sdk.signals.Navigation.PathChanged.signalName, params = params, customUserID = clientUser)
     }
 
     override fun navigate(destinationPath: String, clientUser: String?) {
@@ -164,7 +163,8 @@ class TelemetryDeck(
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
             get() = listOf(
                 SessionAppProvider(),
-                EnvironmentParameterProvider()
+                EnvironmentParameterProvider(),
+                PlatformContextProvider()
             )
 
         // TelemetryManager singleton

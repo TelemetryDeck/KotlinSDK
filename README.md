@@ -102,14 +102,17 @@ By default, TelemetryDeck will include the following environment parameters for 
 | `TelemetryDeck.Device.systemMajorVersion`      | `EnvironmentParameterProvider` |
 | `TelemetryDeck.Device.systemVersion`           | `EnvironmentParameterProvider` |
 | `TelemetryDeck.Device.brand`                   | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.timeZone`                | `EnvironmentParameterProvider` |
 | `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
 | `TelemetryDeck.AppInfo.version`                | `EnvironmentParameterProvider` |
 | `TelemetryDeck.AppInfo.versionAndBuildNumber`  | `EnvironmentParameterProvider` |
-| `TelemetryDeck.RunContext.locale`              | `EnvironmentParameterProvider` |
-| `TelemetryDeck.RunContext.targetEnvironment`   | `EnvironmentParameterProvider` |
 | `TelemetryDeck.SDK.name`                       | `EnvironmentParameterProvider` |
 | `TelemetryDeck.SDK.version`                    | `EnvironmentParameterProvider` |
 | `TelemetryDeck.SDK.nameAndVersion`             | `EnvironmentParameterProvider` |
+| `TelemetryDeck.RunContext.locale`              | `PlatformContextProvider`      |
+| `TelemetryDeck.RunContext.targetEnvironment`   | `PlatformContextProvider`      |
+| `TelemetryDeck.RunContext.isSideLoaded`        | `PlatformContextProvider`      |
+| `TelemetryDeck.RunContext.sourceMarketplace`   | `PlatformContextProvider`      |
 
 See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
@@ -247,11 +250,11 @@ After:
 * If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
 * If you had a custom provider configuration, please replace the corresponding providers as follows:
 
-| Provider (old name)             | Provider (new, 3.0+)                            |
-|---------------------------------|-------------------------------------------------|
-| `AppLifecycleTelemetryProvider` | `SessionAppProvider`, `SessionActivityProvider` |
-| `SessionProvider`               | `SessionAppProvider`                            |
-| `EnvironmentMetadataProvider`   | `EnvironmentParameterProvider`                  |
+| Provider (old name)             | Provider (new, 3.0+)                                      |
+|---------------------------------|-----------------------------------------------------------|
+| `AppLifecycleTelemetryProvider` | `SessionAppProvider`, `SessionActivityProvider`           |
+| `SessionProvider`               | `SessionAppProvider`                                      |
+| `EnvironmentMetadataProvider`   | `EnvironmentParameterProvider`, `PlatformContextProvider` |
 
 
 > [!TIP]
