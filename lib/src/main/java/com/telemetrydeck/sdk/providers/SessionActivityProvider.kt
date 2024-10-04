@@ -35,62 +35,62 @@ class SessionActivityProvider: TelemetryDeckProvider,
 
     override fun onActivityCreated(p0: Activity, p1: Bundle?) {
         manager?.get()?.signal(
-            SignalType.ActivityCreated,
+            SignalType.ActivityCreated.type,
             mapOf("activity" to p0.localClassName)
         )
     }
 
     override fun onActivityStarted(p0: Activity) {
         manager?.get()?.signal(
-            SignalType.ActivityStarted,
+            SignalType.ActivityStarted.type,
             mapOf("activity" to p0.localClassName)
         )
     }
 
     override fun onActivityResumed(p0: Activity) {
         manager?.get()?.signal(
-            SignalType.ActivityResumed,
+            SignalType.ActivityResumed.type,
             mapOf("activity" to p0.localClassName)
         )
     }
 
     override fun onActivityPaused(p0: Activity) {
         manager?.get()?.signal(
-            SignalType.ActivityPaused,
+            SignalType.ActivityPaused.type,
             mapOf("activity" to p0.localClassName)
         )
     }
 
     override fun onActivityStopped(p0: Activity) {
         manager?.get()?.signal(
-            SignalType.ActivityStopped,
+            SignalType.ActivityStopped.type,
             mapOf("activity" to p0.localClassName)
         )
     }
 
     override fun onActivitySaveInstanceState(p0: Activity, p1: Bundle) {
         manager?.get()?.signal(
-            SignalType.ActivitySaveInstanceState,
+            SignalType.ActivitySaveInstanceState.type,
             mapOf("activity" to p0.localClassName)
         )
     }
 
     override fun onActivityDestroyed(p0: Activity) {
         manager?.get()?.signal(
-            SignalType.ActivityDestroyed,
+            SignalType.ActivityDestroyed.type,
             mapOf("activity" to p0.localClassName)
         )
     }
 
     override fun onStart(owner: LifecycleOwner) {
         manager?.get()?.signal(
-            SignalType.AppForeground
+            SignalType.AppForeground.type
         )
     }
 
     override fun onStop(owner: LifecycleOwner) {
         manager?.get()?.signal(
-            SignalType.AppBackground
+            SignalType.AppBackground.type
         )
     }
 }

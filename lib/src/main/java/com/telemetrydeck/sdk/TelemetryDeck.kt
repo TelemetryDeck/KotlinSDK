@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.SessionAppProvider
+import com.telemetrydeck.sdk.signals.Navigation
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -39,14 +40,14 @@ class TelemetryDeck(
     override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
         navigationStatus.applyDestination(destinationPath)
 
-        val payload: Map<String, String> = mapOf(
-            PayloadParameters.TelemetryDeckNavigationSchemaVersion.type to "1",
-            PayloadParameters.TelemetryDeckNavigationIdentifier.type to "$sourcePath -> $destinationPath",
-            PayloadParameters.TelemetryDeckNavigationSourcePath.type to sourcePath,
-            PayloadParameters.TelemetryDeckNavigationDestinationPath.type to destinationPath
+        val params: Map<String, String> = mapOf(
+            Navigation.SchemaVersion.signalName to "1",
+            Navigation.Identifier.signalName to "$sourcePath -> $destinationPath",
+            Navigation.SourcePath.signalName to sourcePath,
+            Navigation.DestinationPath.signalName to destinationPath
         )
 
-        signal(SignalType.TelemetryDeckNavigationPathChanged.type, params = payload, customUserID = clientUser)
+        signal(SignalType.TelemetryDeckNavigationPathChanged.type, params = params, customUserID = clientUser)
     }
 
     override fun navigate(destinationPath: String, clientUser: String?) {
@@ -56,17 +57,10 @@ class TelemetryDeck(
     override suspend fun send(
         signalType: String,
         clientUser: String?,
-        additionalPayload: Map<String, String>
+        additionalPayload: Map<String, String>,
+        floatValue: Double?
     ): Result<Unit> {
-        return send(createSignal(signalType, clientUser, additionalPayload))
-    }
-
-    override suspend fun send(
-        signalType: SignalType,
-        clientUser: String?,
-        additionalPayload: Map<String, String>
-    ): Result<Unit> {
-        return send(signalType.type, clientUser, additionalPayload)
+        return send(createSignal(signalType, clientUser, additionalPayload, floatValue))
     }
 
     override suspend fun sendAll(signals: List<Signal>): Result<Unit> {
@@ -79,21 +73,23 @@ class TelemetryDeck(
         floatValue: Double?,
         customUserID: String?
     ) {
-        // TODO: floatValue
-        cache?.add(createSignal(signalType = signalName, clientUser = customUserID, additionalPayload = params))
+        cache?.add(
+            createSignal(
+                signalType = signalName,
+                clientUser = customUserID,
+                additionalPayload = params,
+                floatValue = floatValue
+            )
+        )
     }
 
     override fun signal(signalName: String, customUserID: String?, params: Map<String, String>) {
-        cache?.add(createSignal(signalType = signalName, clientUser = customUserID, additionalPayload = params))
-    }
-
-    override fun signal(
-        signalType: SignalType,
-        params: Map<String, String>,
-        floatValue: Double?,
-        customUserID: String?
-    ) {
-        cache?.add(createSignal(signalType = signalType.type, clientUser = customUserID, additionalPayload = params))
+        cache?.add(createSignal(
+            signalType = signalName,
+            clientUser = customUserID,
+            additionalPayload = params,
+            floatValue = null
+        ))
     }
 
     private suspend fun send(
@@ -132,7 +128,8 @@ class TelemetryDeck(
     private fun createSignal(
         signalType: String,
         clientUser: String? = null,
-        additionalPayload: Map<String, String> = emptyMap()
+        additionalPayload: Map<String, String> = emptyMap(),
+        floatValue: Double?
     ): Signal {
         var enrichedPayload = additionalPayload
         for (provider in this.providers) {
@@ -149,7 +146,8 @@ class TelemetryDeck(
             type = signalType,
             clientUser = hashedUser,
             payload = payload.asMultiValueDimension,
-            isTestMode = configuration.testMode.toString().lowercase()
+            isTestMode = configuration.testMode.toString().lowercase(),
+            floatValue = floatValue
         )
         signal.sessionID = this.configuration.sessionID.toString()
         logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}, test ${signal.isTestMode}")
@@ -238,21 +236,10 @@ class TelemetryDeck(
         override suspend fun send(
             signalType: String,
             clientUser: String?,
-            additionalPayload: Map<String, String>
+            additionalPayload: Map<String, String>,
+            floatValue: Double?
         ): Result<Unit> {
-            val result = getInstance()?.send(signalType, clientUser, additionalPayload)
-            if (result != null) {
-                return result
-            }
-            return failure(NullPointerException())
-        }
-
-        override suspend fun send(
-            signalType: SignalType,
-            clientUser: String?,
-            additionalPayload: Map<String, String>
-        ): Result<Unit> {
-            val result = getInstance()?.send(signalType, clientUser, additionalPayload)
+            val result = getInstance()?.send(signalType, clientUser, additionalPayload, floatValue)
             if (result != null) {
                 return result
             }
@@ -282,15 +269,6 @@ class TelemetryDeck(
             params: Map<String, String>
         ) {
             getInstance()?.signal(signalName = signalName, customUserID = customUserID, params = params)
-        }
-
-        override fun signal(
-            signalType: SignalType,
-            params: Map<String, String>,
-            floatValue: Double?,
-            customUserID: String?
-        ) {
-            getInstance()?.signal(signalType.type, params, floatValue, customUserID)
         }
 
         override val signalCache: SignalCache?

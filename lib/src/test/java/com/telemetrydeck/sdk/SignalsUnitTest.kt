@@ -89,4 +89,19 @@ class SignalsUnitTest {
             endpointUrl.toString()
         )
     }
+
+
+    @Test
+    fun signal_serialize_floatValue() {
+        val float: Double = 3.444444444444445
+
+        val signal = Signal(UUID.randomUUID(), "type", "clientUser", SignalPayload())
+        signal.floatValue = float
+
+        val signalJson = Json.encodeToString(signal)
+        val decodedSignal = Json.decodeFromString<Signal>(signalJson)
+
+        // date equality comparison with precision up to milliseconds
+        assertEquals(float, decodedSignal.floatValue)
+    }
 }

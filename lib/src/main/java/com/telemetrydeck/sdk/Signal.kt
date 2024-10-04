@@ -43,7 +43,12 @@ data class Signal(
     /**
      * If "true", mark the signal as a testing signal and only show it in a dedicated test mode UI
      */
-    var isTestMode: String = "false"
+    var isTestMode: String = "false",
+
+    /**
+     * An optional floating-point value to include with the signal. Default is `nil`.
+     */
+    var floatValue: Double? = null
 ) {
     constructor(appID: UUID, signalType: String, clientUser: String, payload: SignalPayload) : this(appID=appID, type=signalType, clientUser = clientUser, payload = payload.asMultiValueDimension)
 }

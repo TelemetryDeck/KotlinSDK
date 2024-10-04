@@ -416,6 +416,24 @@ class TelemetryDeckTests {
         )
     }
 
+
+    @Test
+    fun telemetryDeck_signal_with_floatValue() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
+
+        manager.signal("test", floatValue = 1.0)
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate the signal type
+        Assert.assertEquals(queuedSignal?.type, "test")
+
+        Assert.assertEquals(queuedSignal?.floatValue, 1.0)
+    }
+
     private fun filterOldSignals(signals: List<Signal>): List<Signal> {
         val now = Date().time
         return signals.filter {

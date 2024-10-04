@@ -40,17 +40,8 @@ interface TelemetryDeckClient {
     suspend fun send(
         signalType: String,
         clientUser: String? = null,
-        additionalPayload: Map<String, String> = emptyMap()
-    ): Result<Unit>
-
-
-    /**
-     * Send a signal immediately.
-     */
-    suspend fun send(
-        signalType: SignalType,
-        clientUser: String? = null,
-        additionalPayload: Map<String, String> = emptyMap()
+        additionalPayload: Map<String, String> = emptyMap(),
+        floatValue: Double? = null,
     ): Result<Unit>
 
 
@@ -59,13 +50,6 @@ interface TelemetryDeckClient {
      */
     suspend fun sendAll(signals: List<Signal>): Result<Unit>
 
-
-    fun signal(
-        signalType: SignalType,
-        params: Map<String, String> = emptyMap(),
-        floatValue: Double? = null,
-        customUserID: String? = null
-    )
 
     /**
      *  Sends a telemetry signal with optional parameters to TelemetryDeck.
