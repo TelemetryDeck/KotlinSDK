@@ -1,4 +1,4 @@
-# KotlinClient
+# Kotlin SDK for TelemetryDeck
 
 This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android applications. Sign up for a free account at [telemetrydeck.com](https://telemetrydeck.com)
 
@@ -6,7 +6,7 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 
 ### Dependencies
 
-The TelemetryDeck SDK for Kotlin is available from Maven Central and can be used as a dependency directly in `build.gradle` file:
+The Kotlin SDK for TelemetryDeck is available from Maven Central and can be used as a dependency directly in `build.gradle` file:
 
 ```groovy
 dependencies {
@@ -34,7 +34,7 @@ Sending signals requires access to the internet so the following permission shou
 
 ### Using the application manifest
 
-The TelemetryDeck can be initialized automatically by adding the application key to the `application` section of the app's `AndroidManifest.xml`:
+A quick way to start is by adding your App ID to the `application` section of the app's `AndroidManifest.xml`:
 
 ```xml
 <application>
@@ -58,7 +58,7 @@ In addition, the following optional properties are supported:
 
 ### Programmatic Usage
 
-For greater control you can instead manually start the TelemetryDeck client
+For greater control you can set up and configure `TelemetryDeck` using the provided builder:
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
@@ -85,7 +85,7 @@ TelemetryDeck.signal("appLaunchedRegularly")
 
 ### Environment Parameters
 
-By default, TelemetryDeck SDK for Kotlin will include the following environment parameters for each outgoing signal
+By default, Kotlin SDK for TelemetryDeck will include the following environment parameters for each outgoing signal
 
 
 | Signal name                                    | Provider                       |
@@ -227,7 +227,7 @@ Please note that the logger implementation should be thread safe as it may be in
 
 ## Migrating providers to 3.0+
 
-If you had TelemetryDeck SDK for Kotlin added to your app, you will notice that `TelemetryManager` and related classes have been deprecated.
+If you had Kotlin SDK for TelemetryDeck added to your app, you will notice that `TelemetryManager` and related classes have been deprecated.
 You can read more about the motivation behind these changes [here](https://telemetrydeck.com/docs/articles/grand-rename/).
 
 To upgrade, please perform the following changes depending on how you use TelemetryDeck SDK.
