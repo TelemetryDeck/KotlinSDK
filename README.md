@@ -172,6 +172,19 @@ val builder = TelemetryDeck.Builder()
             .providers(listOf(CustomProvider(), AnotherProvider()))
 ```
 
+## Custom Logging
+
+By default, TelemetryDeck SDK uses a simple `println` to output internal diagnostic messages when `showDebugLogs` is set to `true` in configuration.
+
+If your platform has custom logging needs, you can adopt the `DebugLogger` interface and provide it to the `TelemetryDeck` builder:
+
+```kotlin
+val builder = TelemetryDeck.Builder()
+           //    ...
+           .logger(CustomLogger())
+```
+
+Please note that the logger implementation should be thread safe as it may be invoked in different queues and contexts. 
 
 ### Migrating providers to 3.0+
 
