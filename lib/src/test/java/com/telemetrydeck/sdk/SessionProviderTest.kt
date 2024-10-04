@@ -1,10 +1,7 @@
 package com.telemetrydeck.sdk
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ProcessLifecycleOwner
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test

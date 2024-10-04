@@ -2,8 +2,9 @@ package com.telemetrydeck.sdk.providers
 
 import android.app.Application
 import android.content.Context
-import com.telemetrydeck.sdk.TelemetryDeckClient
 import com.telemetrydeck.sdk.TelemetryDeckProvider
+import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.TelemetryProviderFallback
 import com.telemetrydeck.sdk.params.Device
 import com.telemetrydeck.sdk.params.RunContext
 import com.telemetrydeck.sdk.platform.getAppInstallationInfo
@@ -13,13 +14,21 @@ import com.telemetrydeck.sdk.platform.getLocaleName
 import com.telemetrydeck.sdk.platform.getTimeZone
 import java.lang.ref.WeakReference
 
-class PlatformContextProvider : TelemetryDeckProvider {
+internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProviderFallback {
     private var enabled: Boolean = true
-    private var manager: WeakReference<TelemetryDeckClient>? = null
+    private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
     private var appContext: WeakReference<Context?>? = null
     private var metadata = mutableMapOf<String, String>()
 
-    override fun register(ctx: Application?, client: TelemetryDeckClient) {
+    override fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+        register(ctx, client)
+    }
+
+    override fun fallbackStop() {
+        stop()
+    }
+
+    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
         this.appContext = WeakReference(ctx?.applicationContext)
 
@@ -48,6 +57,15 @@ class PlatformContextProvider : TelemetryDeckProvider {
 
     override fun stop() {
         this.enabled = false
+    }
+
+
+    override fun fallbackEnrich(
+        signalType: String,
+        clientUser: String?,
+        additionalPayload: Map<String, String>
+    ): Map<String, String> {
+        return enrich(signalType, clientUser, additionalPayload)
     }
 
     override fun enrich(
@@ -107,5 +125,6 @@ class PlatformContextProvider : TelemetryDeckProvider {
 
         return attributes
     }
+
 
 }

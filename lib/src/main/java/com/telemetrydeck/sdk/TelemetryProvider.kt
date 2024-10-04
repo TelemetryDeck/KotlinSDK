@@ -3,6 +3,29 @@ package com.telemetrydeck.sdk
 import android.app.Application
 
 /**
+ * New providers should adopt this interface to be able to be used with the legacy TelemetryManager.
+ *
+ * To preserve backwards compatibility with TelemetryManager, this interface is a copy of [TelemetryDeckProvider] with all methods prefixed with `fallback`.
+ *
+ * This interface should remain internal!
+ */
+@Deprecated("Use TelemetryDeckProvider")
+internal interface TelemetryProviderFallback {
+
+    fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor)
+
+    fun fallbackStop()
+
+    fun fallbackEnrich(
+        signalType: String,
+        clientUser: String? = null,
+        additionalPayload: Map<String, String> = emptyMap()
+    ): Map<String, String> {
+        return additionalPayload
+    }
+}
+
+/**
  * Generic interface for plugins which can create Signals
  */
 @Deprecated("Use TelemetryDeckProvider", ReplaceWith("TelemetryDeckProvider"))

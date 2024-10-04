@@ -5,10 +5,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import java.net.URL
-import java.util.Calendar
-import java.util.Date
 import java.util.UUID
-import kotlin.math.abs
 
 class TelemetryDeckTests {
 
@@ -42,10 +39,13 @@ class TelemetryDeckTests {
         val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
         val config = TelemetryManagerConfiguration(appID)
         config.salt = "my salt"
-        val manager =  TelemetryDeck.Builder().configuration(config).build(null)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
         manager.signal("type", "clientUser", emptyMap())
         val queuedSignal = manager.cache?.empty()?.first()
-        Assert.assertEquals("9a68a3790deb1db66f80855b8e7c5a97df8002ef90d3039f9e16c94cfbd11d99", queuedSignal?.clientUser)
+        Assert.assertEquals(
+            "9a68a3790deb1db66f80855b8e7c5a97df8002ef90d3039f9e16c94cfbd11d99",
+            queuedSignal?.clientUser
+        )
     }
 
     @Test
@@ -261,21 +261,6 @@ class TelemetryDeckTests {
     }
 
     @Test
-    fun telemetryBroadcastTimer_can_filter_older_signals() {
-        // an old signal is received longer than 24h ago
-        val okSignal = Signal(appID = UUID.randomUUID(), "okSignal", "user", SignalPayload())
-        val oldSignal = Signal(appID = UUID.randomUUID(), "oldSignal", "user", SignalPayload())
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -2)
-        oldSignal.receivedAt = calendar.time
-
-        val filteredSignals = filterOldSignals(listOf(okSignal, oldSignal))
-
-        Assert.assertEquals(1, filteredSignals.count())
-        Assert.assertEquals("okSignal", filteredSignals[0].type)
-    }
-
-    @Test
     fun telemetryDeck_navigate_source_destination_sets_default_parameters() {
         val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
         val manager = TelemetryDeck.Builder().configuration(config).build(null)
@@ -434,11 +419,11 @@ class TelemetryDeckTests {
         Assert.assertEquals(queuedSignal?.floatValue, 1.0)
     }
 
-    private fun filterOldSignals(signals: List<Signal>): List<Signal> {
-        val now = Date().time
-        return signals.filter {
-            // ignore signals older than 24h
-            (abs(now - it.receivedAt.time) / 1000) <= 24 * 60 * 60
-        }
-    }
+//    private fun filterOldSignals(signals: List<Signal>): List<Signal> {
+//        val now = Date().time
+//        return signals.filter {
+//            // ignore signals older than 24h
+//            (abs(now - it.receivedAt.time) / 1000) <= 24 * 60 * 60
+//        }
+//    }
 }

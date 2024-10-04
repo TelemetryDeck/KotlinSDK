@@ -31,7 +31,7 @@ interface TelemetryDeckClient {
      *
      * @see <a href="https://telemetrydeck.com/docs/articles/navigation-signals/">Navigation Signals</a>
      * */
-    fun navigate(destinationPath: String, clientUser: String? = null)
+    fun navigate(destinationPath: String, customUserID: String? = null)
 
 
     /**
@@ -43,12 +43,6 @@ interface TelemetryDeckClient {
         additionalPayload: Map<String, String> = emptyMap(),
         floatValue: Double? = null,
     ): Result<Unit>
-
-
-    /**
-     * Send multiple signals immediately.
-     */
-    suspend fun sendAll(signals: List<Signal>): Result<Unit>
 
 
     /**
@@ -107,5 +101,4 @@ interface TelemetryDeckClient {
     val debugLogger: DebugLogger?
 
     val configuration: TelemetryManagerConfiguration?
-
 }

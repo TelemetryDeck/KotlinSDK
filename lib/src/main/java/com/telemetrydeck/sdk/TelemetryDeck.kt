@@ -53,8 +53,8 @@ class TelemetryDeck(
         )
     }
 
-    override fun navigate(destinationPath: String, clientUser: String?) {
-        navigate(navigationStatus.getLastDestination(), destinationPath, clientUser)
+    override fun navigate(destinationPath: String, customUserID: String?) {
+        navigate(navigationStatus.getLastDestination(), destinationPath, customUserID)
     }
 
     override suspend fun send(
@@ -68,6 +68,15 @@ class TelemetryDeck(
 
     override suspend fun sendAll(signals: List<Signal>): Result<Unit> {
         return send(signals)
+    }
+
+    override fun processSignal(
+        signalName: String,
+        params: Map<String, String>,
+        floatValue: Double?,
+        customUserID: String?
+    ) {
+        signal(signalName, params, floatValue, customUserID)
     }
 
     override fun signal(
@@ -84,6 +93,10 @@ class TelemetryDeck(
                 floatValue = floatValue
             )
         )
+    }
+
+    override fun resetSession(sessionID: UUID) {
+        newSession(sessionID)
     }
 
     override fun signal(signalName: String, customUserID: String?, params: Map<String, String>) {
@@ -164,7 +177,7 @@ class TelemetryDeck(
             .fold("") { str, it -> str + "%02x".format(it) }
     }
 
-    companion object : TelemetryDeckClient {
+    companion object : TelemetryDeckClient, TelemetryDeckSignalProcessor {
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
             get() = listOf(
                 SessionAppProvider(),
@@ -234,8 +247,8 @@ class TelemetryDeck(
             getInstance()?.navigate(sourcePath, destinationPath, clientUser = clientUser)
         }
 
-        override fun navigate(destinationPath: String, clientUser: String?) {
-            getInstance()?.navigate(destinationPath, clientUser = clientUser)
+        override fun navigate(destinationPath: String, customUserID: String?) {
+            getInstance()?.navigate(destinationPath, customUserID = customUserID)
         }
 
         override suspend fun send(
@@ -257,6 +270,19 @@ class TelemetryDeck(
                 return result
             }
             return failure(NullPointerException())
+        }
+
+        override fun processSignal(
+            signalName: String,
+            params: Map<String, String>,
+            floatValue: Double?,
+            customUserID: String?
+        ) {
+            signal(signalName, params, floatValue, customUserID)
+        }
+
+        override fun resetSession(sessionID: UUID) {
+            newSession(sessionID)
         }
 
         override fun signal(

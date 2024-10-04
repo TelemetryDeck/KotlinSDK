@@ -264,8 +264,13 @@ After:
 | `EnvironmentMetadataProvider`   | `EnvironmentParameterProvider`, `PlatformContextProvider` |
 
 
+
 > [!TIP]
 > You can rename all deprecated classes in your project using the Code Cleanup function in IntelliJ/Android Studio.
+
+
+> [!WARN]
+> Do not mix usage of `TelemetryManager` and `TelemetryDeck`. Once you're ready to migrate, adapt all uses at the same time.  
 
 
 ### Custom Telemetry
