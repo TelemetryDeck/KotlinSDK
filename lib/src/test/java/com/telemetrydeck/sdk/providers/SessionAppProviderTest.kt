@@ -3,8 +3,8 @@ package com.telemetrydeck.sdk.providers
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.LifecycleOwner
-import com.telemetrydeck.sdk.SignalType
 import com.telemetrydeck.sdk.TelemetryDeck
+import com.telemetrydeck.sdk.signals.Session
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -40,7 +40,7 @@ class SessionAppProviderTest {
         sut.onStart(lifecycleOwner)
 
         Assert.assertEquals(1, manager.cache?.count())
-        Assert.assertEquals(SignalType.NewSessionBegan.type, manager.cache?.empty()?.get(0)?.type)
+        Assert.assertEquals(Session.Started.signalName, manager.cache?.empty()?.get(0)?.type)
     }
 
     @Test
@@ -53,7 +53,7 @@ class SessionAppProviderTest {
         sut.onStart(lifecycleOwner)
 
         Assert.assertEquals(1, manager.cache?.count())
-        Assert.assertEquals(SignalType.NewSessionBegan.type, manager.cache?.empty()?.get(0)?.type)
+        Assert.assertEquals(Session.Started.signalName, manager.cache?.empty()?.get(0)?.type)
     }
 
     @Test

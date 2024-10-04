@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
-import com.telemetrydeck.sdk.providers.SessionActivityProvider
 import com.telemetrydeck.sdk.providers.SessionAppProvider
 import java.lang.ref.WeakReference
 import java.net.URL

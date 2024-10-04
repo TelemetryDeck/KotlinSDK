@@ -4,20 +4,9 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 
 ## Installation
 
-The TelemetryDeck is distributed using [jitpack](https://jitpack.io/), so you'll need to add the jitpack dependency to your `settings.gradle` file:
+### Dependencies
 
-```groovy
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' } // <-- add this line
-    }
-}
-```
-
-After that is done, add the following to your `build.gradle` file, under `dependencies`:
+The TelemetryDeck SDK for Kotlin is available from Maven Central and can be used as a dependency directly in `build.gradle` file:
 
 ```groovy
 dependencies {
@@ -33,13 +22,15 @@ If needed, update your `gradle.settings` to reference Kotlin version compatible 
 id "org.jetbrains.kotlin.android" version "1.9.25" apply false
 ```
 
-## Permission for internet access
+### Permission for internet access
 
 Sending signals requires access to the internet so the following permission should be added to the app's `AndroidManifest.xml`
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
+
+## Getting Started
 
 ### Using the application manifest
 
@@ -91,6 +82,36 @@ To enqueue a signal to be sent by TelemetryDeck at a later time
 ```kotlin
 TelemetryDeck.signal("appLaunchedRegularly")
 ```
+
+### Environment Parameters
+
+By default, TelemetryDeck will include the following environment parameters for each outgoing signal
+
+
+| Signal name                                    | Provider                       |
+|------------------------------------------------|--------------------------------|
+| `TelemetryDeck.Session.started`                | `SessionAppProvider`           |
+| `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
+| `TelemetryDeck.AppInfo.version`                | `EnvironmentParameterProvider` |
+| `TelemetryDeck.AppInfo.versionAndBuildNumber`  | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.architecture`            | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.modelName`               | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.operatingSystem`         | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.platform`                | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.systemMajorMinorVersion` | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.systemMajorVersion`      | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.systemVersion`           | `EnvironmentParameterProvider` |
+| `TelemetryDeck.Device.brand`                   | `EnvironmentParameterProvider` |
+| `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
+| `TelemetryDeck.AppInfo.version`                | `EnvironmentParameterProvider` |
+| `TelemetryDeck.AppInfo.versionAndBuildNumber`  | `EnvironmentParameterProvider` |
+| `TelemetryDeck.RunContext.locale`              | `EnvironmentParameterProvider` |
+| `TelemetryDeck.RunContext.targetEnvironment`   | `EnvironmentParameterProvider` |
+| `TelemetryDeck.SDK.name`                       | `EnvironmentParameterProvider` |
+| `TelemetryDeck.SDK.version`                    | `EnvironmentParameterProvider` |
+| `TelemetryDeck.SDK.nameAndVersion`             | `EnvironmentParameterProvider` |
+
+See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
 ## Custom Telemetry
 
@@ -186,14 +207,22 @@ val builder = TelemetryDeck.Builder()
 
 Please note that the logger implementation should be thread safe as it may be invoked in different queues and contexts. 
 
-### Migrating providers to 3.0+
+
+
+## Requirements
+
+- Android API 21 or later
+- Kotlin 1.9.25 or later
+
+
+## Migrating providers to 3.0+
 
 If you had TelemetryDeck SDK for Kotlin added to your app, you will notice that `TelemetryManager` and related classes have been deprecated.
 You can read more about the motivation behind these changes [here](https://telemetrydeck.com/docs/articles/grand-rename/).
 
 To upgrade, please perform the following changes depending on how you use TelemetryDeck SDK.
 
-#### Using the application manifest
+### If you're using the application manifest
 
 * Adapt the manifest of your app and rename all keys from `com.telemetrydeck.sdk.*` to `com.telemetrydeck.*` for example:
 
@@ -211,7 +240,7 @@ After:
 * If you were using `send()` to send signals, no further changes are needed!
 * If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
 
-#### Programmatic Usage
+### Programmatic Usage
 
 * In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
 * If you were using `send()` to send signals, no further changes are needed!
@@ -225,7 +254,11 @@ After:
 | `EnvironmentMetadataProvider`   | `EnvironmentParameterProvider`                  |
 
 
-#### Custom Telemetry
+> [!TIP]
+> You can rename all deprecated classes in your project using the Code Cleanup function in IntelliJ/Android Studio.
+
+
+### Custom Telemetry
 
 
 Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvider`.
@@ -240,8 +273,3 @@ You now have access to the entire `TelemetryDeckClient` interface:
 * To access the signal cache, use `client.signalCache`
 
 
-
-## Requirements
-
-- Android API 21 or later
-- Kotlin 1.9.25 or later

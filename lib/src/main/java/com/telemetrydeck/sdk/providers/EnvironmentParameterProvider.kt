@@ -6,6 +6,10 @@ import com.telemetrydeck.sdk.BuildConfig
 import com.telemetrydeck.sdk.ManifestMetadataReader
 import com.telemetrydeck.sdk.TelemetryDeckClient
 import com.telemetrydeck.sdk.TelemetryDeckProvider
+import com.telemetrydeck.sdk.signals.AppInfo
+import com.telemetrydeck.sdk.signals.Device
+import com.telemetrydeck.sdk.signals.RunContext
+import com.telemetrydeck.sdk.signals.SDK
 import java.lang.ref.WeakReference
 import java.util.Locale
 
@@ -20,6 +24,12 @@ class EnvironmentParameterProvider  : TelemetryDeckProvider {
     private var enabled: Boolean = true
     private var manager: WeakReference<TelemetryDeckClient>? = null
     private var metadata = mutableMapOf<String, String>()
+    // The approach from the SwiftSDK is not compatible here as we need to evaluate for platform capabilities
+    // In case of Kotlin Multiplatform, a per-platform value can be provided
+    // For now, we're defaulting to "Android"
+    private val platform: String = "Android"
+    private val os: String = "Android"
+    private val sdkName: String = "KotlinSDK"
 
     override fun register(ctx: Application?, client: TelemetryDeckClient) {
         this.manager = WeakReference(client)
@@ -27,48 +37,66 @@ class EnvironmentParameterProvider  : TelemetryDeckProvider {
         if (ctx != null) {
             val appVersion = ManifestMetadataReader.getAppVersion(ctx)
             if (!appVersion.isNullOrEmpty()) {
-                metadata["appVersion"] = appVersion
+                metadata[AppInfo.Version.signalName] = appVersion
             }
             ManifestMetadataReader.getBuildNumber(ctx)?.let { buildNumber ->
-                metadata["buildNumber"] = buildNumber.toString()
+                metadata[AppInfo.BuildNumber.signalName] = buildNumber.toString()
+                metadata[AppInfo.VersionAndBuildNumber.signalName] = "$appVersion (build $buildNumber)"
             }
         } else {
             this.manager?.get()?.debugLogger?.error("EnvironmentParameterProvider requires a context but received null. Signals will contain incomplete metadata.")
         }
+
+
 
         if (android.os.Build.VERSION.RELEASE.isNullOrEmpty()) {
             this.manager?.get()?.debugLogger?.error(
                 "EnvironmentMetadataProvider found no platform version information (android.os.Build.VERSION.RELEASE). Signal payloads will not be enriched."
             )
         } else {
+            // Device metadata
+            metadata[Device.Platform.signalName] = platform
             val release = android.os.Build.VERSION.RELEASE
             val sdkVersion = android.os.Build.VERSION.SDK_INT
-            metadata["systemVersion"] = "Android SDK: $sdkVersion ($release)"
+            metadata[Device.SystemVersion.signalName] = "$platform $release (SDK: $sdkVersion)"
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 val versionInfo = VersionInfo.getInstance(release)
-                metadata["majorSystemVersion"] = versionInfo.major.toString()
-                metadata["majorMinorSystemVersion"] = "${versionInfo.major}.${versionInfo.minor}"
+                metadata[Device.SystemMajorVersion.signalName] = "${versionInfo.major}"
+                metadata[Device.SystemMajorMinorVersion.signalName] = "${versionInfo.major}.${versionInfo.minor}"
             } else {
                 val versionInfo = release.split(".")
-                metadata["majorSystemVersion"] = versionInfo.elementAtOrNull(0) ?: "0"
-                metadata["majorMinorSystemVersion"] = "${versionInfo.elementAtOrNull(0) ?: "0"}.${versionInfo.elementAtOrNull(1) ?: "0"}"
+                val major = versionInfo.elementAtOrNull(0) ?: "0"
+                val minor = versionInfo.elementAtOrNull(1) ?: "0"
+                metadata[Device.SystemMajorVersion.signalName] = major
+                metadata[Device.SystemMajorMinorVersion.signalName] = "$major.$minor"
             }
         }
 
-        metadata["locale"] = Locale.getDefault().displayName
         if (android.os.Build.BRAND != null) {
-            metadata["brand"] = android.os.Build.BRAND
+            metadata[Device.Brand.signalName] = android.os.Build.BRAND
         }
         if (android.os.Build.DEVICE != null) {
-            metadata["targetEnvironment"] = android.os.Build.DEVICE
+            metadata[RunContext.TargetEnvironment.signalName] = android.os.Build.DEVICE
         }
         if (android.os.Build.MODEL != null && android.os.Build.PRODUCT != null) {
-            metadata["modelName"] = "${android.os.Build.MODEL} (${android.os.Build.PRODUCT})"
+            metadata[Device.ModelName.signalName] = "${android.os.Build.MODEL} (${android.os.Build.PRODUCT})"
         }
-        metadata["architecture"] = System.getProperty("os.arch") ?: ""
-        metadata["operatingSystem"] = "Android"
-        metadata["telemetryClientVersion"] = BuildConfig.LIBRARY_PACKAGE_NAME
+        metadata[Device.Architecture.signalName] = System.getProperty("os.arch") ?: ""
+            metadata[Device.OperatingSystem.signalName] = os
+
+
+        // SDK Metadata
+        metadata[SDK.Name.signalName] = sdkName
+        // TODO: create a build property to pass the maven coordinates of the library
+        metadata[SDK.Version.signalName] = BuildConfig.LIBRARY_PACKAGE_NAME
+        metadata[SDK.NameAndVersion.signalName] = "$sdkName ${BuildConfig.LIBRARY_PACKAGE_NAME}"
+
+
+        // RunContext Metadata
+        metadata[RunContext.Locale.signalName] = Locale.getDefault().displayName
+
+
         this.enabled = true
     }
 

@@ -5,9 +5,9 @@ import android.app.Application
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.telemetrydeck.sdk.SignalType
 import com.telemetrydeck.sdk.TelemetryDeckClient
 import com.telemetrydeck.sdk.TelemetryDeckProvider
+import com.telemetrydeck.sdk.signals.Session
 import java.lang.ref.WeakReference
 
 /**
@@ -28,7 +28,7 @@ class SessionAppProvider: TelemetryDeckProvider, DefaultLifecycleObserver {
     override fun onStart(owner: LifecycleOwner) {
         if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
             manager?.get()?.signal(
-                SignalType.NewSessionBegan
+                Session.Started.signalName
             )
         }
     }
