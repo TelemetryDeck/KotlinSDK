@@ -7,6 +7,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
+@Suppress("DEPRECATION")
 class SessionProviderTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
