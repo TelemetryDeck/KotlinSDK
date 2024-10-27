@@ -50,6 +50,9 @@ android {
     //    https://github.com/Kotlin/kotlinx.coroutines/blob/master/README.md#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
     packaging {
         resources.excludes += "DebugProbesKt.bin"
+        resources {
+            pickFirsts += "META-INF/INDEX.LIST"
+        }
     }
     namespace = "com.telemetrydeck.sdk"
 }
@@ -83,9 +86,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.android)
-    testImplementation(libs.mockito.kotlin)
+//    testImplementation(libs.mockito.core)
+//    testImplementation(libs.mockito.android)
+//    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.mockk)
+    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk.agent)
     testImplementation(libs.robolectric)
 }
 

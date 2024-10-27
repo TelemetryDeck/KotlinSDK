@@ -14,8 +14,7 @@ kotlinx = "1.7.3"
 coroutines = "1.9.0"
 vanniktech-publish = "0.29.0"
 appcompat = "1.7.0"
-mockito = "5.14.2"
-mockito_kotlin = "4.0.0"
+mockk = "1.13.13"
 robolectric = "4.7.3"
 
 [libraries]
@@ -47,10 +46,10 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-serialization-properties = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-properties", version.ref = "kotlinx" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
-mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockito" }
-mockito-kotlin = { group = "org.mockito", name = "mockito-kotlin", version.ref = "mockito_kotlin" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+mockk = {group = "io.mockk", name = "mockk", version.ref = "mockk" }
+mockk-agent = {group = "io.mockk", name = "mockk-agent", version.ref = "mockk" }
+mockk-android = {group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
