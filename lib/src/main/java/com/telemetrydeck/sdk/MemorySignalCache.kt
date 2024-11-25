@@ -1,6 +1,7 @@
 package com.telemetrydeck.sdk
 
-class MemorySignalCache(private var signalQueue: MutableList<Signal> = mutableListOf()): SignalCache {
+class MemorySignalCache(private var signalQueue: MutableList<Signal> = mutableListOf()) :
+    SignalCache {
 
     override fun add(signal: Signal) {
         synchronized(this) {

@@ -2,6 +2,13 @@ package com.telemetrydeck.sdk
 
 import java.util.UUID
 
+@Deprecated(
+    "Use TelemetryDeckClient",
+    ReplaceWith(
+        "TelemetryDeckClient",
+        "com.telemetrydeck.sdk.TelemetryDeckClient"
+    )
+)
 interface TelemetryManagerSignals {
 
     /**
