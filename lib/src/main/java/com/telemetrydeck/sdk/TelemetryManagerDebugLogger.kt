@@ -5,7 +5,7 @@ package com.telemetrydeck.sdk
  */
 internal class TelemetryManagerDebugLogger {
 
-    companion object: DebugLogger {
+    companion object : DebugLogger {
         private const val tag: String = "TELEMETRYDECK"
         private var enabled: Boolean = true
         override fun error(message: String) {

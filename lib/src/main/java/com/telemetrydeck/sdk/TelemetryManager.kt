@@ -3,6 +3,9 @@ package com.telemetrydeck.sdk
 import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
+import com.telemetrydeck.sdk.providers.PlatformContextProvider
+import com.telemetrydeck.sdk.providers.SessionAppProvider
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -10,17 +13,56 @@ import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
-
+@Deprecated(
+    "Use TelemetryDeck instead",
+    ReplaceWith("TelemetryDeck", "com.telemetrydeck.sdk.TelemetryDeck")
+)
 class TelemetryManager(
-    val configuration: TelemetryManagerConfiguration,
-    val providers: List<TelemetryProvider> = listOf(
-        AppLifecycleTelemetryProvider()
-    )
-) : TelemetryManagerSignals {
+    override val configuration: TelemetryManagerConfiguration,
+    val providers: List<TelemetryProvider>,
+
+    ) : TelemetryManagerSignals, TelemetryDeckSignalProcessor {
 
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
     private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
+    private var fallbackProviders: List<TelemetryProviderFallback> = emptyList()
+
+    override val signalCache: SignalCache?
+        get() = this.cache
+
+    override val debugLogger: DebugLogger?
+        get() = this.logger
+
+    override suspend fun sendAll(
+        signals: List<Signal>
+    ): Result<Unit> {
+        return try {
+            val client = TelemetryClient(
+                configuration.apiBaseURL,
+                configuration.showDebugLogs,
+                logger
+            )
+            client.send(signals)
+            success(Unit)
+        } catch (e: Exception) {
+            logger?.error("Failed to send signals due to an error ${e} ${e.stackTraceToString()}")
+            failure(e)
+        }
+    }
+
+    override fun processSignal(
+        signalName: String,
+        params: Map<String, String>,
+        floatValue: Double?,
+        customUserID: String?
+    ) {
+        queue(signalName, customUserID, params)
+    }
+
+    override fun resetSession(sessionID: UUID) {
+        newSession(sessionID)
+    }
 
     override fun newSession(sessionID: UUID) {
         this.configuration.sessionID = sessionID
@@ -90,7 +132,6 @@ class TelemetryManager(
     ): Result<Unit> {
         return try {
             val client = TelemetryClient(
-                configuration.telemetryAppID,
                 configuration.apiBaseURL,
                 configuration.showDebugLogs,
                 logger
@@ -110,6 +151,11 @@ class TelemetryManager(
             logger?.debug("Installing provider ${provider::class}.")
             provider.register(context?.applicationContext as Application?, this)
         }
+        // register grand rename based providers
+        for (provider in fallbackProviders) {
+            logger?.debug("Installing provider ${provider::class}.")
+            provider.fallbackRegister(context?.applicationContext as Application?, this)
+        }
     }
 
     private fun createSignal(
@@ -121,11 +167,14 @@ class TelemetryManager(
         for (provider in this.providers) {
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
+        for (provider in this.fallbackProviders) {
+            enrichedPayload = provider.fallbackEnrich(signalType, clientUser, enrichedPayload)
+        }
         val userValue = clientUser ?: configuration.defaultUser ?: ""
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
-        val hashedUser = hashString(userValue, "SHA-256")
-        
+        val hashedUser = hashString(userValueWithSalt, "SHA-256")
+
         val payload = SignalPayload(additionalPayload = enrichedPayload)
         val signal = Signal(
             appID = configuration.telemetryAppID,
@@ -341,7 +390,7 @@ class TelemetryManager(
         }
 
         /**
-         * Provide a custom logger implementation to be used by TelemetryManager.
+         * Provide a custom logger implementation to be used by [TelemetryManager].
          */
         fun logger(debugLogger: DebugLogger?) = apply {
             this.logger = debugLogger
@@ -368,6 +417,41 @@ class TelemetryManager(
             if (additionalProviders != null) {
                 providers = providers + (additionalProviders?.toList() ?: listOf())
             }
+
+            // if any of our default providers are activated, we should append the corresponding
+            // "Grand Rename" provider as well
+            val providersSoFar = providers
+            val fallbackProviders = mutableListOf<TelemetryProviderFallback>()
+            if (providersSoFar.isNotEmpty()) {
+                for (provider in providersSoFar) {
+                    when (provider) {
+                        is SessionProvider -> {
+                            if (fallbackProviders.filterIsInstance<SessionAppProvider>().isEmpty()) {
+                                fallbackProviders.add(SessionAppProvider())
+                            }
+                        }
+                        is AppLifecycleTelemetryProvider -> {
+                            // we are no longer sending activity related events
+//                            if (fallbackProviders.filterIsInstance<SessionActivityProvider>().isEmpty()) {
+//                                fallbackProviders.add(SessionActivityProvider())
+//                            }
+                            if (fallbackProviders.filterIsInstance<SessionAppProvider>().isEmpty()) {
+                                fallbackProviders.add(SessionAppProvider())
+                            }
+                        }
+
+                        is EnvironmentMetadataProvider -> {
+                            if (fallbackProviders.filterIsInstance<PlatformContextProvider>().isEmpty()) {
+                                fallbackProviders.add(PlatformContextProvider())
+                            }
+                            if (fallbackProviders.filterIsInstance<EnvironmentParameterProvider>().isEmpty()) {
+                                fallbackProviders.add(EnvironmentParameterProvider())
+                            }
+                        }
+                    }
+                }
+            }
+
 
             // check if sessionID has been provided to override the default one
             val sessionID = this.sessionID
@@ -417,6 +501,7 @@ class TelemetryManager(
 
             val manager = TelemetryManager(config, providers)
             manager.logger = logger
+            manager.fallbackProviders = fallbackProviders
             manager.installProviders(context)
 
             val broadcaster =

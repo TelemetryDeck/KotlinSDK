@@ -1,15 +1,13 @@
 package com.telemetrydeck.sdk
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ProcessLifecycleOwner
+import io.mockk.mockk
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
+@Suppress("DEPRECATION")
 class SessionProviderTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -32,7 +30,7 @@ class SessionProviderTest {
 
     @Test
     fun sessionProvider_default_configuration_onStart_sends_newSessionBegan() {
-        val lifecycleOwner: LifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
+        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         val sut = SessionProvider()
         val manager = testDefaultTelemetryManager()
         sut.register(null, manager)
@@ -45,7 +43,7 @@ class SessionProviderTest {
 
     @Test
     fun sessionProvider_sendNewSessionBeganSignal_onStart_sends_newSessionBegan() {
-        val lifecycleOwner: LifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
+        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         val sut = SessionProvider()
         val manager = testTelemetryManager(true)
         sut.register(null, manager)
@@ -58,7 +56,7 @@ class SessionProviderTest {
 
     @Test
     fun sessionProvider_not_sendNewSessionBeganSignal_onStart_no_signals() {
-        val lifecycleOwner: LifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
+        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         val sut = SessionProvider()
         val manager = testTelemetryManager(false)
         sut.register(null, manager)
@@ -71,7 +69,7 @@ class SessionProviderTest {
 
     @Test
     fun sessionProvider_default_configuration_onStop_resets_the_sessionID() {
-        val lifecycleOwner: LifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
+        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         val sut = SessionProvider()
         val manager = testDefaultTelemetryManager()
         sut.register(null, manager)
@@ -85,7 +83,7 @@ class SessionProviderTest {
 
     @Test
     fun sessionProvider_sendNewSessionBeganSignal_onStop_resets_the_sessionID() {
-        val lifecycleOwner: LifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
+        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         val sut = SessionProvider()
         val manager = testTelemetryManager(true)
         sut.register(null, manager)
@@ -99,7 +97,7 @@ class SessionProviderTest {
 
     @Test
     fun sessionProvider_not_sendNewSessionBeganSignal_onStop_keeps_the_sessionID() {
-        val lifecycleOwner: LifecycleOwner = Mockito.mock(LifecycleOwner::class.java)
+        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         val sut = SessionProvider()
         val manager = testTelemetryManager(false)
         sut.register(null, manager)
