@@ -1,17 +1,19 @@
-# Releasing a New Version
+## Releasing a new version of the library
 
-1. Head to [Releases](https://github.com/TelemetryDeck/KotlinSDK/releases).
+1. Update the library coordinates by incrementing the version in https://github.com/TelemetryDeck/KotlinSDK/blob/lib/build.gradle.kts#L103.
+2. Update the README.md to instruct new users to use the latest version.
+3. Commit and push.
 
-2. Use the "Draft a new release" button to create a new release.
+### Publishing using GitHub Actions
 
-3. Use the "Choose a tag" option to type in the next version, e.g., `2.2.7`, and select "Create new tag on publish."
+Using the Publish GitHub action will release the library update.
 
-4. Click "Generate release notes" to auto-populate the release notes. This also applies the tag as the name for the release.
+### Publishing an update locally
 
-5. Edit the release notes as needed.
+The update can be triggered locally provided all environment variables are set:
 
-6. Publish.
+```bash
+./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
+```
 
-🏁
-
-**Tip:** The status of the release can be checked at [JitPack](https://jitpack.io/#telemetrydeck/kotlinsdk). You may need to click "Get it" to trigger the build.
+The update progress can be tracked at https://central.sonatype.com/publishing/deployments

@@ -2,7 +2,7 @@ package com.telemetrydeck.sdk
 
 import org.junit.Assert
 import org.junit.Test
-import java.util.*
+import java.util.UUID
 
 class MemorySignalCacheTest {
     @Test

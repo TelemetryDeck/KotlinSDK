@@ -10,3 +10,4 @@ internal enum class ManifestSettings(val key: String) {
     DefaultUser("com.telemetrydeck.sdk.defaultUser"),
     Salt("com.telemetrydeck.sdk.salt"),
 }
+

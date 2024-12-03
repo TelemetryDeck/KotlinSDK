@@ -1,11 +1,11 @@
 package com.telemetrydeck.sdk
 
 /**
- * An implementation of `DebugLogger` using `android.util.Log`
+ * An implementation of `DebugLogger` using `println`
  */
 internal class TelemetryManagerDebugLogger {
 
-    companion object: DebugLogger {
+    companion object : DebugLogger {
         private const val tag: String = "TELEMETRYDECK"
         private var enabled: Boolean = true
         override fun error(message: String) {
