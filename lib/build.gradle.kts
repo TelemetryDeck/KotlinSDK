@@ -81,7 +81,6 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.properties)
-    implementation(libs.logback)
 
 
     testImplementation(libs.junit)
@@ -101,7 +100,7 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk", "3.0.1")
+    coordinates("com.telemetrydeck", "kotlin-sdk", "3.0.2")
 
     pom {
         name = "TelemetryDeck SDK"

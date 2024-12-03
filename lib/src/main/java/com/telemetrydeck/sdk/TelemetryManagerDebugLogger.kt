@@ -1,7 +1,7 @@
 package com.telemetrydeck.sdk
 
 /**
- * An implementation of `DebugLogger` using `android.util.Log`
+ * An implementation of `DebugLogger` using `println`
  */
 internal class TelemetryManagerDebugLogger {
 
