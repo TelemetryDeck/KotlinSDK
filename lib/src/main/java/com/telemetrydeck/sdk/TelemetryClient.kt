@@ -4,10 +4,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.DEFAULT
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -28,12 +24,6 @@ internal class TelemetryClient(
     private val client: HttpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json()
-        }
-        if (showDebugLogs && debugLogger != null) {
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.ALL
-            }
         }
         install(DefaultRequest) {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
