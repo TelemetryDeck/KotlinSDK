@@ -81,12 +81,40 @@ To enqueue a signal to be sent by TelemetryDeck at a later time
 TelemetryDeck.signal("appLaunchedRegularly")
 ```
 
+## User Identifiers
+
+When `TelemetryDeck` is started for the first time, it will create a user identifier for the user that is specific to the app installation.
+
+* The identity is stored within the application's file folder on the user's device. 
+
+* The identifier will be removed when a user uninstalls an app. The KotlinSDK will not "bridge" the user's identity between installations.
+
+* Users can reset the identifier at any time by using the "Clear Data" action in Settings of their device.
+
+If you have a better user identifier available, such as an email address or a username, you can use that instead, by setting `defaultUser` (the identifier will be hashed before sending it) in configuration, or by passing the value when sending signals.
+
+
+### Custom User Identifiers
+
+If you need a more robust mechanism for keep track of the user's identity, you can replace the default behaviour by providing your own implementation of `TelemetryDeckIdentityProvider`:
+
+```kotlin
+val builder = TelemetryDeck.Builder()
+            .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+            .showDebugLogs(true)
+            .defaultUser("Person")
+            .identityProvider(YourIdentityProvider())
+
+TelemetryDeck.start(application, builder)
+```
+
+
 ### Environment Parameters
 
 By default, Kotlin SDK for TelemetryDeck will include the following environment parameters for each outgoing signal
 
 
-| Signal name                                    | Provider                       |
+| Parameter name                                 | Provider                       |
 |------------------------------------------------|--------------------------------|
 | `TelemetryDeck.Session.started`                | `SessionAppProvider`           |
 | `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |

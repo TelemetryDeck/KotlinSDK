@@ -1,7 +1,6 @@
 package com.telemetrydeck.sdk.providers
 
 import android.app.Application
-import android.content.Context
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.TelemetryProviderFallback
@@ -17,7 +16,7 @@ import java.lang.ref.WeakReference
 internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProviderFallback {
     private var enabled: Boolean = true
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
-    private var appContext: WeakReference<Context?>? = null
+    private var appContext: WeakReference<Application?>? = null
     private var metadata = mutableMapOf<String, String>()
 
     override fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor) {
@@ -30,7 +29,7 @@ internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProvide
 
     override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
-        this.appContext = WeakReference(ctx?.applicationContext)
+        this.appContext = WeakReference(ctx)
 
         if (ctx == null) {
             this.manager?.get()?.debugLogger?.error("RunContextProvider requires a context but received null. Signals will contain incomplete metadata.")
@@ -91,7 +90,7 @@ internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProvide
     // TODO: Use onConfigurationChanged instead
 
     private fun getDynamicAttributes(): Map<String, String> {
-        val ctx = this.appContext?.get()
+        val ctx = this.appContext?.get()?.applicationContext
             ?: // can't read without a context!
             return emptyMap()
 

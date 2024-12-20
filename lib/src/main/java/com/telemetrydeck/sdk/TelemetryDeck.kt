@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Navigation
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
+import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
 import com.telemetrydeck.sdk.providers.SessionAppProvider
 import java.lang.ref.WeakReference
@@ -20,6 +21,7 @@ class TelemetryDeck(
 ) : TelemetryDeckClient, TelemetryDeckSignalProcessor {
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
+    var identityProvider: TelemetryDeckIdentityProvider = FileUserIdentityProvider()
     private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
 
     override val signalCache: SignalCache?
@@ -140,6 +142,7 @@ class TelemetryDeck(
             logger?.debug("Installing provider ${provider::class}.")
             provider.register(context?.applicationContext as Application?, this)
         }
+        identityProvider.register(context?.applicationContext as Application?, this)
     }
 
     private fun createSignal(
@@ -152,7 +155,8 @@ class TelemetryDeck(
         for (provider in this.providers) {
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
-        val userValue = clientUser ?: configuration.defaultUser ?: ""
+
+        val userValue = identityProvider.calculateIdentity(clientUser, configuration.defaultUser)
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt)
@@ -222,6 +226,7 @@ class TelemetryDeck(
             for (provider in manager.providers) {
                 provider.stop()
             }
+            manager.identityProvider.stop()
             synchronized(this) {
                 instance = null
             }
@@ -329,7 +334,8 @@ class TelemetryDeck(
         private var sendNewSessionBeganSignal: Boolean? = null,
         private var apiBaseURL: URL? = null,
         private var logger: DebugLogger? = null,
-        private var salt: String? = null
+        private var salt: String? = null,
+        private var identityProvider: TelemetryDeckIdentityProvider? = null
     ) {
         /**
          * Set the TelemetryManager configuration.
@@ -394,6 +400,10 @@ class TelemetryDeck(
 
         fun salt(salt: String?) = apply {
             this.salt = salt
+        }
+
+        fun identityProvider(identityProvider: TelemetryDeckIdentityProvider) = apply {
+            this.identityProvider = identityProvider
         }
 
         /**
@@ -484,6 +494,11 @@ class TelemetryDeck(
                 manager.cache = PersistentSignalCache(context.cacheDir, logger)
             } else {
                 manager.cache = MemorySignalCache()
+            }
+
+            val userIdentityProvider = this.identityProvider
+            if (userIdentityProvider != null) {
+                manager.identityProvider = userIdentityProvider
             }
 
             return manager
