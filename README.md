@@ -86,7 +86,7 @@ TelemetryDeck.signal("appLaunchedRegularly")
 By default, Kotlin SDK for TelemetryDeck will include the following environment parameters for each outgoing signal
 
 
-| Signal name                                    | Provider                       |
+| Parameter name                                 | Provider                       |
 |------------------------------------------------|--------------------------------|
 | `TelemetryDeck.Session.started`                | `SessionAppProvider`           |
 | `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
