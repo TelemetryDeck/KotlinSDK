@@ -30,6 +30,7 @@ internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryPr
     private val platform: String = "Android"
     private val os: String = "Android"
     private val sdkName: String = "KotlinSDK"
+    private val sdkVersion: String = "3.0.4"
 
     override fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor) {
         register(ctx, client)
@@ -49,8 +50,8 @@ internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryPr
 
     private fun appendSDKMetadata() {
         metadata[SDK.Name.paramName] = sdkName
-        metadata[SDK.Version.paramName] = BuildConfig.LIBRARY_PACKAGE_NAME
-        metadata[SDK.NameAndVersion.paramName] = "$sdkName ${BuildConfig.LIBRARY_PACKAGE_NAME}"
+        metadata[SDK.Version.paramName] = sdkVersion
+        metadata[SDK.NameAndVersion.paramName] = "$sdkName $sdkVersion"
         metadata[SDK.BuildType.paramName] = BuildConfig.BUILD_TYPE
     }
 
