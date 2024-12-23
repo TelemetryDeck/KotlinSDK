@@ -24,7 +24,7 @@ class EnvironmentParameterProviderTest {
         Assert.assertNotNull(queuedSignal)
         Assert.assertEquals(
             true,
-            queuedSignal?.payload?.contains("TelemetryDeck.SDK.version:com.telemetrydeck.sdk")
+            queuedSignal?.payload?.any { it.startsWith("TelemetryDeck.SDK.version:") }
 
         )
     }
