@@ -10,7 +10,7 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central and can be used
 
 ```groovy
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:4.0.0'
+    implementation 'com.telemetrydeck:kotlin-sdk:4.0.2'
 }
 ```
 
