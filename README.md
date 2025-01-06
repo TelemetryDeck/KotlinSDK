@@ -10,7 +10,7 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central and can be used
 
 ```groovy
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:3.0.4'
+    implementation 'com.telemetrydeck:kotlin-sdk:4.0.0'
 }
 ```
 
@@ -248,7 +248,7 @@ Please note that the logger implementation should be thread safe as it may be in
 ## Requirements
 
 - Android API 21 or later
-- Kotlin 2.0.20-21
+- Kotlin 2.0.21
 - Gradle 6.8.3–8.8*
 - AGP 7.1.3–8.5
 

@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 21
@@ -101,7 +101,7 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk", "3.0.4")
+    coordinates("com.telemetrydeck", "kotlin-sdk", "4.0.0")
 
     pom {
         name = "TelemetryDeck SDK"
