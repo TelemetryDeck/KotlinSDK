@@ -1,10 +1,12 @@
 package com.telemetrydeck.sdk
 
+import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import java.net.URL
+import java.security.MessageDigest
 import java.util.UUID
 
 class TelemetryDeckTests {
@@ -99,7 +101,6 @@ class TelemetryDeckTests {
                 .build(null)
         Assert.assertEquals(URL("https://telemetrydeck.com"), result.configuration.apiBaseURL)
     }
-
 
     @Test
     fun telemetryDeck_builder_set_testMode() {
@@ -401,7 +402,6 @@ class TelemetryDeckTests {
         )
     }
 
-
     @Test
     fun telemetryDeck_signal_with_floatValue() {
         val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
@@ -419,11 +419,44 @@ class TelemetryDeckTests {
         Assert.assertEquals(queuedSignal?.floatValue, 1.0)
     }
 
-//    private fun filterOldSignals(signals: List<Signal>): List<Signal> {
-//        val now = Date().time
-//        return signals.filter {
-//            // ignore signals older than 24h
-//            (abs(now - it.receivedAt.time) / 1000) <= 24 * 60 * 60
-//        }
-//    }
+    @Test
+    fun telemetryDeck_identityProvider_uses_custom_provider() {
+        val builder = TelemetryDeck.Builder()
+        val telemetryDeck = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .identityProvider(TestIdentityProvider())
+            .build(null)
+
+        telemetryDeck.signal("echo")
+
+        val queuedSignal = telemetryDeck.cache?.empty()?.first()
+        Assert.assertEquals(hashString("always the same"), queuedSignal?.clientUser)
+    }
+
+    private fun hashString(input: String, algorithm: String = "SHA-256"): String {
+        return MessageDigest.getInstance(algorithm)
+            .digest(input.toByteArray())
+            .fold("") { str, it -> str + "%02x".format(it) }
+    }
+}
+
+class TestIdentityProvider: TelemetryDeckIdentityProvider {
+    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+        // nothing to do
+    }
+
+    override fun stop() {
+        // nothing to do
+    }
+
+    override fun calculateIdentity(
+        signalClientUser: String?,
+        configurationDefaultUser: String?
+    ): String {
+        return "always the same"
+    }
+
+    override fun resetIdentity() {
+        // nothing to do
+    }
 }
