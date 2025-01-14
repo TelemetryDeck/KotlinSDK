@@ -7,9 +7,6 @@ enum class Accessibility(val paramName: String) {
     IsDarkerSystemColorsEnabled("TelemetryDeck.Accessibility.isDarkerSystemColorsEnabled"),
     IsInvertColorsEnabled("TelemetryDeck.Accessibility.isInvertColorsEnabled"),
     IsReduceMotionEnabled("TelemetryDeck.Accessibility.isReduceMotionEnabled"),
-    IsAudioDescriptionRequested("TelemetryDeck.Accessibility.isAudioDescriptionRequested"),
     IsReduceTransparencyEnabled("TelemetryDeck.Accessibility.isReduceTransparencyEnabled"),
-    IsSwitchControlEnabled("TelemetryDeck.Accessibility.isSwitchControlEnabled"),
-    IsVoiceOverEnabled("TelemetryDeck.Accessibility.isVoiceOverEnabled"),
     ShouldDifferentiateWithoutColor("TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor"),
 }

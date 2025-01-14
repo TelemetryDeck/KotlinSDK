@@ -38,7 +38,9 @@ class AccessibilityProvider : TelemetryDeckProvider {
     ): Map<String, String> {
         val signalPayload = additionalPayload.toMutableMap()
         for (item in getConfigurationParams()) {
-            signalPayload.putIfAbsent(item.key, item.value)
+            if (!signalPayload.containsKey(item.key)) {
+                signalPayload[item.key] = item.value
+            }
         }
         return signalPayload
     }
@@ -129,17 +131,6 @@ class AccessibilityProvider : TelemetryDeckProvider {
             this.manager?.get()?.debugLogger?.error("Error detecting LayoutDirection: ${e.stackTraceToString()}")
         }
 
-        try {
-            val switchServiceEnabled = getServiceEnabledByName("com.android.switchaccess")
-            attributes[Accessibility.IsSwitchControlEnabled.paramName] = "${switchServiceEnabled ?: false}"
-        } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error("Error detecting IsSwitchControlEnabled: ${e.stackTraceToString()}")
-        }
-
-        for (param in getConfigFromAccessibilityManager()) {
-            attributes[param.key] = param.value
-        }
-
         return attributes
 
     }
@@ -164,40 +155,6 @@ class AccessibilityProvider : TelemetryDeckProvider {
         }
 
         return null
-    }
-
-    private fun getConfigFromAccessibilityManager(): Map<String, String> {
-        val context = this.app?.get()?.applicationContext ?: return emptyMap()
-        val attributes = mutableMapOf<String, String>()
-        try {
-            val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-
-            val screenReaders =
-                am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN)
-            attributes[Accessibility.IsVoiceOverEnabled.paramName] = "${screenReaders.isNotEmpty()}"
-
-            attributes[Device.IsAccessibilityButtonSupported.paramName] =
-                "${am.isTouchExplorationEnabled}"
-            attributes[Accessibility.IsAudioDescriptionRequested.paramName] =
-                "${am.isAudioDescriptionRequested}"
-
-        } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error("Error reading AccessibilityManager: ${e.stackTraceToString()}")
-        }
-        return attributes
-    }
-
-
-    private fun getServiceEnabledByName(name: String): Boolean? {
-        val context = this.app?.get()?.applicationContext ?: return null
-        val enabledServices = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        )
-        if (enabledServices == null) {
-            return null
-        }
-        return enabledServices.split(":").any { it.contains(name) }
     }
 }
 

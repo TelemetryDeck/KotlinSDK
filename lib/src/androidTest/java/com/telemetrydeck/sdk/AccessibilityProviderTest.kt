@@ -31,9 +31,6 @@ class AccessibilityProviderTest {
         assertTrue(result.containsKey("TelemetryDeck.Accessibility.isReduceMotionEnabled"))
         assertTrue(result.containsKey("TelemetryDeck.Accessibility.isReduceTransparencyEnabled"))
         assertTrue(result.containsKey("TelemetryDeck.UserPreference.layoutDirection"))
-        assertTrue(result.containsKey("TelemetryDeck.Accessibility.isVoiceOverEnabled"))
-        assertTrue(result.containsKey("TelemetryDeck.Device.isAccessibilityButtonSupported"))
-        assertTrue(result.containsKey("TelemetryDeck.Accessibility.isAudioDescriptionRequested"))
     }
 
 }

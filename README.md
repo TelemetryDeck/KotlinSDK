@@ -147,12 +147,8 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 | `TelemetryDeck.Accessibility.isDarkerSystemColorsEnabled`     | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.Accessibility.fontScale`                       | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.Accessibility.isInvertColorsEnabled`           | `AccessibilityProvider`        |                                                                                        |
-| `TelemetryDeck.Accessibility.isVoiceOverEnabled`              | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.Accessibility.isReduceMotionEnabled`           | `AccessibilityProvider`        |                                                                                        |
-| `TelemetryDeck.Accessibility.isAccessibilityButtonSupported`  | `AccessibilityProvider`        | if the accessibility button within the system navigation area is supported             |
-| `TelemetryDeck.Accessibility.isAudioDescriptionRequested`     | `AccessibilityProvider`        | if users want to select soundtrack with audio description by default                   |
 | `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`        |                                                                                        |
-| `TelemetryDeck.Accessibility.isSwitchControlEnabled`          | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`        | Possible values are "rightToLeft" or "leftToRight"                                     |
 

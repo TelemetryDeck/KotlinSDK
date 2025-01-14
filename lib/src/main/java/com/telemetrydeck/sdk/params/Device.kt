@@ -15,5 +15,4 @@ internal enum class Device(val paramName: String) {
     ScreenDensity("TelemetryDeck.Device.screenDensity"),
     ScreenHeight("TelemetryDeck.Device.screenResolutionHeight"),
     ScreenWidth("TelemetryDeck.Device.screenResolutionWidth"),
-    IsAccessibilityButtonSupported("TelemetryDeck.Device.isAccessibilityButtonSupported"),
 }
