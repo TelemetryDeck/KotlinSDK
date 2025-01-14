@@ -6,11 +6,16 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
+import android.util.LayoutDirection
 import android.view.accessibility.AccessibilityManager
+import androidx.core.text.layoutDirection
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.params.Accessibility
+import com.telemetrydeck.sdk.params.Device
+import com.telemetrydeck.sdk.params.UserPreferences
 import java.lang.ref.WeakReference
+import java.util.Locale
 
 
 class AccessibilityProvider : TelemetryDeckProvider {
@@ -33,9 +38,7 @@ class AccessibilityProvider : TelemetryDeckProvider {
     ): Map<String, String> {
         val signalPayload = additionalPayload.toMutableMap()
         for (item in getConfigurationParams()) {
-            if (!signalPayload.containsKey(item.key)) {
-                signalPayload[item.key] = item.value
-            }
+            signalPayload.putIfAbsent(item.key, item.value)
         }
         return signalPayload
     }
@@ -47,12 +50,6 @@ class AccessibilityProvider : TelemetryDeckProvider {
         val attributes = mutableMapOf<String, String>()
 
         try {
-
-        } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
-        }
-
-        try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 attributes[Accessibility.FontWeightAdjustment.paramName] =
                     "${config.fontWeightAdjustment}"
@@ -60,7 +57,7 @@ class AccessibilityProvider : TelemetryDeckProvider {
                     "${config.fontWeightAdjustment > 0}"
             }
         } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
+            this.manager?.get()?.debugLogger?.error("Error detecting FontWeightAdjustment: ${e.stackTraceToString()}")
         }
 
 
@@ -69,13 +66,13 @@ class AccessibilityProvider : TelemetryDeckProvider {
                 attributes[Accessibility.IsDarkerSystemColorsEnabled.paramName] = "$it"
             }
         } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
+            this.manager?.get()?.debugLogger?.error("Error detecting IsDarkerSystemColorsEnabled: ${e.stackTraceToString()}")
         }
 
         try {
             attributes[Accessibility.FontScale.paramName] = "${config.fontScale}"
         } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
+            this.manager?.get()?.debugLogger?.error("Error detecting FontScale: ${e.stackTraceToString()}")
         }
 
         try {
@@ -86,18 +83,21 @@ class AccessibilityProvider : TelemetryDeckProvider {
             ) == 1
             attributes[Accessibility.IsInvertColorsEnabled.paramName] = "$isColorInversionEnabled"
         } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
+            this.manager?.get()?.debugLogger?.error("Error detecting IsInvertColorsEnabled: ${e.stackTraceToString()}")
         }
 
         try {
-            val isColorInversionEnabled = Settings.Secure.getInt(
-                context.contentResolver,
-                Settings.Secure.ACCESSIBILITY_DISPLAY_INVERSION_ENABLED,
-                0 // Default value if the setting is not found
-            ) == 1
-            attributes[Accessibility.IsInvertColorsEnabled.paramName] = "$isColorInversionEnabled"
+            val colorCorrectionSettingKey = "accessibility_display_daltonizer_enabled"
+            val colorModeSettingKey = "accessibility_display_daltonizer"
+            val isColorCorrectionEnabled =
+                Settings.Secure.getInt(context.contentResolver, colorCorrectionSettingKey) == 1 &&
+                        Settings.Secure.getInt(context.contentResolver, colorModeSettingKey) == 0
+            attributes[Accessibility.ShouldDifferentiateWithoutColor.paramName] =
+                "$isColorCorrectionEnabled"
+        } catch (e: Settings.SettingNotFoundException) {
+            attributes[Accessibility.ShouldDifferentiateWithoutColor.paramName] = "false"
         } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
+            this.manager?.get()?.debugLogger?.error("Error detecting ShouldDifferentiateWithoutColor: ${e.stackTraceToString()}")
         }
 
         try {
@@ -111,17 +111,33 @@ class AccessibilityProvider : TelemetryDeckProvider {
                 Settings.Global.ANIMATOR_DURATION_SCALE
             )
 
-            attributes[Accessibility.IsReduceMotionEnabled.paramName] = "${transitionAnimationScale == 0.0f && animatorDurationScale == 0.0f}"
+            attributes[Accessibility.IsReduceMotionEnabled.paramName] =
+                "${transitionAnimationScale == 0.0f && animatorDurationScale == 0.0f}"
+            attributes[Accessibility.IsReduceTransparencyEnabled.paramName] =
+                "${transitionAnimationScale == 0.0f}"
         } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
+            this.manager?.get()?.debugLogger?.error("Error detecting IsReduceMotionEnabled: ${e.stackTraceToString()}")
         }
 
         try {
-            val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-            val screenReaders = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN)
-            attributes[Accessibility.IsVoiceOverEnabled.paramName] = "${screenReaders.isNotEmpty()}"
+            attributes[UserPreferences.LayoutDirection.paramName] =
+                when (Locale.getDefault().layoutDirection == LayoutDirection.RTL) {
+                    true -> "rightToLeft"
+                    false -> "leftToRight"
+                }
         } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
+            this.manager?.get()?.debugLogger?.error("Error detecting LayoutDirection: ${e.stackTraceToString()}")
+        }
+
+        try {
+            val switchServiceEnabled = getServiceEnabledByName("com.android.switchaccess")
+            attributes[Accessibility.IsSwitchControlEnabled.paramName] = "${switchServiceEnabled ?: false}"
+        } catch (e: Exception) {
+            this.manager?.get()?.debugLogger?.error("Error detecting IsSwitchControlEnabled: ${e.stackTraceToString()}")
+        }
+
+        for (param in getConfigFromAccessibilityManager()) {
+            attributes[param.key] = param.value
         }
 
         return attributes
@@ -149,4 +165,39 @@ class AccessibilityProvider : TelemetryDeckProvider {
 
         return null
     }
+
+    private fun getConfigFromAccessibilityManager(): Map<String, String> {
+        val context = this.app?.get()?.applicationContext ?: return emptyMap()
+        val attributes = mutableMapOf<String, String>()
+        try {
+            val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+
+            val screenReaders =
+                am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN)
+            attributes[Accessibility.IsVoiceOverEnabled.paramName] = "${screenReaders.isNotEmpty()}"
+
+            attributes[Device.IsAccessibilityButtonSupported.paramName] =
+                "${am.isTouchExplorationEnabled}"
+            attributes[Accessibility.IsAudioDescriptionRequested.paramName] =
+                "${am.isAudioDescriptionRequested}"
+
+        } catch (e: Exception) {
+            this.manager?.get()?.debugLogger?.error("Error reading AccessibilityManager: ${e.stackTraceToString()}")
+        }
+        return attributes
+    }
+
+
+    private fun getServiceEnabledByName(name: String): Boolean? {
+        val context = this.app?.get()?.applicationContext ?: return null
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        )
+        if (enabledServices == null) {
+            return null
+        }
+        return enabledServices.split(":").any { it.contains(name) }
+    }
 }
+

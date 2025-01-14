@@ -85,14 +85,13 @@ TelemetryDeck.signal("appLaunchedRegularly")
 
 When `TelemetryDeck` is started for the first time, it will create a user identifier for the user that is specific to the app installation.
 
-* The identity is stored within the application's file folder on the user's device. 
+- The identity is stored within the application's file folder on the user's device.
 
-* The identifier will be removed when a user uninstalls an app. The KotlinSDK will not "bridge" the user's identity between installations.
+- The identifier will be removed when a user uninstalls an app. The KotlinSDK will not "bridge" the user's identity between installations.
 
-* Users can reset the identifier at any time by using the "Clear Data" action in Settings of their device.
+- Users can reset the identifier at any time by using the "Clear Data" action in Settings of their device.
 
 If you have a better user identifier available, such as an email address or a username, you can use that instead, by setting `defaultUser` (the identifier will be hashed before sending it) in configuration, or by passing the value when sending signals.
-
 
 ### Custom User Identifiers
 
@@ -108,43 +107,54 @@ val builder = TelemetryDeck.Builder()
 TelemetryDeck.start(application, builder)
 ```
 
-
 ### Environment Parameters
 
 By default, Kotlin SDK for TelemetryDeck will include the following environment parameters for each outgoing signal
 
-
-| Parameter name                                 | Provider                       |
-|------------------------------------------------|--------------------------------|
-| `TelemetryDeck.Session.started`                | `SessionAppProvider`           |
-| `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
-| `TelemetryDeck.AppInfo.version`                | `EnvironmentParameterProvider` |
-| `TelemetryDeck.AppInfo.versionAndBuildNumber`  | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.architecture`            | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.modelName`               | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.operatingSystem`         | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.platform`                | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.systemMajorMinorVersion` | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.systemMajorVersion`      | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.systemVersion`           | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.orientation`             | `PlatformContextProvider`      |
-| `TelemetryDeck.Device.screenDensity`           | `PlatformContextProvider`      |
-| `TelemetryDeck.Device.screenResolutionHeight`  | `PlatformContextProvider`      |
-| `TelemetryDeck.Device.screenResolutionWidth`   | `PlatformContextProvider`      |
-| `TelemetryDeck.Device.brand`                   | `EnvironmentParameterProvider` |
-| `TelemetryDeck.Device.timeZone`                | `PlatformContextProvider`      |
-| `TelemetryDeck.AppInfo.buildNumber`            | `EnvironmentParameterProvider` |
-| `TelemetryDeck.AppInfo.version`                | `EnvironmentParameterProvider` |
-| `TelemetryDeck.AppInfo.versionAndBuildNumber`  | `EnvironmentParameterProvider` |
-| `TelemetryDeck.SDK.name`                       | `EnvironmentParameterProvider` |
-| `TelemetryDeck.SDK.version`                    | `EnvironmentParameterProvider` |
-| `TelemetryDeck.SDK.nameAndVersion`             | `EnvironmentParameterProvider` |
-| `TelemetryDeck.SDK.buildType`                  | `EnvironmentParameterProvider` |
-| `TelemetryDeck.RunContext.locale`              | `PlatformContextProvider`      |
-| `TelemetryDeck.RunContext.targetEnvironment`   | `PlatformContextProvider`      |
-| `TelemetryDeck.RunContext.isSideLoaded`        | `PlatformContextProvider`      |
-| `TelemetryDeck.RunContext.sourceMarketplace`   | `PlatformContextProvider`      |
-
+| Parameter name                                                | Provider                       | Description                                                                            |
+| ------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------- |
+| `TelemetryDeck.Session.started`                               | `SessionAppProvider`           |                                                                                        |
+| `TelemetryDeck.AppInfo.buildNumber`                           | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.AppInfo.version`                               | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.AppInfo.versionAndBuildNumber`                 | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.architecture`                           | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.modelName`                              | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.operatingSystem`                        | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.platform`                               | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.systemMajorMinorVersion`                | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.systemMajorVersion`                     | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.systemVersion`                          | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.orientation`                            | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.Device.screenDensity`                          | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.Device.screenResolutionHeight`                 | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.Device.screenResolutionWidth`                  | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.Device.brand`                                  | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.Device.timeZone`                               | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.AppInfo.buildNumber`                           | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.AppInfo.version`                               | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.AppInfo.versionAndBuildNumber`                 | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.SDK.name`                                      | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.SDK.version`                                   | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.SDK.nameAndVersion`                            | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.SDK.buildType`                                 | `EnvironmentParameterProvider` |                                                                                        |
+| `TelemetryDeck.RunContext.locale`                             | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.RunContext.targetEnvironment`                  | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.RunContext.isSideLoaded`                       | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.RunContext.sourceMarketplace`                  | `PlatformContextProvider`      |                                                                                        |
+| `TelemetryDeck.Device.isAccessibilityButtonSupported`         | `AccessibilityProvider`        | if the accessibility button within the system navigation area is supported             |
+| `TelemetryDeck.Accessibility.isBoldTextEnabled`               | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.fontWeightAdjustment`            | `AccessibilityProvider`        | the amount of font weight adjustment or the value equals 0 if no adjustment is applied |
+| `TelemetryDeck.Accessibility.isDarkerSystemColorsEnabled`     | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.fontScale`                       | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.isInvertColorsEnabled`           | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.isVoiceOverEnabled`              | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.isReduceMotionEnabled`           | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.isAccessibilityButtonSupported`  | `AccessibilityProvider`        | if the accessibility button within the system navigation area is supported             |
+| `TelemetryDeck.Accessibility.isAudioDescriptionRequested`     | `AccessibilityProvider`        | if users want to select soundtrack with audio description by default                   |
+| `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.isSwitchControlEnabled`          | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`        |                                                                                        |
+| `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`        | Possible values are "rightToLeft" or "leftToRight"                                     |
 
 See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
@@ -153,14 +163,13 @@ See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter
 Another way to send signals is to register a custom `TelemetryDeckProvider`.
 A provider uses the TelemetryDeck client in order to queue or send signals based on environment or other triggers.
 
-
 To create a provider, implement the `TelemetryDeckProvider` interface:
 
 ```kotlin
 class CustomProvider: TelemetryDeckProvider {
     override fun register(ctx: Application?, client: TelemetryDeckClient) {
         // configure and start the provider
-        // you may retain a WeakReference to client 
+        // you may retain a WeakReference to client
     }
 
     override fun stop() {
@@ -241,17 +250,14 @@ val builder = TelemetryDeck.Builder()
            .logger(CustomLogger())
 ```
 
-Please note that the logger implementation should be thread safe as it may be invoked in different queues and contexts. 
-
-
+Please note that the logger implementation should be thread safe as it may be invoked in different queues and contexts.
 
 ## Requirements
 
 - Android API 21 or later
 - Kotlin 2.0.20
-- Gradle 6.8.3–8.8*
+- Gradle 6.8.3–8.8\*
 - AGP 7.1.3–8.5
-
 
 ## Migrating providers to 3.0+
 
@@ -262,57 +268,52 @@ To upgrade, please perform the following changes depending on how you use Teleme
 
 ### If you're using the application manifest
 
-* Adapt the manifest of your app and rename all keys from `com.telemetrydeck.sdk.*` to `com.telemetrydeck.*` for example:
+- Adapt the manifest of your app and rename all keys from `com.telemetrydeck.sdk.*` to `com.telemetrydeck.*` for example:
 
 Before:
+
 ```xml
 <meta-data android:name="com.telemetrydeck.sdk.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
 ```
 
 After:
+
 ```xml
 <meta-data android:name="com.telemetrydeck.appID" android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
 ```
 
-* In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
-* If you were using `send()` to send signals, no further changes are needed!
-* If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
+- In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
+- If you were using `send()` to send signals, no further changes are needed!
+- If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
 
 ### Programmatic Usage
 
-* In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
-* If you were using `send()` to send signals, no further changes are needed!
-* If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
-* If you had a custom provider configuration, please replace the corresponding providers as follows:
+- In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
+- If you were using `send()` to send signals, no further changes are needed!
+- If you were using `queue()` to send signals, you will need to rename the method to `TelemetryDeck.signal()`.
+- If you had a custom provider configuration, please replace the corresponding providers as follows:
 
 | Provider (old name)             | Provider (new, 3.0+)                                      |
-|---------------------------------|-----------------------------------------------------------|
+| ------------------------------- | --------------------------------------------------------- |
 | `AppLifecycleTelemetryProvider` | `SessionAppProvider`, `SessionActivityProvider`           |
 | `SessionProvider`               | `SessionAppProvider`                                      |
 | `EnvironmentMetadataProvider`   | `EnvironmentParameterProvider`, `PlatformContextProvider` |
 
-
-
 > [!TIP]
 > You can rename all deprecated classes in your project using the Code Cleanup function in IntelliJ/Android Studio.
 
-
 > [!WARNING]
-> Do not mix usage of `TelemetryManager` and `TelemetryDeck`. Once you're ready to migrate, adapt all uses at the same time.  
-
+> Do not mix usage of `TelemetryManager` and `TelemetryDeck`. Once you're ready to migrate, adapt all uses at the same time.
 
 ### Custom Telemetry
-
 
 Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvider`.
 
 To adopt the new interface:
 
-* Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckSignalProcessor)`
+- Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckSignalProcessor)`
 
-The `TelemetryDeckSignalProcessor` interface offers a subset of the `TelemetryDeck` client API which gives you access to: 
+The `TelemetryDeckSignalProcessor` interface offers a subset of the `TelemetryDeck` client API which gives you access to:
 
-* To access the logger, use can use `client.debugLogger`
-* To access the signal cache, use `client.signalCache`
-
-
+- To access the logger, use can use `client.debugLogger`
+- To access the signal cache, use `client.signalCache`
