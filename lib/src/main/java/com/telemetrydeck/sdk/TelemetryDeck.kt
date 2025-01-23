@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Navigation
+import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
@@ -110,6 +111,27 @@ class TelemetryDeck(
                 floatValue = null
             )
         )
+    }
+
+    override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
+        val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
+        if (trackingProvider == null) {
+            this.logger?.error("startDurationSignal requires the DurationSignalTrackerProvider to be registered")
+            return
+        }
+        trackingProvider.startTracking(signalName, parameters)
+    }
+
+    override fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String>) {
+        val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
+        if (trackingProvider == null) {
+            this.logger?.error("stopAndSendDurationSignal requires the DurationSignalTrackerProvider to be registered")
+            return
+        }
+        val params = trackingProvider.stopTracking(signalName, parameters)
+        if (params != null) {
+            processSignal(signalName, params = params)
+        }
     }
 
     private suspend fun send(
@@ -309,6 +331,17 @@ class TelemetryDeck(
                 customUserID = customUserID,
                 params = params
             )
+        }
+
+        override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
+            getInstance()?.startDurationSignal(signalName, parameters)
+        }
+
+        override fun stopAndSendDurationSignal(
+            signalName: String,
+            parameters: Map<String, String>
+        ) {
+            getInstance()?.stopAndSendDurationSignal(signalName, parameters)
         }
 
         override val signalCache: SignalCache?
