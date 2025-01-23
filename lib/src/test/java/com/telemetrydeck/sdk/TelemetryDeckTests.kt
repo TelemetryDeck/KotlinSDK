@@ -243,7 +243,7 @@ class TelemetryDeckTests {
             .build(null)
         sut.signal("type")
 
-        Assert.assertEquals(4, sut.providers.count())
+        Assert.assertEquals(4 + 1, sut.providers.count()) // added providers + default ones we always apeend
         Assert.assertTrue(sut.providers.last() is TestTelemetryDeckProvider)
     }
 
