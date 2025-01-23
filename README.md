@@ -64,7 +64,7 @@ val builder = TelemetryDeck.Builder()
             .showDebugLogs(true)
             .defaultUser("Person")
 
-TelemetryDeck.start(application, builder)
+TelemetryDeck.start(applicationContext, builder)
 ```
 
 ## Sending Signals
@@ -104,7 +104,7 @@ val builder = TelemetryDeck.Builder()
             .defaultUser("Person")
             .identityProvider(YourIdentityProvider())
 
-TelemetryDeck.start(application, builder)
+TelemetryDeck.start(applicationContext, builder)
 ```
 
 ### Environment Parameters
@@ -163,7 +163,7 @@ To create a provider, implement the `TelemetryDeckProvider` interface:
 
 ```kotlin
 class CustomProvider: TelemetryDeckProvider {
-    override fun register(ctx: Application?, client: TelemetryDeckClient) {
+    override fun register(ctx: Context?, client: TelemetryDeckClient) {
         // configure and start the provider
         // you may retain a WeakReference to client
     }
@@ -307,7 +307,7 @@ Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvid
 
 To adopt the new interface:
 
-- Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckSignalProcessor)`
+- Adapt the signature of the `register` method to `register(ctx: Context?, client: TelemetryDeckSignalProcessor)`
 
 The `TelemetryDeckSignalProcessor` interface offers a subset of the `TelemetryDeck` client API which gives you access to:
 
