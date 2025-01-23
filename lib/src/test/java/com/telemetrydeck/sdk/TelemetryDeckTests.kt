@@ -433,6 +433,24 @@ class TelemetryDeckTests {
         Assert.assertEquals(hashString("always the same"), queuedSignal?.clientUser)
     }
 
+    @Test
+    fun telemetryDeck_allows_duration_signal_tracking() {
+        val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
+        val config = TelemetryManagerConfiguration(appID)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
+
+        manager.startDurationSignal("type")
+        manager.stopAndSendDurationSignal("type")
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+        Assert.assertEquals(UUID.fromString(appID), queuedSignal!!.appID)
+        Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
+        val duration = queuedSignal.payload.find {  it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+        Assert.assertNotNull(duration)
+    }
+
     private fun hashString(input: String, algorithm: String = "SHA-256"): String {
         return MessageDigest.getInstance(algorithm)
             .digest(input.toByteArray())
