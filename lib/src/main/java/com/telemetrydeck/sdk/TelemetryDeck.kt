@@ -210,6 +210,7 @@ class TelemetryDeck(
                 EnvironmentParameterProvider(),
                 PlatformContextProvider()
             )
+        internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 
         // TelemetryManager singleton
         @Volatile
@@ -463,6 +464,7 @@ class TelemetryDeck(
             if (providers == null) {
                 providers = defaultTelemetryProviders
             }
+            providers = providers + alwaysOnProviders
             // check for additional providers that should be appended
             if (additionalProviders != null) {
                 providers = providers + (additionalProviders?.toList() ?: listOf())
