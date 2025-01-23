@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk
 
-import android.app.Application
+import android.content.Context
 
 /**
  * Generic interface for plugins which can enrich Signals
@@ -8,9 +8,9 @@ import android.app.Application
 interface TelemetryDeckProvider {
     /**
      * Registers the provider with the telemetry manager.
-     * The provider keeps a weak reference to telemetry manager in order to queue or send signals.
+     * The provider may keep a weak reference to the application context and the telemetry manager in order to queue or send signals.
      */
-    fun register(ctx: Application?, client: TelemetryDeckSignalProcessor)
+    fun register(ctx: Context?, client: TelemetryDeckSignalProcessor)
 
     /**
      * Calling stop deactivates the provider and prevents future signals from being sent.
@@ -21,7 +21,7 @@ interface TelemetryDeckProvider {
      * A provider can override this method in order to append or remove telemetry metadata from Signals
      * before they are enqueued for broadcast.
      *
-     * TelemetryManager calls this method all providers in order of registration.
+     * [TelemetryDeck] calls this method all providers in order of registration.
      */
     fun enrich(
         signalType: String,

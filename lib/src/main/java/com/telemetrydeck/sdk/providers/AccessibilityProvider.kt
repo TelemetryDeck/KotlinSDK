@@ -1,28 +1,24 @@
 package com.telemetrydeck.sdk.providers
 
-import android.accessibilityservice.AccessibilityServiceInfo
-import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
 import android.util.LayoutDirection
-import android.view.accessibility.AccessibilityManager
 import androidx.core.text.layoutDirection
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.params.Accessibility
-import com.telemetrydeck.sdk.params.Device
 import com.telemetrydeck.sdk.params.UserPreferences
 import java.lang.ref.WeakReference
 import java.util.Locale
 
 
 class AccessibilityProvider : TelemetryDeckProvider {
-    private var app: WeakReference<Application?>? = null
+    private var app: WeakReference<Context?>? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
 
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.app = WeakReference(ctx)
         this.manager = WeakReference(client)
     }
@@ -47,7 +43,7 @@ class AccessibilityProvider : TelemetryDeckProvider {
 
     private fun getConfigurationParams(): Map<String, String> {
 
-        val context = this.app?.get()?.applicationContext ?: return emptyMap()
+        val context = this.app?.get() ?: return emptyMap()
         val config = context.resources.configuration
         val attributes = mutableMapOf<String, String>()
 
@@ -136,7 +132,7 @@ class AccessibilityProvider : TelemetryDeckProvider {
     }
 
     private fun isDarkModeEnabled(): Boolean? {
-        val context = this.app?.get()?.applicationContext ?: return null
+        val context = this.app?.get() ?: return null
         val nightModeFlags: Int =
             context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 

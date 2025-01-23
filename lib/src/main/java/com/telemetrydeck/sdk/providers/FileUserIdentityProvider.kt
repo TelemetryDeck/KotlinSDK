@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk.providers
 
-import android.app.Application
+import android.content.Context
 import com.telemetrydeck.sdk.TelemetryDeckIdentityProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import java.io.File
@@ -19,12 +19,12 @@ import java.util.UUID
  *
  * */
 class FileUserIdentityProvider: TelemetryDeckIdentityProvider {
-    private var app: WeakReference<Application?>? = null
+    private var app: WeakReference<Context?>? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
     private val fileName = "telemetrydeckid"
     private val fileEncoding = Charsets.UTF_8
 
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.app = WeakReference(ctx)
         this.manager = WeakReference(client)
     }
@@ -40,7 +40,7 @@ class FileUserIdentityProvider: TelemetryDeckIdentityProvider {
 
     override fun resetIdentity() {
         // to reset, we delete the identity file if it exists
-        val context = this.app?.get()?.applicationContext ?: return
+        val context = this.app?.get() ?: return
         val file = File(context.filesDir, fileName)
         try {
             if (file.exists()) {
@@ -52,7 +52,7 @@ class FileUserIdentityProvider: TelemetryDeckIdentityProvider {
     }
 
     private fun readOrCreateStableIdentity(): String? {
-        val context = this.app?.get()?.applicationContext ?: return null
+        val context = this.app?.get() ?: return null
 
         try {
             val file = File(context.filesDir, fileName)

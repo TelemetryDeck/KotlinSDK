@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk
 
-import android.app.Application
+import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import org.junit.Assert
 import org.junit.Rule
@@ -441,7 +441,7 @@ class TelemetryDeckTests {
 }
 
 class TestIdentityProvider: TelemetryDeckIdentityProvider {
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         // nothing to do
     }
 

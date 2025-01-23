@@ -1,32 +1,22 @@
 package com.telemetrydeck.sdk.providers
 
 
-import android.app.Application
+import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
-import com.telemetrydeck.sdk.TelemetryProviderFallback
 import com.telemetrydeck.sdk.signals.Session
 import java.lang.ref.WeakReference
 
 /**
  * Monitors the app lifecycle in order to broadcast the NewSessionBegan signal.
  */
-internal class SessionAppProvider : TelemetryDeckProvider, DefaultLifecycleObserver,
-    TelemetryProviderFallback {
+internal class SessionAppProvider : TelemetryDeckProvider, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
 
-    override fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor) {
-        register(ctx, client)
-    }
-
-    override fun fallbackStop() {
-        stop()
-    }
-
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }

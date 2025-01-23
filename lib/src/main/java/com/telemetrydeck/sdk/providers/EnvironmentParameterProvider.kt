@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk.providers
 
-import android.app.Application
+import android.content.Context
 import android.icu.util.VersionInfo
 import android.os.Build
 import com.telemetrydeck.sdk.BuildConfig
@@ -8,7 +8,6 @@ import com.telemetrydeck.sdk.DebugLogger
 import com.telemetrydeck.sdk.ManifestMetadataReader
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
-import com.telemetrydeck.sdk.TelemetryProviderFallback
 import com.telemetrydeck.sdk.params.AppInfo
 import com.telemetrydeck.sdk.params.Device
 import com.telemetrydeck.sdk.params.SDK
@@ -20,7 +19,7 @@ import com.telemetrydeck.sdk.params.SDK
  * - information about the device running the application, such as operating system, model name, or architecture.
  * - information about the TelemetryDeck SDK, such as its name or version number.
  */
-internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryProviderFallback {
+internal class EnvironmentParameterProvider : TelemetryDeckProvider {
     private var enabled: Boolean = true
     private var metadata = mutableMapOf<String, String>()
 
@@ -32,15 +31,7 @@ internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryPr
     private val sdkName: String = "KotlinSDK"
     private val sdkVersion: String = "4.0.2"
 
-    override fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor) {
-        register(ctx, client)
-    }
-
-    override fun fallbackStop() {
-        stop()
-    }
-
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         appendContextSpecificParams(ctx, client.debugLogger)
         appendVersionMetadata(client.debugLogger)
         appendBrandAndMakeMetadata()
@@ -96,7 +87,7 @@ internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryPr
         }
     }
 
-    private fun appendContextSpecificParams(ctx: Application?, debugLogger: DebugLogger?) {
+    private fun appendContextSpecificParams(ctx: Context?, debugLogger: DebugLogger?) {
         if (ctx == null) {
             debugLogger?.error("EnvironmentParameterProvider requires a context but received null. Signals will contain incomplete metadata.")
             return
@@ -129,13 +120,5 @@ internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryPr
             }
         }
         return signalPayload
-    }
-
-    override fun fallbackEnrich(
-        signalType: String,
-        clientUser: String?,
-        additionalPayload: Map<String, String>
-    ): Map<String, String> {
-        return enrich(signalType, clientUser, additionalPayload)
     }
 }

@@ -1,6 +1,5 @@
 package com.telemetrydeck.sdk
 
-import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Navigation
@@ -140,9 +139,9 @@ class TelemetryDeck(
     private fun installProviders(context: Context?) {
         for (provider in providers) {
             logger?.debug("Installing provider ${provider::class}.")
-            provider.register(context?.applicationContext as Application?, this)
+            provider.register(context, this)
         }
-        identityProvider.register(context?.applicationContext as Application?, this)
+        identityProvider.register(context, this)
     }
 
     private fun createSignal(
@@ -189,15 +188,15 @@ class TelemetryDeck(
                 PlatformContextProvider()
             )
 
-        // TelemetryManager singleton
+        // [TelemetryDeck] singleton
         @Volatile
         private var instance: TelemetryDeck? = null
 
         /**
-         * Builds and starts the application instance of `TelemetryManager`.
+         * Builds and starts the application instance of [TelemetryDeck].
          * Calling this method multiple times has no effect.
          */
-        fun start(context: Application, builder: Builder): TelemetryDeck {
+        fun start(context: Context, builder: Builder): TelemetryDeck {
             val knownInstance = instance
             if (knownInstance != null) {
                 return knownInstance
@@ -216,7 +215,7 @@ class TelemetryDeck(
         }
 
         /**
-         * Shuts down the current instance of `TelemetryManager`.
+         * Shuts down the current instance of [TelemetryDeck].
          */
         fun stop() {
             val manager = getInstance()
@@ -338,7 +337,7 @@ class TelemetryDeck(
         private var identityProvider: TelemetryDeckIdentityProvider? = null
     ) {
         /**
-         * Set the TelemetryManager configuration.
+         * Set the [TelemetryDeck] configuration.
          * Use this method to directly set all configuration fields and bypass any default values.
          *
          */
@@ -413,7 +412,7 @@ class TelemetryDeck(
             this.logger = debugLogger
         }
 
-        fun build(context: Application?): TelemetryDeck {
+        fun build(context: Context?): TelemetryDeck {
             var config = this.configuration
             val appID = this.appID
             // check if configuration is already set or create a new instance using appID

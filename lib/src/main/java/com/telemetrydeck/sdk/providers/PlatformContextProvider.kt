@@ -1,9 +1,8 @@
 package com.telemetrydeck.sdk.providers
 
-import android.app.Application
+import android.content.Context
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
-import com.telemetrydeck.sdk.TelemetryProviderFallback
 import com.telemetrydeck.sdk.params.Device
 import com.telemetrydeck.sdk.params.RunContext
 import com.telemetrydeck.sdk.platform.getAppInstallationInfo
@@ -13,21 +12,13 @@ import com.telemetrydeck.sdk.platform.getLocaleName
 import com.telemetrydeck.sdk.platform.getTimeZone
 import java.lang.ref.WeakReference
 
-internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProviderFallback {
+internal class PlatformContextProvider : TelemetryDeckProvider {
     private var enabled: Boolean = true
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
-    private var appContext: WeakReference<Application?>? = null
+    private var appContext: WeakReference<Context?>? = null
     private var metadata = mutableMapOf<String, String>()
 
-    override fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor) {
-        register(ctx, client)
-    }
-
-    override fun fallbackStop() {
-        stop()
-    }
-
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
         this.appContext = WeakReference(ctx)
 
@@ -58,15 +49,6 @@ internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProvide
         this.enabled = false
     }
 
-
-    override fun fallbackEnrich(
-        signalType: String,
-        clientUser: String?,
-        additionalPayload: Map<String, String>
-    ): Map<String, String> {
-        return enrich(signalType, clientUser, additionalPayload)
-    }
-
     override fun enrich(
         signalType: String,
         clientUser: String?,
@@ -90,7 +72,7 @@ internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProvide
     // TODO: Use onConfigurationChanged instead
 
     private fun getDynamicAttributes(): Map<String, String> {
-        val ctx = this.appContext?.get()?.applicationContext
+        val ctx = this.appContext?.get()
             ?: // can't read without a context!
             return emptyMap()
 
