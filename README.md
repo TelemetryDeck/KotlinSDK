@@ -148,9 +148,24 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 
 See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
+## Default Parameters
+
+If there are parameters you would like to include with every outgoing signal, you can use `DefaultParameterProvider` instead of passing them with every call.
+
+```kotlin
+// create an instance of [DefaultParameterProvider] and pass the key value you wish to be appended to every signal
+val provider = DefaultParameterProvider(mapOf("key" to "value"))
+
+// add the provider when configuring an instance of TelemetryDeck
+
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .addProvider(provider)
+```
+
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryDeckProvider`.
+Another way to send signals is to implement a custom `TelemetryDeckProvider`.
 A provider uses the TelemetryDeck client in order to queue or send signals based on environment or other triggers.
 
 
