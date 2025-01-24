@@ -148,6 +148,23 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 
 See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
+## Default prefix
+
+If you find yourself prepending the same prefix for to your custom signals or parameters, 
+you can optionally configure `TelemetryDeck` to do this for you by activating our `DefaultPrefixProvider`:
+
+
+```kotlin
+// create an instance of [DefaultPrefixProvider] with a signal or parameter prefix
+val provider = DefaultPrefixProvider("MyApp.", "MyApp.Params.")
+
+// add the provider when configuring an instance of TelemetryDeck
+
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .addProvider(provider)
+```
+
 ## Custom Telemetry
 
 Another way to send signals is to register a custom `TelemetryDeckProvider`.
