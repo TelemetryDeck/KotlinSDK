@@ -18,6 +18,8 @@ import java.util.Date
 @RunWith(AndroidJUnit4::class)
 class DurationSignalTrackerProviderTest {
 
+    // One or more digits, a dot, then exactly three digits
+    val regex = Regex("^\\d+\\.\\d{3}$")
 
     private fun createSut(): DurationSignalTrackerProvider {
         val appContext = ApplicationProvider.getApplicationContext<Application>()
@@ -42,10 +44,16 @@ class DurationSignalTrackerProviderTest {
         Thread.sleep(5000)
         val params = sut.stopTracking("signal1", emptyMap())
 
+
+        val value = params?.get(Signal.DurationInSeconds.signalName)
+
+        // ensure precision of 3
+        assert(value != null)
+        assert(value!!.matches(regex))
+
         // assert a duration is present and bigger or euqal to 5
-        val duration = params?.get(Signal.DurationInSeconds.signalName)?.toDouble()
-        assert(duration != null)
-        assert(duration!! >= 5.0)
+        val duration = value.toDouble()
+        assert(duration >= 5.0)
     }
 
     @UiThreadTest
@@ -59,10 +67,16 @@ class DurationSignalTrackerProviderTest {
 
         assertEquals("value1", params?.get("param1"))
         assertEquals("value3", params?.get("param2"))
+
+        val value = params?.get(Signal.DurationInSeconds.signalName)
+
+        // ensure precision of 3
+        assert(value != null)
+        assert(value!!.matches(regex))
+
         // assert a duration is present and bigger or euqal to 5
-        val duration = params?.get(Signal.DurationInSeconds.signalName)?.toDouble()
-        assert(duration != null)
-        assert(duration!! >= 5.0)
+        val duration = value.toDouble()
+        assert(duration >= 5.0)
     }
 
     @UiThreadTest
@@ -82,10 +96,15 @@ class DurationSignalTrackerProviderTest {
 
         assertEquals("value1", params?.get("param1"))
         assertEquals("value3", params?.get("param2"))
-        val duration = params?.get(Signal.DurationInSeconds.signalName)?.toDouble()
-        assert(duration != null)
-        println(duration)
-        assert(duration!! > 7200)
+
+        val value = params?.get(Signal.DurationInSeconds.signalName)
+
+        // ensure precision of 3
+        assert(value != null)
+        assert(value!!.matches(regex))
+
+        val duration = value.toDouble()
+        assert(duration > 7200)
     }
 
     @UiThreadTest
@@ -106,9 +125,14 @@ class DurationSignalTrackerProviderTest {
 
         assertEquals("value1", params?.get("param1"))
         assertEquals("value3", params?.get("param2"))
-        val duration = params?.get(Signal.DurationInSeconds.signalName)?.toDouble()
-        assert(duration != null)
-        println(duration)
-        assert(duration!! < 3600)
+
+        val value = params?.get(Signal.DurationInSeconds.signalName)
+
+        // ensure precision of 3
+        assert(value != null)
+        assert(value!!.matches(regex))
+
+        val duration = value.toDouble()
+        assert(duration < 3600)
     }
 }

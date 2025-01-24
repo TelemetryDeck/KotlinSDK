@@ -113,7 +113,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         for (param in parameters) {
             mergedParameters[param.key] = param.value
         }
-        mergedParameters[Signal.DurationInSeconds.signalName] = trackingDurationSec.toString()
+        mergedParameters[Signal.DurationInSeconds.signalName] = "%.3f".format(trackingDurationSec)
 
        return mergedParameters
     }
