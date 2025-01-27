@@ -20,7 +20,7 @@ import com.telemetrydeck.sdk.params.SDK
  * - information about the device running the application, such as operating system, model name, or architecture.
  * - information about the TelemetryDeck SDK, such as its name or version number.
  */
-internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryProviderFallback {
+class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryProviderFallback {
     private var enabled: Boolean = true
     private var metadata = mutableMapOf<String, String>()
 
@@ -30,7 +30,7 @@ internal class EnvironmentParameterProvider : TelemetryDeckProvider, TelemetryPr
     private val platform: String = "Android"
     private val os: String = "Android"
     private val sdkName: String = "KotlinSDK"
-    private val sdkVersion: String = "4.0.2"
+    private val sdkVersion: String = "4.0.3"
 
     override fun fallbackRegister(ctx: Application?, client: TelemetryDeckSignalProcessor) {
         register(ctx, client)
