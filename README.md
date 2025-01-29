@@ -248,6 +248,8 @@ You can also completely disable or override the default providers with your own.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 - `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
 
+For a complete list, check the `com.telemetrydeck.sdk.providers` package.
+
 ```kotlin
 // Append a custom provider
 val builder = TelemetryDeck.Builder()
@@ -334,7 +336,6 @@ After:
 
 
 ### Custom Telemetry
-
 
 Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvider`.
 
