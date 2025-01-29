@@ -14,7 +14,7 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
   * [Environment Parameters](#environment-parameters)
 * [Default Parameters](#default-parameters)
 * [Default Prefix](#default-prefix)
-* [Navigation Signals](#navigation-signals)]
+* [Navigation Signals](#navigation-signals)
 * [Custom Telemetry](#custom-telemetry)
 * [Custom Logging](#custom-logging)
 * [Requirements](#requirements)
