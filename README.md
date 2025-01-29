@@ -2,6 +2,23 @@
 
 This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android applications. Sign up for a free account at [telemetrydeck.com](https://telemetrydeck.com)
 
+* [Installation](#installation)
+  * [Dependencies](#dependencies)
+  * [Permission for internet access](#permission-for-internet-access)
+* [Getting Started](#getting-started)
+  * [Using the application manifest](#using-the-application-manifest)
+  * [Programmatic Usage](#programmatic-usage)
+* [Sending Signals](#sending-signals)
+* [User Identifiers](#user-identifiers)
+  * [Custom User Identifiers](#custom-user-identifiers)
+  * [Environment Parameters](#environment-parameters)
+* [Default Parameters](#default-parameters)
+* [Default prefix](#default-prefix)
+* [Custom Telemetry](#custom-telemetry)
+* [Custom Logging](#custom-logging)
+* [Requirements](#requirements)
+* [Migrating providers to 3.0+](#migrating-providers-to-30)
+
 ## Installation
 
 ### Dependencies
