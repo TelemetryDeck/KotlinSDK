@@ -163,6 +163,23 @@ val builder = TelemetryDeck.Builder()
     .addProvider(provider)
 ```
 
+## Default prefix
+
+If you find yourself prepending the same prefix for to your custom signals or parameters, 
+you can optionally configure `TelemetryDeck` to do this for you by activating our `DefaultPrefixProvider`:
+
+
+```kotlin
+// create an instance of [DefaultPrefixProvider] with a signal or parameter prefix
+val provider = DefaultPrefixProvider("MyApp.", "MyApp.Params.")
+
+// add the provider when configuring an instance of TelemetryDeck
+
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .addProvider(provider)
+```
+
 ## Custom Telemetry
 
 Another way to send signals is to implement a custom `TelemetryDeckProvider`.
@@ -230,6 +247,8 @@ You can also completely disable or override the default providers with your own.
 - `SessionActivityProvider` - Emits signals for application and activity lifecycle events. This provider is not enabled by default.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 - `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
+
+For a complete list, check the `com.telemetrydeck.sdk.providers` package.
 
 ```kotlin
 // Append a custom provider
@@ -317,7 +336,6 @@ After:
 
 
 ### Custom Telemetry
-
 
 Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvider`.
 

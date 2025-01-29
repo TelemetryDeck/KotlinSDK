@@ -156,19 +156,27 @@ class TelemetryDeck(
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
 
-        val userValue = identityProvider.calculateIdentity(clientUser, configuration.defaultUser)
+        var signalTransform = SignalTransform(signalType, clientUser, enrichedPayload, floatValue)
+        for (provider in this.providers) {
+            signalTransform = provider.transform(signalTransform)
+        }
+        return signalFromTransform(signalTransform)
+    }
+
+    private fun signalFromTransform(signalTransform: SignalTransform): Signal {
+        val userValue = identityProvider.calculateIdentity(signalTransform.clientUser, configuration.defaultUser)
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt)
 
-        val payload = SignalPayload(additionalPayload = enrichedPayload)
+        val payload = SignalPayload(additionalPayload = signalTransform.additionalPayload)
         val signal = Signal(
             appID = configuration.telemetryAppID,
-            type = signalType,
+            type = signalTransform.signalType,
             clientUser = hashedUser,
             payload = payload.asMultiValueDimension,
             isTestMode = configuration.testMode.toString().lowercase(),
-            floatValue = floatValue
+            floatValue = signalTransform.floatValue
         )
         signal.sessionID = this.configuration.sessionID.toString()
         logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}, test ${signal.isTestMode}")

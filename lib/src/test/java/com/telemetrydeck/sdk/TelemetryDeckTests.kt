@@ -2,6 +2,7 @@ package com.telemetrydeck.sdk
 
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.telemetrydeck.sdk.providers.DefaultPrefixProvider
 import com.telemetrydeck.sdk.providers.DefaultParameterProvider
 import org.junit.Assert
 import org.junit.Rule
@@ -449,6 +450,23 @@ class TelemetryDeckTests {
         Assert.assertEquals(queuedSignal?.type, "test")
 
         Assert.assertEquals("param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("param1:") }, )
+    }
+
+    @Test
+    fun telemetryDeck_default_prefix_provider() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        val manager = TelemetryDeck.Builder().addProvider(DefaultPrefixProvider("SignalPrefix.", "ParamPrefix.")).configuration(config).build(null)
+
+        manager.signal("test", mapOf("param1" to "value1"), floatValue = 1.0)
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate the signal type
+        Assert.assertEquals("SignalPrefix.test", queuedSignal?.type)
+        Assert.assertEquals(1.0, queuedSignal?.floatValue)
+        Assert.assertEquals("ParamPrefix.param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("ParamPrefix.") }, )
     }
 
     private fun hashString(input: String, algorithm: String = "SHA-256"): String {
