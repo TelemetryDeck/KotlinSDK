@@ -13,7 +13,7 @@ import com.telemetrydeck.sdk.platform.getLocaleName
 import com.telemetrydeck.sdk.platform.getTimeZone
 import java.lang.ref.WeakReference
 
-internal class PlatformContextProvider : TelemetryDeckProvider, TelemetryProviderFallback {
+class PlatformContextProvider : TelemetryDeckProvider, TelemetryProviderFallback {
     private var enabled: Boolean = true
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
     private var appContext: WeakReference<Application?>? = null
