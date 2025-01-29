@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.vanniktech.publish)
 }
 
@@ -44,7 +43,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
-        compose = true
+        compose = false
         buildConfig = true
     }
 
@@ -68,10 +67,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
-    // explicit dependency on compose seems to be required to use the compose compiler
-    // this is not used by the library atm
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.appcompat)
     implementation(libs.ktor.client.core)
     implementation(libs.kotlinx.coroutines.core)
@@ -86,13 +81,15 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.androidx.arch.core)
-
+    // As of Kotlin 2.0, the Compose Compiler and runtime are required in the classpath https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-compiler.html
+    testImplementation(libs.androidx.activity.compose)
+    testImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    androidTestImplementation(libs.androidx.ui.tooling)
+    androidTestImplementation(libs.androidx.ui.test.manifest)
 
     testImplementation(libs.mockk)
     testImplementation(libs.mockk.android)
@@ -101,7 +98,7 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk", "4.0.2")
+    coordinates("com.telemetrydeck", "kotlin-sdk", "4.0.5")
 
     pom {
         name = "TelemetryDeck SDK"

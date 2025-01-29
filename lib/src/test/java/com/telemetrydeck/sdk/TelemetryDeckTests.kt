@@ -3,6 +3,7 @@ package com.telemetrydeck.sdk
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.telemetrydeck.sdk.providers.DefaultPrefixProvider
+import com.telemetrydeck.sdk.providers.DefaultParameterProvider
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -432,6 +433,23 @@ class TelemetryDeckTests {
 
         val queuedSignal = telemetryDeck.cache?.empty()?.first()
         Assert.assertEquals(hashString("always the same"), queuedSignal?.clientUser)
+    }
+
+    @Test
+    fun telemetryDeck_supports_default_parameter_provider() {
+        val config = TelemetryManagerConfiguration("32CB6574-6732-4238-879F-582FEBEB6536")
+        val manager = TelemetryDeck.Builder().addProvider(DefaultParameterProvider(mapOf("param1" to "value1"))).configuration(config).build(null)
+
+        manager.signal("test")
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+
+        // validate the signal type
+        Assert.assertEquals(queuedSignal?.type, "test")
+
+        Assert.assertEquals("param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("param1:") }, )
     }
 
     @Test
