@@ -15,6 +15,7 @@ vanniktech-publish = "0.30.0"
 appcompat = "1.7.0"
 mockk = "1.13.13"
 robolectric = "4.7.3"
+androidxTest = "1.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +44,7 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 mockk = {group = "io.mockk", name = "mockk", version.ref = "mockk" }
 mockk-agent = {group = "io.mockk", name = "mockk-agent", version.ref = "mockk" }
 mockk-android = {group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
+androidx-jUnitTestRules = { module = "androidx.test:rules", version.ref = "androidxTest" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }

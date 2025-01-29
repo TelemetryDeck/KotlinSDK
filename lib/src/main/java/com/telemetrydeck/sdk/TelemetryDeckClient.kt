@@ -95,5 +95,35 @@ interface TelemetryDeckClient {
         params: Map<String, String> = emptyMap(),
     )
 
+    /** Starts tracking the duration of a signal without sending it yet.
+     *
+     * This function only starts tracking time – it does not send a signal. You must call `[stopAndSendDurationSignal]`
+     * with the same signal name to finalize and actually send the signal with the tracked duration.
+     *
+     * Calling this method twice for the same signal name will replace the previous tracking.
+     *
+     * @param signalName The name of the signal to track. This will be used to identify and stop the duration tracking later.
+     * @param parameters A dictionary of additional string key-value pairs that will be included when the duration signal is eventually sent.
+     */
+    fun startDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap())
+
+    /** Stops tracking the duration of a signal and sends it with the total duration.
+     *
+     * This function finalizes the duration tracking by:
+     * 1. Stopping the timer for the given signal name
+     * 2. Calculating the duration in seconds (excluding background time)
+     * 3. Sending a signal that includes the start parameters, stop parameters, and calculated duration
+     *
+     * Tracked time will be included as a value of `TelemetryDeck.Signal.durationInSeconds`.
+     * Tracked time only includes time while the app is in the foreground.
+     *
+     * Note: If no matching signal was started, this function has no effect.
+     *
+     * @param signalName The name of the signal that was previously started with [startDurationSignal]
+     * @param parameters Additional parameters to include with the signal. These will be merged with the parameters provided at the start.
+     *
+     */
+    fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap())
+
     val configuration: TelemetryManagerConfiguration?
 }

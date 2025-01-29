@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Navigation
+import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
@@ -112,6 +113,27 @@ class TelemetryDeck(
         )
     }
 
+    override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
+        val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
+        if (trackingProvider == null) {
+            this.logger?.error("startDurationSignal requires the DurationSignalTrackerProvider to be registered")
+            return
+        }
+        trackingProvider.startTracking(signalName, parameters)
+    }
+
+    override fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String>) {
+        val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
+        if (trackingProvider == null) {
+            this.logger?.error("stopAndSendDurationSignal requires the DurationSignalTrackerProvider to be registered")
+            return
+        }
+        val params = trackingProvider.stopTracking(signalName, parameters)
+        if (params != null) {
+            processSignal(signalName, params = params)
+        }
+    }
+
     private suspend fun send(
         signal: Signal
     ): Result<Unit> {
@@ -196,6 +218,7 @@ class TelemetryDeck(
                 EnvironmentParameterProvider(),
                 PlatformContextProvider()
             )
+        internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 
         // TelemetryManager singleton
         @Volatile
@@ -319,6 +342,17 @@ class TelemetryDeck(
             )
         }
 
+        override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
+            getInstance()?.startDurationSignal(signalName, parameters)
+        }
+
+        override fun stopAndSendDurationSignal(
+            signalName: String,
+            parameters: Map<String, String>
+        ) {
+            getInstance()?.stopAndSendDurationSignal(signalName, parameters)
+        }
+
         override val signalCache: SignalCache?
             get() = getInstance()?.signalCache
 
@@ -438,6 +472,7 @@ class TelemetryDeck(
             if (providers == null) {
                 providers = defaultTelemetryProviders
             }
+            providers = providers + alwaysOnProviders
             // check for additional providers that should be appended
             if (additionalProviders != null) {
                 providers = providers + (additionalProviders?.toList() ?: listOf())

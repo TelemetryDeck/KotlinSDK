@@ -245,7 +245,7 @@ class TelemetryDeckTests {
             .build(null)
         sut.signal("type")
 
-        Assert.assertEquals(4, sut.providers.count())
+        Assert.assertEquals(4 + 1, sut.providers.count()) // added providers + default ones we always apeend
         Assert.assertTrue(sut.providers.last() is TestTelemetryDeckProvider)
     }
 
@@ -467,6 +467,24 @@ class TelemetryDeckTests {
         Assert.assertEquals("SignalPrefix.test", queuedSignal?.type)
         Assert.assertEquals(1.0, queuedSignal?.floatValue)
         Assert.assertEquals("ParamPrefix.param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("ParamPrefix.") }, )
+    }
+
+    @Test
+    fun telemetryDeck_allows_duration_signal_tracking() {
+        val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
+        val config = TelemetryManagerConfiguration(appID)
+        val manager = TelemetryDeck.Builder().configuration(config).build(null)
+
+        manager.startDurationSignal("type")
+        manager.stopAndSendDurationSignal("type")
+
+        val queuedSignal = manager.cache?.empty()?.first()
+
+        Assert.assertNotNull(queuedSignal)
+        Assert.assertEquals(UUID.fromString(appID), queuedSignal!!.appID)
+        Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
+        val duration = queuedSignal.payload.find {  it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+        Assert.assertNotNull(duration)
     }
 
     private fun hashString(input: String, algorithm: String = "SHA-256"): String {
