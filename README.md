@@ -13,7 +13,8 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
   * [Custom User Identifiers](#custom-user-identifiers)
   * [Environment Parameters](#environment-parameters)
 * [Default Parameters](#default-parameters)
-* [Default prefix](#default-prefix)
+* [Default Prefix](#default-prefix)
+* [Navigation Signals](#navigation-signals)]
 * [Custom Telemetry](#custom-telemetry)
 * [Custom Logging](#custom-logging)
 * [Requirements](#requirements)
@@ -180,7 +181,7 @@ val builder = TelemetryDeck.Builder()
     .addProvider(provider)
 ```
 
-## Default prefix
+## Default Prefix
 
 If you find yourself prepending the same prefix for to your custom signals or parameters, 
 you can optionally configure `TelemetryDeck` to do this for you by activating our `DefaultPrefixProvider`:
@@ -195,6 +196,19 @@ val provider = DefaultPrefixProvider("MyApp.", "MyApp.Params.")
 val builder = TelemetryDeck.Builder()
     .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
     .addProvider(provider)
+```
+
+## Navigation Signals
+
+You can make use of [Navigation Signals](https://telemetrydeck.com/docs/articles/navigation-signals/) to better understand how your users a moving through the app.
+
+```kotlin
+// track a navigation event e.g. when the user is moving from one screen to another:
+TelemetryDeck.navigate(sourcePath = "/onboarding", destinationPath = "/home")
+
+// let TelemetryDeck take care of tracking the user's route by calling navigate when the path changes
+TelemetryDeck.navigate("/onboarding")
+TelemetryDeck.navigate("/home")
 ```
 
 ## Custom Telemetry
