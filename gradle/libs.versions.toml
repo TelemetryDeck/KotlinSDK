@@ -11,6 +11,7 @@ composeBom = "2024.04.01"
 ktor = "3.0.2"
 kotlinx = "1.7.3"
 coroutines = "1.10.1"
+uiautomator = "2.3.0"
 vanniktech-publish = "0.30.0"
 appcompat = "1.7.0"
 mockk = "1.13.13"
@@ -19,6 +20,7 @@ androidxTest = "1.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }

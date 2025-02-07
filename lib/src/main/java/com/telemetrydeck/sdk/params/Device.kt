@@ -14,5 +14,5 @@ internal enum class Device(val paramName: String) {
     Orientation("TelemetryDeck.Device.orientation"), // iOS compatibility note: on Android, there are additional orientations
     ScreenDensity("TelemetryDeck.Device.screenDensity"),
     ScreenHeight("TelemetryDeck.Device.screenResolutionHeight"),
-    ScreenWidth("TelemetryDeck.Device.screenResolutionWidth")
+    ScreenWidth("TelemetryDeck.Device.screenResolutionWidth"),
 }
