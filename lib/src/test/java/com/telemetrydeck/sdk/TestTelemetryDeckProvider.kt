@@ -1,10 +1,10 @@
 package com.telemetrydeck.sdk
 
-import android.app.Application
+import android.content.Context
 
 open class TestTelemetryDeckProvider : TelemetryDeckProvider {
     var registered = false
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         registered = true
     }
 

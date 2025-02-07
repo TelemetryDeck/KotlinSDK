@@ -30,9 +30,7 @@ class TelemetryDeckInitProvider : ContentProvider() {
 
             when (metadata.version) {
                 TelemetryDeckManifestVersion.V1 -> {
-                    val builder = TelemetryManager.Builder()
-                    builder.configuration(metadata.config)
-                    TelemetryManager.start(appContext, builder)
+                    throw IllegalArgumentException("This API is no longer supported. Please upgrade to using `TelemetryDeck`.")
                 }
 
                 TelemetryDeckManifestVersion.V2 -> {

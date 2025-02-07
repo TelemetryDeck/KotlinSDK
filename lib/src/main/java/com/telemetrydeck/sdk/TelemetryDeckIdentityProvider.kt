@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk
 
-import android.app.Application
+import android.content.Context
 
 /**
  * Generic interface for plugins which can calculate anonymous user identifier
@@ -9,7 +9,7 @@ interface TelemetryDeckIdentityProvider {
     /**
      * Registers the provider with the telemetry manager.
      */
-    fun register(ctx: Application?, client: TelemetryDeckSignalProcessor)
+    fun register(ctx: Context?, client: TelemetryDeckSignalProcessor)
 
     /**
      * Calling stop deactivates the provider, performs any cleanup work if necessary.

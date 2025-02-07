@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk.providers
 
-import android.app.Application
+import android.content.Context
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 
@@ -14,7 +14,7 @@ import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
  *                            that will be added to each telemetry signal.
  */
 class DefaultParameterProvider(val defaultParameters: Map<String, String>): TelemetryDeckProvider {
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         // nothing to do
     }
 

@@ -82,7 +82,7 @@ val builder = TelemetryDeck.Builder()
             .showDebugLogs(true)
             .defaultUser("Person")
 
-TelemetryDeck.start(application, builder)
+TelemetryDeck.start(applicationContext, builder)
 ```
 
 ## Sending Signals
@@ -122,7 +122,7 @@ val builder = TelemetryDeck.Builder()
             .defaultUser("Person")
             .identityProvider(YourIdentityProvider())
 
-TelemetryDeck.start(application, builder)
+TelemetryDeck.start(applicationContext, builder)
 ```
 
 ### Environment Parameters
@@ -245,7 +245,7 @@ To create a provider, implement the `TelemetryDeckProvider` interface:
 
 ```kotlin
 class CustomProvider: TelemetryDeckProvider {
-    override fun register(ctx: Application?, client: TelemetryDeckClient) {
+    override fun register(ctx: Context?, client: TelemetryDeckClient) {
         // configure and start the provider
         // you may retain a WeakReference to client
     }
@@ -302,7 +302,8 @@ You can also completely disable or override the default providers with your own.
 - `SessionActivityProvider` - Emits signals for application and activity lifecycle events. This provider is not enabled by default.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 - `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
-
+- `AccessibilityProvider` - Adds parameters describing the currently active accessibility options.
+- 
 For a complete list, check the `com.telemetrydeck.sdk.providers` package.
 
 ```kotlin
@@ -338,6 +339,12 @@ Please note that the logger implementation should be thread safe as it may be in
 - Kotlin 2.0.20
 - Gradle 6.8.3–8.8\*
 - AGP 7.1.3–8.5
+
+## Migrating providers to 5.0+
+
+* The provider interface `TelemetryDeckProvider` has changed to accept a `Context` instance instead of an `Application`.
+* The deprecated fallback provider callbacks are no longer used and the functionality has been removed.
+* Providers can now optionally override the `transform` method in order to modify any component of the signal.
 
 ## Migrating providers to 3.0+
 
@@ -391,7 +398,7 @@ Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvid
 
 To adopt the new interface:
 
-- Adapt the signature of the `register` method to `register(ctx: Application?, client: TelemetryDeckSignalProcessor)`
+- Adapt the signature of the `register` method to `register(ctx: Context?, client: TelemetryDeckSignalProcessor)`
 
 The `TelemetryDeckSignalProcessor` interface offers a subset of the `TelemetryDeck` client API which gives you access to:
 

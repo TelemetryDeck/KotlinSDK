@@ -1,6 +1,5 @@
 package com.telemetrydeck.sdk.providers
 
-import android.app.Application
 import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -23,9 +22,9 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     private val fileName = "telemetrydeckduration"
     private val fileEncoding = Charsets.UTF_8
 
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
-        this.appContext = WeakReference(ctx?.applicationContext)
+        this.appContext = WeakReference(ctx)
         this.state = restoreStateFromDisk() ?: TrackerState(emptyMap())
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }

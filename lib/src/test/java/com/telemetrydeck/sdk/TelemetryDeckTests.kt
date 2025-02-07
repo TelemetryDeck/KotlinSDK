@@ -1,6 +1,6 @@
 package com.telemetrydeck.sdk
 
-import android.app.Application
+import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.telemetrydeck.sdk.providers.DefaultPrefixProvider
 import com.telemetrydeck.sdk.providers.DefaultParameterProvider
@@ -245,7 +245,7 @@ class TelemetryDeckTests {
             .build(null)
         sut.signal("type")
 
-        Assert.assertEquals(4 + 1, sut.providers.count()) // added providers + default ones we always apeend
+        Assert.assertEquals(5 + 1, sut.providers.count()) // default ones + the one added in the test
         Assert.assertTrue(sut.providers.last() is TestTelemetryDeckProvider)
     }
 
@@ -495,7 +495,7 @@ class TelemetryDeckTests {
 }
 
 class TestIdentityProvider: TelemetryDeckIdentityProvider {
-    override fun register(ctx: Application?, client: TelemetryDeckSignalProcessor) {
+    override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         // nothing to do
     }
 
