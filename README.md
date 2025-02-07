@@ -340,6 +340,12 @@ Please note that the logger implementation should be thread safe as it may be in
 - Gradle 6.8.3–8.8\*
 - AGP 7.1.3–8.5
 
+## Migrating providers to 5.0+
+
+* The provider interface `TelemetryDeckProvider` has changed to accept a `Context` instance instead of an `Application`.
+* The deprecated fallback provider callbacks are no longer used and the functionality has been removed.
+* Providers can now optionally override the `transform` method in order to modify any component of the signal.
+
 ## Migrating providers to 3.0+
 
 If you had Kotlin SDK for TelemetryDeck added to your app, you will notice that `TelemetryManager` and related classes have been deprecated.
