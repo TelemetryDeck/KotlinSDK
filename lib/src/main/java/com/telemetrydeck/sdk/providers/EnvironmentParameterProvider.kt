@@ -19,7 +19,7 @@ import com.telemetrydeck.sdk.params.SDK
  * - information about the device running the application, such as operating system, model name, or architecture.
  * - information about the TelemetryDeck SDK, such as its name or version number.
  */
-internal class EnvironmentParameterProvider : TelemetryDeckProvider {
+class EnvironmentParameterProvider : TelemetryDeckProvider {
     private var enabled: Boolean = true
     private var metadata = mutableMapOf<String, String>()
 

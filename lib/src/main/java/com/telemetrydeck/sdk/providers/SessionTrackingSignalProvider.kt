@@ -1,7 +1,6 @@
 package com.telemetrydeck.sdk.providers
 
 import android.content.Context
-import android.icu.util.Calendar
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
