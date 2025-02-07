@@ -1,9 +1,8 @@
 name: Publish to Maven Central
 
 on:
-  push:
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+*"
+  release:
+    types: [released, prereleased]
 
 jobs:
   publish:
@@ -23,7 +22,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Upload Artifacts
-        # gradle.properties must be set with SONATYPE_HOST=CENTRAL_PORTAL and RELEASE_SIGNING_ENABLED=true
         run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}

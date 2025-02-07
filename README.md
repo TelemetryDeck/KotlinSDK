@@ -2,6 +2,24 @@
 
 This package allows you to send signals to [TelemetryDeck](https://telemetrydeck.com) from your Android applications. Sign up for a free account at [telemetrydeck.com](https://telemetrydeck.com)
 
+* [Installation](#installation)
+  * [Dependencies](#dependencies)
+  * [Permission for internet access](#permission-for-internet-access)
+* [Getting Started](#getting-started)
+  * [Using the application manifest](#using-the-application-manifest)
+  * [Programmatic Usage](#programmatic-usage)
+* [Sending Signals](#sending-signals)
+* [User Identifiers](#user-identifiers)
+  * [Custom User Identifiers](#custom-user-identifiers)
+  * [Environment Parameters](#environment-parameters)
+* [Default Parameters](#default-parameters)
+* [Default Prefix](#default-prefix)
+* [Navigation Signals](#navigation-signals)
+* [Custom Telemetry](#custom-telemetry)
+* [Custom Logging](#custom-logging)
+* [Requirements](#requirements)
+* [Migrating providers to 3.0+](#migrating-providers-to-30)
+
 ## Installation
 
 ### Dependencies
@@ -10,7 +28,7 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central and can be used
 
 ```groovy
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:4.0.2'
+    implementation 'com.telemetrydeck:kotlin-sdk:4.1.0'
 }
 ```
 
@@ -154,9 +172,54 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 
 See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
+## Default Parameters
+
+If there are parameters you would like to include with every outgoing signal, you can use `DefaultParameterProvider` instead of passing them with every call.
+
+```kotlin
+// create an instance of [DefaultParameterProvider] and pass the key value you wish to be appended to every signal
+val provider = DefaultParameterProvider(mapOf("key" to "value"))
+
+// add the provider when configuring an instance of TelemetryDeck
+
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .addProvider(provider)
+```
+
+## Default Prefix
+
+If you find yourself prepending the same prefix for to your custom signals or parameters, 
+you can optionally configure `TelemetryDeck` to do this for you by activating our `DefaultPrefixProvider`:
+
+
+```kotlin
+// create an instance of [DefaultPrefixProvider] with a signal or parameter prefix
+val provider = DefaultPrefixProvider("MyApp.", "MyApp.Params.")
+
+// add the provider when configuring an instance of TelemetryDeck
+
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .addProvider(provider)
+```
+
+## Navigation Signals
+
+You can make use of [Navigation Signals](https://telemetrydeck.com/docs/articles/navigation-signals/) to better understand how your users a moving through the app.
+
+```kotlin
+// track a navigation event e.g. when the user is moving from one screen to another:
+TelemetryDeck.navigate(sourcePath = "/onboarding", destinationPath = "/home")
+
+// let TelemetryDeck take care of tracking the user's route by calling navigate when the path changes
+TelemetryDeck.navigate("/onboarding")
+TelemetryDeck.navigate("/home")
+```
+
 ## Custom Telemetry
 
-Another way to send signals is to register a custom `TelemetryDeckProvider`.
+Another way to send signals is to implement a custom `TelemetryDeckProvider`.
 A provider uses the TelemetryDeck client in order to queue or send signals based on environment or other triggers.
 
 To create a provider, implement the `TelemetryDeckProvider` interface:
@@ -220,6 +283,8 @@ You can also completely disable or override the default providers with your own.
 - `SessionActivityProvider` - Emits signals for application and activity lifecycle events. This provider is not enabled by default.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 - `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
+
+For a complete list, check the `com.telemetrydeck.sdk.providers` package.
 
 ```kotlin
 // Append a custom provider
