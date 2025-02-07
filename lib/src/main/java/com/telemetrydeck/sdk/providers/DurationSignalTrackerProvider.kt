@@ -24,6 +24,12 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
         this.appContext = WeakReference(ctx)
+        this.state = restoreStateFromDisk<TrackerState?>(
+            this.appContext?.get(),
+            this.fileName,
+            this.fileEncoding,
+            this.manager?.get()?.debugLogger
+        ) ?: TrackerState(emptyMap())
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
