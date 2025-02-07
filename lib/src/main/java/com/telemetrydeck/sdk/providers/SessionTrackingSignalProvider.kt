@@ -1,6 +1,7 @@
 package com.telemetrydeck.sdk.providers
 
 import android.content.Context
+import android.icu.util.Calendar
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -80,9 +81,17 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
             distinctDays = (currentState.distinctDays + today).distinctBy { it.lowercase() }
         )
 
-        this.manager?.get()?.debugLogger?.debug("Session tracking ${updatedState.sessions.size} sessions.")
-        writeStateToDisk(updatedState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
-        this.state = updatedState
+        // delete session started more than 90 days ago
+        val cutOff = Date(Date().time - (90L * 24L * 60L * 60L * 1000L))
+        val survivingSessions = updatedState.sessions.filter { it.firstStart.after(cutOff) }
+
+        val saveState = updatedState.copy(
+            sessions = survivingSessions
+        )
+
+        this.manager?.get()?.debugLogger?.debug("Session tracking ${saveState.sessions.size} sessions.")
+        writeStateToDisk(saveState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+        this.state = saveState
     }
 
     override fun onStop(owner: LifecycleOwner) {
