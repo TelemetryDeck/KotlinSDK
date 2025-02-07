@@ -302,7 +302,8 @@ You can also completely disable or override the default providers with your own.
 - `SessionActivityProvider` - Emits signals for application and activity lifecycle events. This provider is not enabled by default.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 - `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
-
+- `AccessibilityProvider` - Adds parameters describing the currently active accessibility options.
+- 
 For a complete list, check the `com.telemetrydeck.sdk.providers` package.
 
 ```kotlin
