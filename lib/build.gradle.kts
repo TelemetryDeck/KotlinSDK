@@ -91,6 +91,7 @@ dependencies {
     androidTestImplementation(libs.androidx.jUnitTestRules)
     androidTestImplementation(libs.androidx.ui.tooling)
     androidTestImplementation(libs.androidx.ui.test.manifest)
+    androidTestImplementation(libs.androidx.uiautomator)
 
     testImplementation(libs.mockk)
     testImplementation(libs.mockk.android)
