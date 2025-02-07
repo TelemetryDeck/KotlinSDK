@@ -159,7 +159,6 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 | `TelemetryDeck.RunContext.targetEnvironment`                  | `PlatformContextProvider`      |                                                                                        |
 | `TelemetryDeck.RunContext.isSideLoaded`                       | `PlatformContextProvider`      |                                                                                        |
 | `TelemetryDeck.RunContext.sourceMarketplace`                  | `PlatformContextProvider`      |                                                                                        |
-| `TelemetryDeck.Device.isAccessibilityButtonSupported`         | `AccessibilityProvider`        | if the accessibility button within the system navigation area is supported             |
 | `TelemetryDeck.Accessibility.isBoldTextEnabled`               | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.Accessibility.fontWeightAdjustment`            | `AccessibilityProvider`        | the amount of font weight adjustment or the value equals 0 if no adjustment is applied |
 | `TelemetryDeck.Accessibility.isDarkerSystemColorsEnabled`     | `AccessibilityProvider`        |                                                                                        |
@@ -169,6 +168,26 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 | `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`        |                                                                                        |
 | `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`        | Possible values are "rightToLeft" or "leftToRight"                                     |
+
+#### Notes 
+
+- `TelemetryDeck.Accessibility.fontScale` - the value is mapped to better align with size categories sent by other SDKs:
+
+```
+fontScale <= 0.8f ->                      XS
+fontScale > 0.8f && fontScale < 0.9f ->   S
+fontScale >= 0.9f && fontScale < 1.0f ->  M
+fontScale == 1.0f ->                      L
+fontScale >= 1.0f && fontScale < 1.3f ->  XL
+fontScale >= 1.3f && fontScale < 1.4f ->  XXL
+fontScale >= 1.4f && fontScale < 1.5f ->  XXXL
+fontScale >= 1.5f && fontScale < 1.6f ->  AccessibilityM
+fontScale >= 1.6f && fontScale < 1.7f ->  AccessibilityL
+fontScale >= 1.7f && fontScale < 1.8f ->  AccessibilityXL
+fontScale >= 1.8f && fontScale < 1.9f ->  AccessibilityXXL
+fontScale >= 1.9f && fontScale < 2.0f ->  AccessibilityXXXL
+fontScale >= 2.0f ->                      AccessibilityXXXL
+```
 
 See [Custom Telemetry](#custom-telemetry) on how to implement your own parameter enrichment.
 
