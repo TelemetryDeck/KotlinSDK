@@ -6,6 +6,10 @@ on:
       - main
   pull_request:
 
+ignore:
+  paths:
+    - README.md
+
 # prevent concurrent builds from running at the same time
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

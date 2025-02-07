@@ -18,6 +18,7 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 * [Custom Telemetry](#custom-telemetry)
 * [Custom Logging](#custom-logging)
 * [Requirements](#requirements)
+* [Migrating providers to 5.0+](#migrating-providers-to-50)
 * [Migrating providers to 3.0+](#migrating-providers-to-30)
 
 ## Installation
