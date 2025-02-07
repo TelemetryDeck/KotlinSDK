@@ -3,6 +3,8 @@ package com.telemetrydeck.sdk
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Navigation
+import com.telemetrydeck.sdk.providers.AccessibilityProvider
+import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
@@ -111,6 +113,27 @@ class TelemetryDeck(
         )
     }
 
+    override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
+        val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
+        if (trackingProvider == null) {
+            this.logger?.error("startDurationSignal requires the DurationSignalTrackerProvider to be registered")
+            return
+        }
+        trackingProvider.startTracking(signalName, parameters)
+    }
+
+    override fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String>) {
+        val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
+        if (trackingProvider == null) {
+            this.logger?.error("stopAndSendDurationSignal requires the DurationSignalTrackerProvider to be registered")
+            return
+        }
+        val params = trackingProvider.stopTracking(signalName, parameters)
+        if (params != null) {
+            processSignal(signalName, params = params)
+        }
+    }
+
     private suspend fun send(
         signal: Signal
     ): Result<Unit> {
@@ -155,19 +178,27 @@ class TelemetryDeck(
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
 
-        val userValue = identityProvider.calculateIdentity(clientUser, configuration.defaultUser)
+        var signalTransform = SignalTransform(signalType, clientUser, enrichedPayload, floatValue)
+        for (provider in this.providers) {
+            signalTransform = provider.transform(signalTransform)
+        }
+        return signalFromTransform(signalTransform)
+    }
+
+    private fun signalFromTransform(signalTransform: SignalTransform): Signal {
+        val userValue = identityProvider.calculateIdentity(signalTransform.clientUser, configuration.defaultUser)
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt)
 
-        val payload = SignalPayload(additionalPayload = enrichedPayload)
+        val payload = SignalPayload(additionalPayload = signalTransform.additionalPayload)
         val signal = Signal(
             appID = configuration.telemetryAppID,
-            type = signalType,
+            type = signalTransform.signalType,
             clientUser = hashedUser,
             payload = payload.asMultiValueDimension,
             isTestMode = configuration.testMode.toString().lowercase(),
-            floatValue = floatValue
+            floatValue = signalTransform.floatValue
         )
         signal.sessionID = this.configuration.sessionID.toString()
         logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}, test ${signal.isTestMode}")
@@ -185,8 +216,10 @@ class TelemetryDeck(
             get() = listOf(
                 SessionAppProvider(),
                 EnvironmentParameterProvider(),
-                PlatformContextProvider()
+                PlatformContextProvider(),
+                AccessibilityProvider()
             )
+        internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 
         // [TelemetryDeck] singleton
         @Volatile
@@ -310,6 +343,17 @@ class TelemetryDeck(
             )
         }
 
+        override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
+            getInstance()?.startDurationSignal(signalName, parameters)
+        }
+
+        override fun stopAndSendDurationSignal(
+            signalName: String,
+            parameters: Map<String, String>
+        ) {
+            getInstance()?.stopAndSendDurationSignal(signalName, parameters)
+        }
+
         override val signalCache: SignalCache?
             get() = getInstance()?.signalCache
 
@@ -429,6 +473,7 @@ class TelemetryDeck(
             if (providers == null) {
                 providers = defaultTelemetryProviders
             }
+            providers = providers + alwaysOnProviders
             // check for additional providers that should be appended
             if (additionalProviders != null) {
                 providers = providers + (additionalProviders?.toList() ?: listOf())

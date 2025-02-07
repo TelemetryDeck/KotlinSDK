@@ -21,7 +21,7 @@ interface TelemetryDeckProvider {
      * A provider can override this method in order to append or remove telemetry metadata from Signals
      * before they are enqueued for broadcast.
      *
-     * [TelemetryDeck] calls this method all providers in order of registration.
+     * [TelemetryDeck] calls this method on all providers in order of registration.
      */
     fun enrich(
         signalType: String,
@@ -30,4 +30,17 @@ interface TelemetryDeckProvider {
     ): Map<String, String> {
         return additionalPayload
     }
+
+    /**
+     * A provider can override this method in order apply a transformation on any part of the signal, including the signal name.
+     * [TelemetryDeck] calls this method on all providers in order of registration.
+     *
+     * This method is always called **after** [enrich].
+     */
+    fun transform(
+        signalTransform: SignalTransform
+    ): SignalTransform {
+        return signalTransform
+    }
 }
+

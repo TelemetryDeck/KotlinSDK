@@ -10,7 +10,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class AccessibilityProviderTest {
+class AccessibilityProviderEnrichmentParametersTest {
     private fun createSut(): AccessibilityProvider {
         val appContext = ApplicationProvider.getApplicationContext<Application>()
         val sut = AccessibilityProvider()
@@ -32,5 +32,4 @@ class AccessibilityProviderTest {
         assertTrue(result.containsKey("TelemetryDeck.Accessibility.isReduceTransparencyEnabled"))
         assertTrue(result.containsKey("TelemetryDeck.UserPreference.layoutDirection"))
     }
-
 }
