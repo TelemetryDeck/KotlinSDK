@@ -129,47 +129,55 @@ TelemetryDeck.start(applicationContext, builder)
 
 By default, Kotlin SDK for TelemetryDeck will include the following environment parameters for each outgoing signal
 
-| Parameter name                                                | Provider                       | Description                                        |
-|---------------------------------------------------------------|--------------------------------|----------------------------------------------------|
-| `TelemetryDeck.Session.started`                               | `SessionAppProvider`           |                                                    |
-| `TelemetryDeck.AppInfo.buildNumber`                           | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.AppInfo.version`                               | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.AppInfo.versionAndBuildNumber`                 | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.architecture`                           | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.modelName`                              | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.operatingSystem`                        | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.platform`                               | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.systemMajorMinorVersion`                | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.systemMajorVersion`                     | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.systemVersion`                          | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.orientation`                            | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.Device.screenDensity`                          | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.Device.screenResolutionHeight`                 | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.Device.screenResolutionWidth`                  | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.Device.brand`                                  | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.Device.timeZone`                               | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.AppInfo.buildNumber`                           | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.AppInfo.version`                               | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.AppInfo.versionAndBuildNumber`                 | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.SDK.name`                                      | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.SDK.version`                                   | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.SDK.nameAndVersion`                            | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.SDK.buildType`                                 | `EnvironmentParameterProvider` |                                                    |
-| `TelemetryDeck.RunContext.locale`                             | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.RunContext.targetEnvironment`                  | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.RunContext.isSideLoaded`                       | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.RunContext.sourceMarketplace`                  | `PlatformContextProvider`      |                                                    |
-| `TelemetryDeck.Accessibility.isBoldTextEnabled`               | `AccessibilityProvider`        | API 31 and above                                   |
-| `TelemetryDeck.Accessibility.fontWeightAdjustment`            | `AccessibilityProvider`        | API 31 and above                                   |
-| `TelemetryDeck.Accessibility.isDarkerSystemColorsEnabled`     | `AccessibilityProvider`        |                                                    |
-| `TelemetryDeck.Accessibility.fontScale`                       | `AccessibilityProvider`        | Mapped to iOS size categories                      |
-| `TelemetryDeck.Accessibility.isInvertColorsEnabled`           | `AccessibilityProvider`        |                                                    |
-| `TelemetryDeck.Accessibility.isReduceMotionEnabled`           | `AccessibilityProvider`        |                                                    |
-| `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`        |                                                    |
-| `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`        |                                                    |
-| `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`        | Possible values are "rightToLeft" or "leftToRight" |
+| Parameter name                                                | Provider                        | Description                                        |
+|---------------------------------------------------------------|---------------------------------|----------------------------------------------------|
+| `TelemetryDeck.Session.started`                               | `SessionAppProvider`            |                                                    |
+| `TelemetryDeck.AppInfo.buildNumber`                           | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.AppInfo.version`                               | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.AppInfo.versionAndBuildNumber`                 | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.architecture`                           | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.modelName`                              | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.operatingSystem`                        | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.platform`                               | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.systemMajorMinorVersion`                | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.systemMajorVersion`                     | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.systemVersion`                          | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.orientation`                            | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.Device.screenDensity`                          | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.Device.screenResolutionHeight`                 | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.Device.screenResolutionWidth`                  | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.Device.brand`                                  | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.Device.timeZone`                               | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.AppInfo.buildNumber`                           | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.AppInfo.version`                               | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.AppInfo.versionAndBuildNumber`                 | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.SDK.name`                                      | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.SDK.version`                                   | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.SDK.nameAndVersion`                            | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.SDK.buildType`                                 | `EnvironmentParameterProvider`  |                                                    |
+| `TelemetryDeck.RunContext.locale`                             | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.RunContext.targetEnvironment`                  | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.RunContext.isSideLoaded`                       | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.RunContext.sourceMarketplace`                  | `PlatformContextProvider`       |                                                    |
+| `TelemetryDeck.Accessibility.isBoldTextEnabled`               | `AccessibilityProvider`         | API 31 and above                                   |
+| `TelemetryDeck.Accessibility.fontWeightAdjustment`            | `AccessibilityProvider`         | API 31 and above                                   |
+| `TelemetryDeck.Accessibility.isDarkerSystemColorsEnabled`     | `AccessibilityProvider`         |                                                    |
+| `TelemetryDeck.Accessibility.fontScale`                       | `AccessibilityProvider`         | Mapped to iOS size categories                      |
+| `TelemetryDeck.Accessibility.isInvertColorsEnabled`           | `AccessibilityProvider`         |                                                    |
+| `TelemetryDeck.Accessibility.isReduceMotionEnabled`           | `AccessibilityProvider`         |                                                    |
+| `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`         |                                                    |
+| `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`         |                                                    |
+| `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`         | Possible values are "rightToLeft" or "leftToRight" |
+| `TelemetryDeck.Acquisition.newInstallDetected`                | `SessionTrackingSignalProvider` |                                                    |
 
 #### Notes 
+
+- `TelemetryDeck.Acquisition.newInstallDetected`
+
+We send this signal when a user starts the app for the first time on a given device.
+
+- Session data is stored locally on device as part of the application's files.
+- If the application is uninstalled or it's data cleared, the SDK will report a new installation event (we do not bridge session data of any kind between installations)
 
 - `TelemetryDeck.Accessibility.fontScale` - the value is mapped to better align with size categories sent by other SDKs:
 
@@ -303,7 +311,8 @@ You can also completely disable or override the default providers with your own.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 - `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
 - `AccessibilityProvider` - Adds parameters describing the currently active accessibility options.
-- 
+- `SessionTrackingSignalProvider` - Reports when a new app installation has been detected. 
+
 For a complete list, check the `com.telemetrydeck.sdk.providers` package.
 
 ```kotlin

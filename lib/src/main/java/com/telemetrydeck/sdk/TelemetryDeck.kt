@@ -9,6 +9,7 @@ import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
 import com.telemetrydeck.sdk.providers.SessionAppProvider
+import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -217,7 +218,8 @@ class TelemetryDeck(
                 SessionAppProvider(),
                 EnvironmentParameterProvider(),
                 PlatformContextProvider(),
-                AccessibilityProvider()
+                AccessibilityProvider(),
+                SessionTrackingSignalProvider()
             )
         internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 
