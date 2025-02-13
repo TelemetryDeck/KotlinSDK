@@ -1,5 +1,6 @@
 package com.telemetrydeck.sdk
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.encodeToStringMap
@@ -9,6 +10,7 @@ data class SignalPayload(
     var additionalPayload: Map<String, String> = emptyMap()
 ) {
 
+    @OptIn(ExperimentalSerializationApi::class)
     private val asMap: Map<String, Any> by lazy {
         Properties.encodeToStringMap(this).filterKeys { !it.startsWith("additionalPayload") }
     }

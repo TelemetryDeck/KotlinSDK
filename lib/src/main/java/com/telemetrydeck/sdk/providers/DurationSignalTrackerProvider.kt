@@ -7,11 +7,10 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.DateSerializer
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.providers.helpers.restoreStateFromDisk
+import com.telemetrydeck.sdk.providers.helpers.writeStateToDisk
 import com.telemetrydeck.sdk.signals.Signal
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import java.io.File
 import java.lang.ref.WeakReference
 import java.util.Date
 
@@ -25,7 +24,12 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
         this.appContext = WeakReference(ctx)
-        this.state = restoreStateFromDisk() ?: TrackerState(emptyMap())
+        this.state = restoreStateFromDisk<TrackerState?>(
+            this.appContext?.get(),
+            this.fileName,
+            this.fileEncoding,
+            this.manager?.get()?.debugLogger
+        ) ?: TrackerState(emptyMap())
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
@@ -42,22 +46,28 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     }
 
     fun handleOnStart() {
+        this.manager?.get()?.debugLogger?.debug("Commencing signal duration tracking")
+
         val preRestoreState = this.state
         if (preRestoreState == null) {
             // no state present in memory, restore it
-            val restoredState = restoreStateFromDisk()
+            val restoredState = restoreStateFromDisk<TrackerState?>(
+                this.appContext?.get(),
+                this.fileName,
+                this.fileEncoding,
+                this.manager?.get()?.debugLogger
+            )
             this.state = restoredState
         }
 
-        var currentState = this.state
-            ?: // nothing to do, probably not started yet
-            return
+        var currentState = this.state ?: TrackerState(emptyMap())
 
         val lastEnteredBackground = currentState.lastEnteredBackground
         if (lastEnteredBackground != null) {
             // subtracts background time from all signals by moving their start time forward
             val now = Date()
             val backgroundDuration = now.time - lastEnteredBackground.time
+            this.manager?.get()?.debugLogger?.debug("Adapting signal duration with -$backgroundDuration ms")
             currentState = currentState.copy(
                 signals = currentState.signals.mapValues {
                     it.value.copy(
@@ -67,14 +77,18 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
             )
         }
 
-        writeStateToDisk(currentState)
+        writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
         this.state = currentState
     }
 
     fun handleOnStop() {
+        this.manager?.get()?.debugLogger?.debug("Signal duration tracking is shutting down")
         val currentState = this.state
         if (currentState != null) {
-            writeStateToDisk(currentState)
+            val updatedState = currentState.copy(
+                lastEnteredBackground = Date()
+            )
+            writeStateToDisk(updatedState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
         }
     }
 
@@ -117,34 +131,8 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
        return mergedParameters
     }
 
-    private fun restoreStateFromDisk(): TrackerState? {
-        val context = this.appContext?.get() ?: return null
-        try {
-            val file = File(context.filesDir, fileName)
-            if (file.exists()) {
-                val json = file.readText(fileEncoding)
-                val state = Json.decodeFromString<TrackerState>(json)
-                return state
-            }
-        } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error("failed to restore duration tracking state ${e.stackTraceToString()}")
-        }
-        return null
-    }
 
-    private fun writeStateToDisk(state: TrackerState) {
-        val context = this.appContext?.get() ?: return
-        try {
-            val file = File(context.filesDir, fileName)
-            if (file.exists()) {
-                file.delete()
-            }
-            val json = Json.encodeToString(state)
-            file.writeText(json, fileEncoding)
-        } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error("failed to write duration tracking state ${e.stackTraceToString()}")
-        }
-    }
+
 
     @Serializable
     data class TrackerState(

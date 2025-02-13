@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.telemetrydeck.sdk
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.encoding.Decoder
@@ -9,6 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+
 
 @Serializer(forClass = Date::class)
 internal object DateSerializer : KSerializer<Date> {
