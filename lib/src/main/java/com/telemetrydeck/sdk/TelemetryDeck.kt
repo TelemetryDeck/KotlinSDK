@@ -529,7 +529,6 @@ class TelemetryDeck(
 
             val manager = TelemetryDeck(config, providers)
             manager.logger = logger
-            manager.installProviders(context)
 
             val broadcaster =
                 TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
@@ -547,6 +546,9 @@ class TelemetryDeck(
                 manager.identityProvider = userIdentityProvider
             }
 
+            // providers must be installed at the end to allow them access to cache and full signal processing
+            manager.installProviders(context)
+            
             return manager
         }
     }
