@@ -33,6 +33,23 @@ interface TelemetryDeckClient {
      * */
     fun navigate(destinationPath: String, customUserID: String? = null)
 
+    /**
+     * Send a `TelemetryDeck.Acquisition.userAcquired` signal with the provided channel.
+     */
+    fun acquiredUser(channel: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
+
+
+    /**
+     * Send a `TelemetryDeck.Acquisition.leadStarted` signal with the provided leadId.
+     */
+    fun leadStarted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
+
+
+    /**
+     * Send a `TelemetryDeck.Acquisition.leadConverted` signal with the provided leadId.
+     */
+    fun leadConverted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
+
 
     /**
      * Send a signal immediately

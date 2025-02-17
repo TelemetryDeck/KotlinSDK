@@ -15,6 +15,7 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 * [Default Parameters](#default-parameters)
 * [Default Prefix](#default-prefix)
 * [Navigation Signals](#navigation-signals)
+* [Acquisition](#acquisition)
 * [Custom Telemetry](#custom-telemetry)
 * [Custom Logging](#custom-logging)
 * [Requirements](#requirements)
@@ -244,6 +245,33 @@ TelemetryDeck.navigate(sourcePath = "/onboarding", destinationPath = "/home")
 TelemetryDeck.navigate("/onboarding")
 TelemetryDeck.navigate("/home")
 ```
+
+
+## Acquisition
+
+The following helper methods are available
+
+```kotlin
+/**
+ * Send a `TelemetryDeck.Acquisition.userAcquired` signal with the provided channel.
+ */
+fun acquiredUser(channel: String,...)
+```
+
+```kotlin
+/**
+ * Send a `TelemetryDeck.Acquisition.leadStarted` signal with the provided leadId.
+ */
+fun leadStarted(leadId: String,...)
+```
+
+```kotlin
+/**
+ * Send a `TelemetryDeck.Acquisition.leadConverted` signal with the provided leadId.
+ */
+fun leadConverted(leadId: String,...)
+```
+
 
 ## Custom Telemetry
 
