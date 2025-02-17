@@ -169,6 +169,9 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 | `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`         |                                                    |
 | `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`         |                                                    |
 | `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`         | Possible values are "rightToLeft" or "leftToRight" |
+| `TelemetryDeck.UserPreference.region`                         | `AccessibilityProvider`         | Current device region in ISO 3166-1 alpha-2 format |
+| `TelemetryDeck.UserPreference.language`                       | `AccessibilityProvider`         | Current application language in ISO 639-1 format   |
+| `TelemetryDeck.UserPreference.colorScheme`                    | `AccessibilityProvider`         | "Dark" or "Light"                                  |
 | `TelemetryDeck.Acquisition.newInstallDetected`                | `SessionTrackingSignalProvider` |                                                    |
 
 #### Notes 
