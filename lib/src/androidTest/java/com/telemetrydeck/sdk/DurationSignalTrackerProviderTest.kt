@@ -19,7 +19,7 @@ import java.util.Date
 class DurationSignalTrackerProviderTest {
 
     // One or more digits, a dot, then exactly three digits
-    val regex = Regex("^\\d+\\.\\d{3}$")
+    val durationPrecisionFormat = Regex("^\\d+\\.\\d{3}$")
 
     private fun createSut(): DurationSignalTrackerProvider {
         val appContext = ApplicationProvider.getApplicationContext<Application>()
@@ -49,7 +49,7 @@ class DurationSignalTrackerProviderTest {
 
         // ensure precision of 3
         assert(value != null)
-        assert(value!!.matches(regex))
+        assert(value!!.matches(durationPrecisionFormat))
 
         // assert a duration is present and bigger or euqal to 5
         val duration = value.toDouble()
@@ -72,7 +72,7 @@ class DurationSignalTrackerProviderTest {
 
         // ensure precision of 3
         assert(value != null)
-        assert(value!!.matches(regex))
+        assert(value!!.matches(durationPrecisionFormat))
 
         // assert a duration is present and bigger or euqal to 5
         val duration = value.toDouble()
@@ -101,7 +101,7 @@ class DurationSignalTrackerProviderTest {
 
         // ensure precision of 3
         assert(value != null)
-        assert(value!!.matches(regex))
+        assert(value!!.matches(durationPrecisionFormat))
 
         val duration = value.toDouble()
         assert(duration > 7200)
@@ -130,7 +130,7 @@ class DurationSignalTrackerProviderTest {
 
         // ensure precision of 3
         assert(value != null)
-        assert(value!!.matches(regex))
+        assert(value!!.matches(durationPrecisionFormat))
 
         val duration = value.toDouble()
         assert(duration < 3600)

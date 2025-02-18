@@ -180,6 +180,8 @@ We send this signal when a user starts the app for the first time on a given dev
 - Session data is stored locally on device as part of the application's files.
 - If the application is uninstalled or it's data cleared, the SDK will report a new installation event (we do not bridge session data of any kind between installations)
 
+See [Session Tracking](#session-tracking) on how sessions are tracked.
+
 - `TelemetryDeck.Accessibility.fontScale` - the value is mapped to better align with size categories sent by other SDKs:
 
 ```
@@ -244,6 +246,51 @@ TelemetryDeck.navigate(sourcePath = "/onboarding", destinationPath = "/home")
 TelemetryDeck.navigate("/onboarding")
 TelemetryDeck.navigate("/home")
 ```
+
+## Session Tracking
+
+The `SessionTrackingSignalProvider` is enabled by default in order to provide for the `TelemetryDeck.Acquisition.newInstallDetected` signal as well as enrichment of signals with default parameters regarding user retention like session duration, days used, number of sessions etc.
+
+Here are some concepts on which the `SessionTrackingSignalProvider` is based:
+
+### Foreground/Active Time
+
+This refers to the time during which the app is actively being used by the user.
+It's the period when the app is in the foreground and interacting with the user.
+
+### Starting a session
+
+A session typically begins when the user opens the app or resumes interaction after a period of inactivity.
+
+Note: If `sendNewSessionBeganSignal` is set to true and `SessionAppProvider` is enabled, the signal `TelemetryDeck.Session.started` is send for every start of a new session.
+
+### Completed Session
+
+A completed session is defined as the time between two subsequent session starts.
+Essentially, it's the duration from when the app becomes active until it becomes active again after a period of inactivity or closure.
+
+**Example:**
+
+- First Session Start
+The user opens the app at 10:00. A new session is started.
+The user actively uses the app until 10:15, then minimizes it or switches to another app.
+
+- Second Session Start
+The user returns to the app at 10:30. A new session is started again.
+The user uses the app until 10:45, then closes it.
+
+- Third Session Start
+The user opens the app again at 11:00. A new session is started for the third time.
+The user uses the app until 11:10.
+
+**Results**
+
+| Completed Session | Start Time | End Time | Duration |
+|-------------------|------------|----------|----------|
+| First             | 10:00      | 10:30    | 30 min   |
+| Second            | 10:30      | 11:00    | 30 min   |
+
+The third session will not be counted until the next time the user opens the app.
 
 ## Custom Telemetry
 

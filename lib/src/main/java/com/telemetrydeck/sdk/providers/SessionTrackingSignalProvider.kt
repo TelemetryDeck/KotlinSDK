@@ -7,6 +7,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.DateSerializer
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.params.Retention
 import com.telemetrydeck.sdk.providers.helpers.restoreStateFromDisk
 import com.telemetrydeck.sdk.providers.helpers.writeStateToDisk
 import com.telemetrydeck.sdk.signals.Acquisition
@@ -39,11 +40,35 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         // nothing to do
     }
 
-    override fun onStart(owner: LifecycleOwner) {
-        handleOnStart()
+    override fun enrich(
+        signalType: String,
+        clientUser: String?,
+        additionalPayload: Map<String, String>
+    ): Map<String, String> {
+        val signalPayload = additionalPayload.toMutableMap()
+        for (item in createMetadata()) {
+            if (!signalPayload.containsKey(item.key)) {
+                signalPayload[item.key] = item.value
+            }
+        }
+        return signalPayload
     }
 
-    fun handleOnStart() {
+    private fun createMetadata(): Map<String, String> {
+        val currentState = this.state?.copy() ?: return emptyMap()
+
+        return mapOf(
+            com.telemetrydeck.sdk.params.Acquisition.FirstSessionDate.paramName to (currentState.distinctDays.firstOrNull() ?: ""),
+            Retention.DistinctDaysUsed.paramName to "${currentState.distinctDays.size}",
+            Retention.TotalSessionsCount.paramName to "${currentState.lifetimeSessionsCount ?: 0}",
+        )
+    }
+
+    override fun onStart(owner: LifecycleOwner) {
+        handleOnForeground()
+    }
+
+    fun handleOnForeground() {
         this.manager?.get()?.debugLogger?.debug("Commencing session tracking")
         val preRestoreState = this.state
         if (preRestoreState == null) {
@@ -57,7 +82,7 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
             this.state = restoredState
         }
 
-        val currentState = this.state ?: TrackingState(emptyList(), emptyList())
+        var currentState = this.state ?: TrackingState(emptyList(), emptyList())
 
         this.manager?.get()?.debugLogger?.debug("Session tracking restoring sessions")
         val now = Date()
@@ -71,54 +96,72 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
                     com.telemetrydeck.sdk.params.Acquisition.FirstSessionDate.paramName to today
                 )
             )
+        } else {
+            currentState = endLastSessionIfPresent(currentState, now)
         }
 
         // start a new session
+        currentState = startNewSessionAndTruncateStorage(currentState, now)
+
+
+
+        this.manager?.get()?.debugLogger?.debug("Session tracking ${currentState.sessions.size} sessions.")
+        writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+        this.state = currentState
+    }
+
+    private fun startNewSessionAndTruncateStorage(state: TrackingState, now: Date): TrackingState {
         val newSession = StoredSession(now, null, 0)
-        val updatedState = currentState.copy(
-            sessions = currentState.sessions + newSession,
-            distinctDays = (currentState.distinctDays + today).distinctBy { it.lowercase() }
+        var result = state.copy()
+        val lifetimeSessionsCount = (result.lifetimeSessionsCount ?: 0) + 1
+        result = result.copy(
+            sessions = result.sessions + newSession,
+            lifetimeSessionsCount = lifetimeSessionsCount,
+            distinctDays = (result.distinctDays + dateFormat.format(now)).distinctBy { it.lowercase() }
         )
 
-        // delete session started more than 90 days ago
+        // truncate started more than 90 days ago
         val cutOff = Date(Date().time - (90L * 24L * 60L * 60L * 1000L))
-        val survivingSessions = updatedState.sessions.filter { it.firstStart.after(cutOff) }
+        val survivingSessions = result.sessions.filter { it.firstStart.after(cutOff) }
 
-        val saveState = updatedState.copy(
+        result = result.copy(
             sessions = survivingSessions
         )
 
-        this.manager?.get()?.debugLogger?.debug("Session tracking ${saveState.sessions.size} sessions.")
-        writeStateToDisk(saveState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
-        this.state = saveState
+        return result
+    }
+
+    private fun endLastSessionIfPresent(state: TrackingState, now: Date): TrackingState {
+        var result = state.copy()
+        val lastSession = state.sessions.lastOrNull()
+        val today = dateFormat.format(now)
+        if (lastSession != null) {
+            // mark the session as ended and calculate the duration
+            this.manager?.get()?.debugLogger?.debug("Session tracking finalizing current session")
+
+            val durationMillis = now.time - lastSession.firstStart.time
+            result = result.copy(
+                sessions = result.sessions.dropLast(1) + lastSession.copy(ended = now, durationMillis = durationMillis),
+            )
+        }
+
+        // update distinct days (e.g. in case we've changed timezone or it's already tomorrow
+        result = result.copy(
+            distinctDays = (result.distinctDays + today).distinctBy { it.lowercase() }
+        )
+
+        return result
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        handleOnStop()
+        handleOnBackground()
     }
 
-    fun handleOnStop() {
+    fun handleOnBackground() {
         this.manager?.get()?.debugLogger?.debug("Session tracking is shutting down")
-        var currentState = this.state
+        val currentState = this.state?.copy()
         if (currentState != null) {
-            val lastSession = currentState.sessions.lastOrNull()
-            val now = Date()
-            val today = dateFormat.format(now)
-            if (lastSession != null) {
-                // mark the session as ended and calculate the duration
-                this.manager?.get()?.debugLogger?.debug("Session tracking finalizing current session")
-
-                val durationMillis = now.time - lastSession.firstStart.time
-                currentState = currentState.copy(
-                    sessions = currentState.sessions.dropLast(1) + lastSession.copy(ended = now, durationMillis = durationMillis),
-                )
-            }
-
-            // update distinct days (e.g. in case we've changed timezone or it's already tomorrow
-            currentState = currentState.copy(
-                distinctDays = (currentState.distinctDays + today).distinctBy { it.lowercase() }
-            )
-
+            // make sure the latest state is written to disk
             writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
         } else {
             this.manager?.get()?.debugLogger?.debug("Session tracking has no current state, nothing to do")
@@ -140,5 +183,6 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         val sessions: List<StoredSession>,
         // A list of dates on which we have seen the user
         val distinctDays: List<String>,
+        val lifetimeSessionsCount: Long? = null
     )
 }
