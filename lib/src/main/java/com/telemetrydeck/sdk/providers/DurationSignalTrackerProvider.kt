@@ -34,7 +34,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     }
 
     override fun stop() {
-
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
     }
 
     override fun onStart(owner: LifecycleOwner) {

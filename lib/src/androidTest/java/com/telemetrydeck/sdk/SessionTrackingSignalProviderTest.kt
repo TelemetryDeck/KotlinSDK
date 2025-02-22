@@ -294,7 +294,7 @@ class SessionTrackingSignalProviderTest {
         }
         return null
     }
-    
+
     private fun formatTimeStamp(date: Date): String {
         return  SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).format(date)
     }

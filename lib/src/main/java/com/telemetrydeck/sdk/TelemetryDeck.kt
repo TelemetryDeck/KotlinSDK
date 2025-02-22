@@ -8,7 +8,6 @@ import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
-import com.telemetrydeck.sdk.providers.SessionAppProvider
 import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import java.lang.ref.WeakReference
 import java.net.URL
@@ -215,11 +214,10 @@ class TelemetryDeck(
     companion object : TelemetryDeckClient, TelemetryDeckSignalProcessor {
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
             get() = listOf(
-                SessionAppProvider(),
+                SessionTrackingSignalProvider(),
                 EnvironmentParameterProvider(),
                 PlatformContextProvider(),
-                AccessibilityProvider(),
-                SessionTrackingSignalProvider()
+                AccessibilityProvider()
             )
         internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 

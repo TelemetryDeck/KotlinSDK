@@ -18,10 +18,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/*
+/**
 *
-* Keeps track of user sessions and provides for TelemetryDeck.Acquisition.firstSessionDate
-* */
+* Monitors the app's lifecycle in order to provide Retention and Acquisition parameters.
+*
+* This provider broadcasts the following additional signals:
+* - `TelemetryDeck.Acquisition.newInstallDetected`
+* - `TelemetryDeck.Session.started` (when `sendNewSessionBeganSignal` is set to `true`)
+*
+*/
 class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObserver {
     private var appContext: WeakReference<Context?>? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
@@ -37,7 +42,7 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
     }
 
     override fun stop() {
-        // nothing to do
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
     }
 
     override fun enrich(
