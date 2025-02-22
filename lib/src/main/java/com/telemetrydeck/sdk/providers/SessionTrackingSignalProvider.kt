@@ -25,7 +25,7 @@ import java.util.Locale
 class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObserver {
     private var appContext: WeakReference<Context?>? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
-    private var state: TrackingState? = null
+    private var providerState: TrackingState? = null
     private val fileName = "telemetrydeckstracking"
     private val fileEncoding = Charsets.UTF_8
     private val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -55,22 +55,35 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
     }
 
     private fun createMetadata(): Map<String, String> {
-        val currentState = this.state?.copy() ?: return emptyMap()
+        val currentState = this.providerState?.copy() ?: return emptyMap()
 
-        return mapOf(
+        val attributes = mutableMapOf(
             com.telemetrydeck.sdk.params.Acquisition.FirstSessionDate.paramName to (currentState.distinctDays.firstOrNull() ?: ""),
             Retention.DistinctDaysUsed.paramName to "${currentState.distinctDays.size}",
             Retention.TotalSessionsCount.paramName to "${currentState.lifetimeSessionsCount ?: 0}",
         )
+
+        if (currentState.sessions.isNotEmpty()) {
+            val completedSessions = currentState.sessions.filter { it.ended != null }
+            attributes[Retention.AverageSessionSeconds.paramName] =
+                "${completedSessions.map { it.durationMillis / 1000 }.average().toInt()}"
+
+            val lastCompletedSession = completedSessions.lastOrNull {it.ended != null }
+            if (lastCompletedSession != null) {
+                attributes[Retention.PreviousSessionSeconds.paramName] = "%.3f".format(lastCompletedSession.durationMillis / 1000.0)
+            }
+        }
+
+        return attributes
     }
 
     override fun onStart(owner: LifecycleOwner) {
         handleOnForeground()
     }
 
-    fun handleOnForeground() {
+    fun handleOnForeground(now: Date = Date()) {
         this.manager?.get()?.debugLogger?.debug("Commencing session tracking")
-        val preRestoreState = this.state
+        val preRestoreState = this.providerState
         if (preRestoreState == null) {
             // no state present in memory, restore it
             val restoredState = restoreStateFromDisk<TrackingState?>(
@@ -79,35 +92,47 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
                 this.fileEncoding,
                 this.manager?.get()?.debugLogger
             )
-            this.state = restoredState
+            this.providerState = restoredState
         }
 
-        var currentState = this.state ?: TrackingState(emptyList(), emptyList())
+        var currentState = this.providerState ?: TrackingState(emptyList(), emptyList())
 
         this.manager?.get()?.debugLogger?.debug("Session tracking restoring sessions")
-        val now = Date()
-        val today = dateFormat.format(now)
+        currentState = updateDistinctDays(currentState, now)
+
         if (currentState.sessions.isEmpty()) {
             // we're running for the first time
             this.manager?.get()?.debugLogger?.debug("Session tracking is running for the first time")
+            val today = dateFormat.format(now)
             manager?.get()?.processSignal(
                 Acquisition.NewInstallDetected.signalName,
                 mapOf(
                     com.telemetrydeck.sdk.params.Acquisition.FirstSessionDate.paramName to today
                 )
             )
-        } else {
-            currentState = endLastSessionIfPresent(currentState, now)
         }
 
-        // start a new session
-        currentState = startNewSessionAndTruncateStorage(currentState, now)
-
-
+        if (shouldStartNewSession(currentState, now)) {
+            currentState = endLastSessionIfPresent(currentState, now)
+            currentState = startNewSessionAndTruncateStorage(currentState, now)
+        }
 
         this.manager?.get()?.debugLogger?.debug("Session tracking ${currentState.sessions.size} sessions.")
         writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
-        this.state = currentState
+        this.providerState = currentState
+    }
+
+    /**
+     * Returns `true` if more than 5 minutes have expired since the app was sent in the background
+     * */
+    private fun shouldStartNewSession(state: TrackingState, now: Date): Boolean {
+        val lastEnteredBackground = state.lastEnteredBackground
+        if (lastEnteredBackground != null) {
+            val backgroundDuration = now.time - lastEnteredBackground.time
+            return backgroundDuration > 5 * 60 * 1000
+        } else {
+            return true
+        }
     }
 
     private fun startNewSessionAndTruncateStorage(state: TrackingState, now: Date): TrackingState {
@@ -132,39 +157,44 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
     }
 
     private fun endLastSessionIfPresent(state: TrackingState, now: Date): TrackingState {
-        var result = state.copy()
         val lastSession = state.sessions.lastOrNull()
-        val today = dateFormat.format(now)
-        if (lastSession != null) {
-            // mark the session as ended and calculate the duration
-            this.manager?.get()?.debugLogger?.debug("Session tracking finalizing current session")
+            ?: // nothing to do
+            return state
 
-            val durationMillis = now.time - lastSession.firstStart.time
-            result = result.copy(
-                sessions = result.sessions.dropLast(1) + lastSession.copy(ended = now, durationMillis = durationMillis),
-            )
-        }
+        var result = state.copy()
+        // mark the session as ended and calculate the duration
+        this.manager?.get()?.debugLogger?.debug("Session tracking finalizing current session")
 
-        // update distinct days (e.g. in case we've changed timezone or it's already tomorrow
+        val durationMillis = now.time - lastSession.firstStart.time
         result = result.copy(
+            sessions = result.sessions.dropLast(1) + lastSession.copy(ended = now, durationMillis = durationMillis),
+        )
+        return result
+    }
+
+    private fun updateDistinctDays(state: TrackingState, now: Date): TrackingState {
+        val result = state.copy()
+        val today = dateFormat.format(now)
+        // update distinct days (e.g. in case we've changed timezone or it's already tomorrow
+        return result.copy(
             distinctDays = (result.distinctDays + today).distinctBy { it.lowercase() }
         )
-
-        return result
     }
 
     override fun onStop(owner: LifecycleOwner) {
         handleOnBackground()
     }
 
-    fun handleOnBackground() {
+    fun handleOnBackground(now: Date = Date()) {
         this.manager?.get()?.debugLogger?.debug("Session tracking is shutting down")
-        val currentState = this.state?.copy()
+        val currentState = this.providerState?.copy(
+            lastEnteredBackground = now
+        )
         if (currentState != null) {
-            // make sure the latest state is written to disk
+            this.providerState = currentState
             writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
         } else {
-            this.manager?.get()?.debugLogger?.debug("Session tracking has no current state, nothing to do")
+            this.manager?.get()?.debugLogger?.debug("Session tracking state is empty")
         }
     }
 
@@ -183,6 +213,8 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         val sessions: List<StoredSession>,
         // A list of dates on which we have seen the user
         val distinctDays: List<String>,
-        val lifetimeSessionsCount: Long? = null
+        val lifetimeSessionsCount: Long? = null,
+        @Serializable(with = DateSerializer::class)
+        val lastEnteredBackground: Date? = null
     )
 }
