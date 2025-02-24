@@ -70,12 +70,14 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
 
         if (currentState.sessions.isNotEmpty()) {
             val completedSessions = currentState.sessions.filter { it.ended != null }
-            attributes[Retention.AverageSessionSeconds.paramName] =
-                "${completedSessions.map { it.durationMillis / 1000 }.average().toInt()}"
+            if (completedSessions.isNotEmpty()) {
+                attributes[Retention.AverageSessionSeconds.paramName] =
+                    "${completedSessions.map { it.durationMillis / 1000 }.average().toInt()}"
 
-            val lastCompletedSession = completedSessions.lastOrNull {it.ended != null }
-            if (lastCompletedSession != null) {
-                attributes[Retention.PreviousSessionSeconds.paramName] = "%.3f".format(lastCompletedSession.durationMillis / 1000.0)
+                val lastCompletedSession = completedSessions.lastOrNull {it.ended != null }
+                if (lastCompletedSession != null) {
+                    attributes[Retention.PreviousSessionSeconds.paramName] = "%.3f".format(lastCompletedSession.durationMillis / 1000.0)
+                }
             }
         }
 
