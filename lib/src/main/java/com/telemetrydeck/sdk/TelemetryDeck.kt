@@ -183,11 +183,13 @@ class TelemetryDeck(
         floatValue: Double?
     ): Signal {
         var enrichedPayload = additionalPayload
+        enrichedPayload = sessionManager?.enrich(signalType, clientUser, enrichedPayload) ?: enrichedPayload
         for (provider in this.providers) {
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
 
         var signalTransform = SignalTransform(signalType, clientUser, enrichedPayload, floatValue)
+        signalTransform = sessionManager?.transform(signalTransform) ?: signalTransform
         for (provider in this.providers) {
             signalTransform = provider.transform(signalTransform)
         }

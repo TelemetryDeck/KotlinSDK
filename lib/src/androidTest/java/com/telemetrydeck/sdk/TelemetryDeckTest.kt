@@ -22,6 +22,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 
@@ -217,6 +220,38 @@ class TelemetryDeckTest {
         }
     }
 
+    @UiThreadTest
+    @Test
+    fun signal_sets_session_tracking_parameters() {
+        val sessionID = UUID.randomUUID()
+        val signalCache = startTelemetryDeck(
+            prepareBuilder()
+                .sessionID(sessionID)
+                .testMode(false)
+        )
+
+        // simulate going into the background 10 minutes later
+        (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnBackground(Date(Date().time + 1000 * 10 * 60))
+
+        // and back to foreground an hour later
+        (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnForeground(Date(Date().time + 1000 * 60 * 60))
+
+        // act
+        TelemetryDeck.signal("type", "clientUser", emptyMap())
+
+
+        verify {
+            signalCache.add(withArg {
+                assertEquals("type", it.type)
+                assertNotEquals(sessionID.toString(), it.sessionID)
+                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Acquisition.firstSessionDate:") })
+                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.averageSessionSeconds:") })
+                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.distinctDaysUsed:") })
+                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.totalSessionsCount:") })
+                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.previousSessionSeconds:") })
+            })
+        }
+    }
 
     @UiThreadTest
     @Test
@@ -266,6 +301,10 @@ class TelemetryDeckTest {
         return signalCache
     }
 
+    private fun parseDateString(dateString: String): Date {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+        return dateFormat.parse(dateString)!!
+    }
 }
 
 class MockApiFactory(private val client: TelemetryApiClient): TelemetryApiClientFactory {
