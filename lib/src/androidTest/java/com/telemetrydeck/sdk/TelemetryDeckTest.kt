@@ -249,6 +249,7 @@ class TelemetryDeckTest {
                 assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.distinctDaysUsed:") })
                 assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.totalSessionsCount:") })
                 assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.previousSessionSeconds:") })
+                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.distinctDaysUsedLastMonth:") })
             })
         }
     }

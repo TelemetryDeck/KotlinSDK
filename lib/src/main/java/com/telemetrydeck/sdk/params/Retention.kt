@@ -5,4 +5,5 @@ internal enum class Retention(val paramName: String) {
     DistinctDaysUsed("TelemetryDeck.Retention.distinctDaysUsed"),
     TotalSessionsCount("TelemetryDeck.Retention.totalSessionsCount"),
     PreviousSessionSeconds("TelemetryDeck.Retention.previousSessionSeconds"),
+    DistinctDaysUsedLastMonth("TelemetryDeck.Retention.distinctDaysUsedLastMonth")
 }

@@ -17,6 +17,7 @@ import kotlinx.serialization.Serializable
 import java.lang.ref.WeakReference
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
@@ -84,9 +85,23 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
     private fun createMetadata(): Map<String, String> {
         val currentState = this.providerState?.copy() ?: return emptyMap()
 
+        // list distinct days which are "last month"
+        val daysLastMonth = currentState.distinctDays.filter {
+            val day = dateFormat.parse(it)
+            if (day != null) {
+                val calendar = Calendar.getInstance()
+                calendar.add(Calendar.MONTH, -1)
+                val lastMonth = calendar.time
+                day.after(lastMonth) && day.before(Date())
+            } else {
+                false
+            }
+        }
+
         val attributes = mutableMapOf(
             com.telemetrydeck.sdk.params.Acquisition.FirstSessionDate.paramName to (currentState.distinctDays.firstOrNull() ?: ""),
             Retention.DistinctDaysUsed.paramName to "${currentState.distinctDays.size}",
+            Retention.DistinctDaysUsedLastMonth.paramName to "${daysLastMonth.size}",
             Retention.TotalSessionsCount.paramName to "${currentState.lifetimeSessionsCount ?: 0}",
         )
 
