@@ -2,8 +2,8 @@ package com.telemetrydeck.sdk
 
 import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.telemetrydeck.sdk.providers.DefaultPrefixProvider
 import com.telemetrydeck.sdk.providers.DefaultParameterProvider
+import com.telemetrydeck.sdk.providers.DefaultPrefixProvider
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -17,26 +17,6 @@ class TelemetryDeckTests {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    @Test
-    fun telemetryDeck_sets_signal_properties() {
-        val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
-        val config = TelemetryManagerConfiguration(appID)
-        val manager = TelemetryDeck.Builder().configuration(config).build(null)
-
-        manager.signal("type", "clientUser", emptyMap())
-
-        val queuedSignal = manager.cache?.empty()?.first()
-
-        Assert.assertNotNull(queuedSignal)
-        Assert.assertEquals(UUID.fromString(appID), queuedSignal!!.appID)
-        Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
-        Assert.assertEquals("type", queuedSignal.type)
-        Assert.assertEquals(
-            "6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149",
-            queuedSignal.clientUser
-        )
-        Assert.assertEquals("false", queuedSignal.isTestMode)
-    }
 
     @Test
     fun telemetryDeck_applies_custom_salt() {
@@ -66,7 +46,6 @@ class TelemetryDeckTests {
         Assert.assertEquals(UUID.fromString(appID), result.configuration.telemetryAppID)
         Assert.assertEquals(URL("https://nom.telemetrydeck.com"), result.configuration.apiBaseURL)
         Assert.assertEquals("user", result.configuration.defaultUser)
-        Assert.assertEquals(config.sessionID, result.configuration.sessionID)
         Assert.assertEquals(config.showDebugLogs, result.configuration.showDebugLogs)
         Assert.assertEquals(config.testMode, result.configuration.testMode)
         Assert.assertEquals(config.salt, result.configuration.salt)
@@ -165,43 +144,6 @@ class TelemetryDeckTests {
     }
 
     @Test
-    fun telemetryDeck_builder_set_sessionID() {
-        val sessionID = UUID.randomUUID()
-        val sut = TelemetryDeck.Builder()
-        val result = sut
-            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
-            .sessionID(sessionID)
-            .build(null)
-        Assert.assertEquals(sessionID, result.configuration.sessionID)
-    }
-
-    @Test
-    fun telemetryDeck_newSession_resets_sessionID() {
-        val sessionID = UUID.randomUUID()
-        val builder = TelemetryDeck.Builder()
-        val sut = builder
-            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
-            .sessionID(sessionID)
-            .build(null)
-        sut.newSession()
-        Assert.assertNotEquals(sessionID, sut.configuration.sessionID)
-    }
-
-    @Test
-    fun telemetryDeck_newSession_set_preferred_sessionID() {
-        val sessionID = UUID.randomUUID()
-        val wantedSessionID = UUID.randomUUID()
-        Assert.assertNotEquals(sessionID, wantedSessionID)
-        val builder = TelemetryDeck.Builder()
-        val sut = builder
-            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
-            .sessionID(sessionID)
-            .build(null)
-        sut.newSession(wantedSessionID)
-        Assert.assertEquals(wantedSessionID, sut.configuration.sessionID)
-    }
-
-    @Test
     fun telemetryDeck_newDefaultUser_changes_defaultUser() {
         val builder = TelemetryDeck.Builder()
         val sut = builder
@@ -245,7 +187,7 @@ class TelemetryDeckTests {
             .build(null)
         sut.signal("type")
 
-        Assert.assertEquals(6 + 1, sut.providers.count()) // default ones + the one added in the test
+        Assert.assertEquals(4 + 1, sut.providers.count()) // default ones + the one added in the test
         Assert.assertTrue(sut.providers.last() is TestTelemetryDeckProvider)
     }
 
@@ -467,24 +409,6 @@ class TelemetryDeckTests {
         Assert.assertEquals("SignalPrefix.test", queuedSignal?.type)
         Assert.assertEquals(1.0, queuedSignal?.floatValue)
         Assert.assertEquals("ParamPrefix.param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("ParamPrefix.") }, )
-    }
-
-    @Test
-    fun telemetryDeck_allows_duration_signal_tracking() {
-        val appID = "32CB6574-6732-4238-879F-582FEBEB6536"
-        val config = TelemetryManagerConfiguration(appID)
-        val manager = TelemetryDeck.Builder().configuration(config).build(null)
-
-        manager.startDurationSignal("type")
-        manager.stopAndSendDurationSignal("type")
-
-        val queuedSignal = manager.cache?.empty()?.first()
-
-        Assert.assertNotNull(queuedSignal)
-        Assert.assertEquals(UUID.fromString(appID), queuedSignal!!.appID)
-        Assert.assertEquals(config.sessionID, UUID.fromString(queuedSignal.sessionID))
-        val duration = queuedSignal.payload.find {  it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
-        Assert.assertNotNull(duration)
     }
 
     private fun hashString(input: String, algorithm: String = "SHA-256"): String {

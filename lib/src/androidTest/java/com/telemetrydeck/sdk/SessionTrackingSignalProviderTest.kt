@@ -10,6 +10,7 @@ import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -100,6 +101,8 @@ class SessionTrackingSignalProviderTest {
         assertEquals("2025-02-22T12:05:01.000Z", formatTimeStamp(session.ended!!)) // session end time matches start time of next session
         assertEquals(3901000L, session.durationMillis)
         assertEquals(2, state.sessions.size)
+        val secondSession = state.sessions[1]
+        assertNotEquals(session.id, secondSession.id)
     }
 
     @UiThreadTest
@@ -175,7 +178,6 @@ class SessionTrackingSignalProviderTest {
         assertEquals(2, state.sessions.size)
     }
 
-
     @UiThreadTest
     @Test
     fun enrich_signals_with_resumed_unfinished_session() {
@@ -233,7 +235,6 @@ class SessionTrackingSignalProviderTest {
         assertEquals("50400.000", attributes[Retention.PreviousSessionSeconds.paramName])
     }
 
-
     @UiThreadTest
     @Test
     fun enrich_signals_from_multiple_sessions() {
@@ -256,6 +257,35 @@ class SessionTrackingSignalProviderTest {
         assertEquals("3", attributes[Retention.TotalSessionsCount.paramName])
         assertEquals("3600.000", attributes[Retention.PreviousSessionSeconds.paramName])
     }
+
+    @UiThreadTest
+    @Test
+    fun resuming_session_from_disk_creates_session_id_from_earlier_sdk_versions() {
+        val now = parseDateString("2025-02-22T11:04:00.000Z")
+        val sut = createSut(stateFromJson("""
+            {
+              "sessions": [
+                {
+                  "firstStart": "2025-02-22T10:00:00.000Z",
+                  "ended": null,
+                  "durationMillis": 0
+                }
+              ],
+              "distinctDays": ["2025-02-22"],
+              "lastEnteredBackground": "2025-02-22T11:00:00.000Z",
+              "lifetimeSessionsCount": 1
+            }
+        """.trimIndent()))
+
+
+        sut.handleOnForeground(now)
+        val state = readState()
+        assert(state != null)
+        assertEquals(1, state!!.sessions.size)
+        val session = state.sessions.first()
+        assertNotNull(session.id)
+    }
+
 
 
     // Helpers

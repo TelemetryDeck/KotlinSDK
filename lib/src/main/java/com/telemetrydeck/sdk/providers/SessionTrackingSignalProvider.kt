@@ -5,18 +5,21 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.DateSerializer
-import com.telemetrydeck.sdk.TelemetryDeckProvider
+import com.telemetrydeck.sdk.TelemetryDeckSessionManagerProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.UUIDOptionalSerializer
 import com.telemetrydeck.sdk.params.Retention
 import com.telemetrydeck.sdk.providers.helpers.restoreStateFromDisk
 import com.telemetrydeck.sdk.providers.helpers.writeStateToDisk
 import com.telemetrydeck.sdk.signals.Acquisition
+import com.telemetrydeck.sdk.signals.Session
 import kotlinx.serialization.Serializable
 import java.lang.ref.WeakReference
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 /**
 *
@@ -27,10 +30,11 @@ import java.util.Locale
 * - `TelemetryDeck.Session.started` (when `sendNewSessionBeganSignal` is set to `true`)
 *
 */
-class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObserver {
+class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, DefaultLifecycleObserver {
     private var appContext: WeakReference<Context?>? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
     private var providerState: TrackingState? = null
+    private var requestedSessionID: UUID? = null
     private val fileName = "telemetrydeckstracking"
     private val fileEncoding = Charsets.UTF_8
     private val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -39,6 +43,24 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         this.manager = WeakReference(client)
         this.appContext = WeakReference(ctx)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+    }
+
+    @Synchronized
+    private fun restoreStateIfNeeded() {
+        val currentState = this.providerState
+        if (currentState == null) {
+            // restore offline state
+            val restoredState = restoreStateFromDisk<TrackingState?>(
+                this.appContext?.get(),
+                this.fileName,
+                this.fileEncoding,
+                this.manager?.get()?.debugLogger
+            )
+            var newState = restoredState ?: TrackingState(emptyList(), emptyList())
+            newState = repairOldSessions(newState)
+            this.providerState = newState
+            writeStateToDisk(newState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+        }
     }
 
     override fun stop() {
@@ -84,30 +106,35 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         return attributes
     }
 
+    @Synchronized
     override fun onStart(owner: LifecycleOwner) {
         handleOnForeground()
     }
 
     fun handleOnForeground(now: Date = Date()) {
-        this.manager?.get()?.debugLogger?.debug("Commencing session tracking")
-        val preRestoreState = this.providerState
-        if (preRestoreState == null) {
-            // no state present in memory, restore it
-            val restoredState = restoreStateFromDisk<TrackingState?>(
-                this.appContext?.get(),
-                this.fileName,
-                this.fileEncoding,
-                this.manager?.get()?.debugLogger
-            )
-            this.providerState = restoredState
-        }
-
-        var currentState = this.providerState ?: TrackingState(emptyList(), emptyList())
+        this.manager?.get()?.debugLogger?.debug("Starting session tracking")
+        restoreStateIfNeeded()
+        var currentState = this.providerState?.copy()
+            ?: throw IllegalStateException("Session tracking is not running yet")
 
         this.manager?.get()?.debugLogger?.debug("Session tracking restoring sessions")
         currentState = updateDistinctDays(currentState, now)
 
-        if (currentState.sessions.isEmpty()) {
+        val newInstall = currentState.sessions.isEmpty()
+        val newSessionID = requestedSessionID
+        if (newSessionID != null && currentState.sessions.none { it.ended == null && it.id == newSessionID }) {
+            // a new session has been explicitly requested
+            startSession(newSessionID, now)
+        } else {
+            if (shouldStartNewSession(currentState, now)) {
+                startSession(UUID.randomUUID(), now)
+            }
+        }
+        // stop future sessions from trying to use this ID
+        requestedSessionID = null
+
+        // with a running session, we can send new install signal
+        if (newInstall) {
             // we're running for the first time
             this.manager?.get()?.debugLogger?.debug("Session tracking is running for the first time")
             val today = dateFormat.format(now)
@@ -118,15 +145,6 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
                 )
             )
         }
-
-        if (shouldStartNewSession(currentState, now)) {
-            currentState = endLastSessionIfPresent(currentState, now)
-            currentState = startNewSessionAndTruncateStorage(currentState, now)
-        }
-
-        this.manager?.get()?.debugLogger?.debug("Session tracking ${currentState.sessions.size} sessions.")
-        writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
-        this.providerState = currentState
     }
 
     /**
@@ -142,8 +160,8 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         }
     }
 
-    private fun startNewSessionAndTruncateStorage(state: TrackingState, now: Date): TrackingState {
-        val newSession = StoredSession(now, null, 0)
+    private fun startNewSessionAndTruncateStorage(state: TrackingState, now: Date, sessionID: UUID): TrackingState {
+        val newSession = StoredSession(sessionID, now, null, 0)
         var result = state.copy()
         val lifetimeSessionsCount = (result.lifetimeSessionsCount ?: 0) + 1
         result = result.copy(
@@ -153,7 +171,7 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         )
 
         // truncate started more than 90 days ago
-        val cutOff = Date(Date().time - (90L * 24L * 60L * 60L * 1000L))
+        val cutOff = Date(now.time - (90L * 24L * 60L * 60L * 1000L))
         val survivingSessions = result.sessions.filter { it.firstStart.after(cutOff) }
 
         result = result.copy(
@@ -188,6 +206,20 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         )
     }
 
+    private fun repairOldSessions(state: TrackingState): TrackingState {
+        // repair missing sessionID if session was started without one
+        return state.copy(
+            sessions = state.sessions.map {
+                if (it.ended == null && it.id == null) {
+                    it.copy(id = UUID.randomUUID())
+                } else {
+                    it
+                }
+            }
+        )
+    }
+
+    @Synchronized
     override fun onStop(owner: LifecycleOwner) {
         handleOnBackground()
     }
@@ -207,6 +239,9 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
 
     @Serializable
     data class StoredSession(
+        // Identifier of the session
+        @Serializable(with = UUIDOptionalSerializer::class)
+        val id: UUID? = null,
         @Serializable(with = DateSerializer::class)
         val firstStart: Date,
         @Serializable(with = DateSerializer::class)
@@ -224,4 +259,43 @@ class SessionTrackingSignalProvider: TelemetryDeckProvider, DefaultLifecycleObse
         @Serializable(with = DateSerializer::class)
         val lastEnteredBackground: Date? = null
     )
+
+    @Synchronized
+    override fun getCurrentSessionID(): UUID? {
+        return this.providerState?.sessions?.firstOrNull {it.ended == null}?.id
+    }
+
+    @Synchronized
+    override fun startNewSession(sessionID: UUID) {
+        startSession(sessionID, Date())
+    }
+
+    private fun startSession(sessionID: UUID, now: Date) {
+        this.manager?.get()?.debugLogger?.debug("Starting a new session $sessionID")
+        var currentState = this.providerState?.copy()
+            ?: throw IllegalStateException("Session tracking is not running yet")
+        currentState = endLastSessionIfPresent(currentState, now)
+        currentState = startNewSessionAndTruncateStorage(currentState, now, sessionID)
+        writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+        this.providerState = currentState
+        if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
+            manager?.get()?.processSignal(
+                Session.Started.signalName
+            )
+        }
+    }
+
+    /**
+     * Requests the initial sessionID
+     *
+     * - Will be used as the sessionID if a new session is started.
+     * - If a session is being resumed from state the requested sessionID is not the same as the current sessionID, a new session wil be started with the requested id
+     */
+    @Synchronized
+    override fun setFirstSessionID(sessionID: UUID) {
+        if (this.providerState != null) {
+            throw IllegalStateException("Session tracking is already running")
+        }
+        requestedSessionID = sessionID
+    }
 }
