@@ -16,8 +16,6 @@ data class TelemetryManagerConfiguration(
      */
     var apiBaseURL: URL = URL("https://nom.telemetrydeck.com"),
 
-    /// The namespace to send signals to. Defaults to the default Telemetry API server namespace.
-    /// (Don't change this unless you know exactly what you're doing)
 
     /**
      * The TelemetryDeck namespace of your organization.
