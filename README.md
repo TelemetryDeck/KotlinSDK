@@ -12,6 +12,7 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 * [User Identifiers](#user-identifiers)
   * [Custom User Identifiers](#custom-user-identifiers)
   * [Environment Parameters](#environment-parameters)
+* [Session Tracking](#session-tracking)
 * [Default Parameters](#default-parameters)
 * [Default Prefix](#default-prefix)
 * [Navigation Signals](#navigation-signals)
@@ -25,11 +26,19 @@ This package allows you to send signals to [TelemetryDeck](https://telemetrydeck
 
 ### Dependencies
 
-The Kotlin SDK for TelemetryDeck is available from Maven Central and can be used as a dependency directly in `build.gradle` file:
+The Kotlin SDK for TelemetryDeck is available from Maven Central at the following coordinates:
 
 ```groovy
+// `build.gradle`
 dependencies {
     implementation 'com.telemetrydeck:kotlin-sdk:5.0.1'
+}
+```
+
+```kotlin
+// `build.gradle.kts`
+dependencies {
+    implementation("com.telemetrydeck:kotlin-sdk:5.0.1")
 }
 ```
 
@@ -69,7 +78,6 @@ In addition, the following optional properties are supported:
 - `com.telemetrydeck.showDebugLogs`
 - `com.telemetrydeck.apiBaseURL`
 - `com.telemetrydeck.sendNewSessionBeganSignal`
-- `com.telemetrydeck.sessionID`
 - `com.telemetrydeck.testMode`
 - `com.telemetrydeck.defaultUser`
 
@@ -132,7 +140,6 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 
 | Parameter name                                                | Provider                        | Description                                        |
 |---------------------------------------------------------------|---------------------------------|----------------------------------------------------|
-| `TelemetryDeck.Session.started`                               | `SessionAppProvider`            |                                                    |
 | `TelemetryDeck.AppInfo.buildNumber`                           | `EnvironmentParameterProvider`  |                                                    |
 | `TelemetryDeck.AppInfo.version`                               | `EnvironmentParameterProvider`  |                                                    |
 | `TelemetryDeck.AppInfo.versionAndBuildNumber`                 | `EnvironmentParameterProvider`  |                                                    |
@@ -169,16 +176,23 @@ By default, Kotlin SDK for TelemetryDeck will include the following environment 
 | `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`         |                                                    |
 | `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`         |                                                    |
 | `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`         | Possible values are "rightToLeft" or "leftToRight" |
+| `TelemetryDeck.Session.started`                               | `SessionTrackingSignalProvider` |                                                    |
 | `TelemetryDeck.Acquisition.newInstallDetected`                | `SessionTrackingSignalProvider` |                                                    |
+| `TelemetryDeck.Acquisition.firstSessionDate`                  | `SessionTrackingSignalProvider` |                                                    |
+| `TelemetryDeck.Retention.averageSessionSeconds`               | `SessionTrackingSignalProvider` |                                                    |
+| `TelemetryDeck.Retention.distinctDaysUsed`                    | `SessionTrackingSignalProvider` |                                                    |
+| `TelemetryDeck.Retention.totalSessionsCount`                  | `SessionTrackingSignalProvider` |                                                    |
+| `TelemetryDeck.Retention.previousSessionSeconds`              | `SessionTrackingSignalProvider` |                                                    |
+| `TelemetryDeck.Retention.distinctDaysUsedLastMonth`           | `SessionTrackingSignalProvider` |                                                    |
 
-#### Notes 
+#### Notes
 
 - `TelemetryDeck.Acquisition.newInstallDetected`
 
 We send this signal when a user starts the app for the first time on a given device.
 
 - Session data is stored locally on device as part of the application's files.
-- If the application is uninstalled or it's data cleared, the SDK will report a new installation event (we do not bridge session data of any kind between installations)
+- If the application is uninstalled or it's data cleared, the SDK will report a new installation event (we do not bridge session data of any kind between installations).
 
 See [Session Tracking](#session-tracking) on how sessions are tracked.
 
@@ -219,7 +233,7 @@ val builder = TelemetryDeck.Builder()
 
 ## Default Prefix
 
-If you find yourself prepending the same prefix for to your custom signals or parameters, 
+If you find yourself prepending the same prefix for to your custom signals or parameters,
 you can optionally configure `TelemetryDeck` to do this for you by activating our `DefaultPrefixProvider`:
 
 
@@ -249,7 +263,18 @@ TelemetryDeck.navigate("/home")
 
 ## Session Tracking
 
-The `SessionTrackingSignalProvider` is enabled by default in order to provide for the `TelemetryDeck.Acquisition.newInstallDetected` signal as well as enrichment of signals with default parameters regarding user retention like session duration, days used, number of sessions etc.
+
+The SDK uses session tracking detect when the app is launched for the first time (`TelemetryDeck.Acquisition.newInstallDetected`) and enrich signals with default parameters regarding user retention like session duration, days used, number of sessions etc.
+
+
+- Session state is stored within the application's file folder on the user's device.
+
+- The session state will be removed when a user uninstalls an app. The SDK does not "bridge" state between installations.
+
+- Users can reset the session state at any time by using the "Clear Data" action in Settings of their device.
+
+
+The SDK tracks sessions by means of a session manager. The default session manager is `SessionTrackingSignalProvider` and it is enabled by default.
 
 Here are some concepts on which the `SessionTrackingSignalProvider` is based:
 
@@ -262,7 +287,7 @@ It's the period when the app is in the foreground and interacting with the user.
 
 A session typically begins when the user opens the app or resumes interaction after a period of inactivity.
 
-Note: If `sendNewSessionBeganSignal` is set to true and `SessionAppProvider` is enabled, the signal `TelemetryDeck.Session.started` is send for every start of a new session.
+Note: If `sendNewSessionBeganSignal` is set to `true`, the `TelemetryDeck.Session.started` is send for every start of a new session.
 
 ### Completed Session
 
@@ -291,6 +316,36 @@ The user uses the app until 11:10.
 | Second            | 10:30      | 11:00    | 30 min   |
 
 The third session will not be counted until the next time the user opens the app.
+
+
+### Custom sessionID
+
+In some situations, you may want to control the session identifier.
+
+Session IDs are UUIDs which the SDK would generate automatically but you can provide your own as follows:
+
+* Retrieve the current session ID using `TelemetryDeck.sessionID`. If the value is `null`, the session manager is disabled or no session has been started yet.
+
+* Start/end a session on demand by calling `TelemetryDeck.newSession()` and optionally passing a custom sessionID.
+
+* Instruct the SDK to start with a custom sessionID using the builder:
+
+```kotlin
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .sessionID(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+```
+
+* Session tracking is optional and can be deactivated by disabling the session manager:
+
+```kotlin
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .sessionManager(null)
+```
+
+* You can provide your own logic for session tracking by adopting `TelemetryDeckSessionManagerProvider` and setting it as the session manager.
+
 
 ## Custom Telemetry
 
@@ -359,7 +414,7 @@ You can also completely disable or override the default providers with your own.
 - `EnvironmentParameterProvider` - Adds environment and device information to outgoing Signals. This provider overrides the `enrich` method in order to append additional metadata for all signals before sending them.
 - `PlatformContextProvider` - Adds environment and device information which may change over time like the current timezone and screen metrics.
 - `AccessibilityProvider` - Adds parameters describing the currently active accessibility options.
-- `SessionTrackingSignalProvider` - Reports when a new app installation has been detected. 
+- `SessionTrackingSignalProvider` - Reports when a new app installation has been detected.
 
 For a complete list, check the `com.telemetrydeck.sdk.providers` package.
 
