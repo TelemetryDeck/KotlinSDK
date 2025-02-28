@@ -106,7 +106,7 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk", "5.0.1")
+    coordinates("com.telemetrydeck", "kotlin-sdk", "6.0.0")
 
     pom {
         name = "TelemetryDeck SDK"
@@ -134,11 +134,4 @@ mavenPublishing {
             url = "https://github.com/TelemetryDeck/KotlinSDK"
         }
     }
-
-// publishToMavenCentral and signAllPublications are configured in gradle.properties
-//    // Configure publishing to Maven Central
-//    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-//
-//    // Enable GPG signing for all publications
-//    signAllPublications()
 }

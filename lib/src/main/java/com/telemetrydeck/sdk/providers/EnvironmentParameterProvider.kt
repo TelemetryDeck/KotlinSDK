@@ -29,7 +29,7 @@ class EnvironmentParameterProvider : TelemetryDeckProvider {
     private val platform: String = "Android"
     private val os: String = "Android"
     private val sdkName: String = "KotlinSDK"
-    private val sdkVersion: String = "5.0.1"
+    private val sdkVersion: String = "6.0.0"
 
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         appendContextSpecificParams(ctx, client.debugLogger)
