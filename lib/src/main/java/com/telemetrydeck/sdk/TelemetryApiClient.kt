@@ -10,10 +10,3 @@ interface TelemetryApiClient {
     fun getServiceUrl(): URL
 }
 
-interface TelemetryApiClientFactory {
-    fun create(
-        apiBaseURL: URL,
-        showDebugLogs: Boolean,
-        logger:DebugLogger?
-    ): TelemetryApiClient
-}

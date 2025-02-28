@@ -87,8 +87,7 @@ class SignalsUnitTest {
 
     @Test
     fun telemetryClient_correct_service_url() {
-        val appID = UUID.fromString("32CB6574-6732-4238-879F-582FEBEB6536")
-        val client = TelemetryClient(URL("https://nom.telemetrydeck.com"), false, null)
+        val client = TelemetryClient(URL("https://nom.telemetrydeck.com"), false, null, null)
 
         val endpointUrl = client.getServiceUrl()
 
@@ -99,10 +98,23 @@ class SignalsUnitTest {
         )
     }
 
+    @Test
+    fun telemetryClient_correct_service_url_with_namespace() {
+        val client = TelemetryClient(URL("https://nom.telemetrydeck.com"), false, "deltaquadrant", null)
+
+        val endpointUrl = client.getServiceUrl()
+
+        // date equality comparison with precision up to milliseconds
+        assertEquals(
+            "https://nom.telemetrydeck.com/v2/namespace/deltaquadrant/",
+            endpointUrl.toString()
+        )
+    }
+
 
     @Test
     fun signal_serialize_floatValue() {
-        val float: Double = 3.444444444444445
+        val float = 3.444444444444445
 
         val signal = Signal(UUID.randomUUID(), "type", "clientUser", SignalPayload())
         signal.floatValue = float

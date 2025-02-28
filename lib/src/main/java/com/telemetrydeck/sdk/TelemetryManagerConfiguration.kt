@@ -16,6 +16,14 @@ data class TelemetryManagerConfiguration(
      */
     var apiBaseURL: URL = URL("https://nom.telemetrydeck.com"),
 
+    /// The namespace to send signals to. Defaults to the default Telemetry API server namespace.
+    /// (Don't change this unless you know exactly what you're doing)
+
+    /**
+     * The TelemetryDeck namespace of your organization.
+     */
+    var namespace: String? = null,
+
     /**
      * If `true`, sends a "newSessionBegan" Signal on each app foreground or cold launch
      * Defaults to true. Set to false to prevent automatically sending this signal.

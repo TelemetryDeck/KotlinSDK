@@ -154,7 +154,8 @@ class TelemetryDeck(
             val client = telemetryClientFactory.create(
                 configuration.apiBaseURL,
                 configuration.showDebugLogs,
-                logger
+                configuration.namespace,
+                logger,
             )
             client.send(signals)
             success(Unit)
