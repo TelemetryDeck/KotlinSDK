@@ -91,7 +91,6 @@ class SignalsUnitTest {
 
         val endpointUrl = client.getServiceUrl()
 
-        // date equality comparison with precision up to milliseconds
         assertEquals(
             "https://nom.telemetrydeck.com/v2/",
             endpointUrl.toString()
@@ -104,7 +103,6 @@ class SignalsUnitTest {
 
         val endpointUrl = client.getServiceUrl()
 
-        // date equality comparison with precision up to milliseconds
         assertEquals(
             "https://nom.telemetrydeck.com/v2/namespace/deltaquadrant/",
             endpointUrl.toString()
@@ -122,7 +120,6 @@ class SignalsUnitTest {
         val signalJson = Json.encodeToString(signal)
         val decodedSignal = Json.decodeFromString<Signal>(signalJson)
 
-        // date equality comparison with precision up to milliseconds
         assertEquals(float, decodedSignal.floatValue)
     }
 }
