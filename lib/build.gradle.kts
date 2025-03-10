@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.properties)
     implementation(libs.ktor.client.logging)
+    implementation(libs.kotlinx.datetime)
 
 
     testImplementation(libs.junit)

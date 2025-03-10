@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Navigation
 import com.telemetrydeck.sdk.providers.AccessibilityProvider
+import com.telemetrydeck.sdk.providers.CalendarParameterProvider
 import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
@@ -227,7 +228,8 @@ class TelemetryDeck(
             get() = listOf(
                 EnvironmentParameterProvider(),
                 PlatformContextProvider(),
-                AccessibilityProvider()
+                AccessibilityProvider(),
+                CalendarParameterProvider()
             )
         internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 

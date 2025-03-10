@@ -197,6 +197,14 @@ outgoing signal
 | `TelemetryDeck.Retention.totalSessionsCount`                  | `SessionTrackingSignalProvider` |                                                    |
 | `TelemetryDeck.Retention.previousSessionSeconds`              | `SessionTrackingSignalProvider` |                                                    |
 | `TelemetryDeck.Retention.distinctDaysUsedLastMonth`           | `SessionTrackingSignalProvider` |                                                    |
+| `TelemetryDeck.Calendar.dayOfMonth`                           | `CalendarParameterProvider`     |                                                    |
+| `TelemetryDeck.Calendar.dayOfWeek`                            | `CalendarParameterProvider`     |                                                    |
+| `TelemetryDeck.Calendar.dayOfYear`                            | `CalendarParameterProvider`     |                                                    |
+| `TelemetryDeck.Calendar.weekOfYear`                           | `CalendarParameterProvider`     |                                                    |
+| `TelemetryDeck.Calendar.isWeekend`                            | `CalendarParameterProvider`     |                                                    |
+| `TelemetryDeck.Calendar.monthOfYear`                          | `CalendarParameterProvider`     |                                                    |
+| `TelemetryDeck.Calendar.quarterOfYear`                        | `CalendarParameterProvider`     |                                                    |
+| `TelemetryDeck.Calendar.hourOfDay`                            | `CalendarParameterProvider`     |                                                    |
 
 #### Notes
 
@@ -371,6 +379,19 @@ val builder = TelemetryDeck.Builder()
 
 * You can provide your own logic for session tracking by adopting
   `TelemetryDeckSessionManagerProvider` and setting it as the session manager.
+
+## Calendar Parameters
+
+By default, the KotlinSDK will append the following parameters to all outgoing signals:
+
+- `TelemetryDeck.Calendar.dayOfMonth`: The day-of-month (1..31) component of the date.
+- `TelemetryDeck.Calendar.dayOfWeek`: The ISO 8601 number of the given day of the week. Monday is 1, Sunday is 7.
+- `TelemetryDeck.Calendar.dayOfYear`: The 1-based day-of-year component of the date.
+- `TelemetryDeck.Calendar.weekOfYear`: The week number within the current year as defined by `getFirstDayOfWeek()` and `getMinimalDaysInFirstWeek()`.
+- `TelemetryDeck.Calendar.isWeekend`: `true` if the day of the week is Saturday or Sunday, `false` otherwise.
+- `TelemetryDeck.Calendar.monthOfYear`: The number-of-the-month (1..12) component of the date.
+- `TelemetryDeck.Calendar.quarterOfYear`: The the quarter-of-year (1..4). For API 26 and earlier, it's the number of the month divided by 3.
+- `TelemetryDeck.Calendar.hourOfDay`: The hour-of-day (0..23) time component of this time value.
 
 ## Custom Telemetry
 
