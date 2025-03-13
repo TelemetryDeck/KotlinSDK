@@ -55,8 +55,9 @@ class TelemetryDeckTest {
         TelemetryDeck.start(
             ApplicationProvider.getApplicationContext<Application>(),
             prepareBuilder()
-            .signalCache(signalCache)
-            .sessionProvider(sut))
+                .signalCache(signalCache)
+                .sessionProvider(sut)
+        )
         val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
 
         // act
@@ -80,7 +81,8 @@ class TelemetryDeckTest {
             ApplicationProvider.getApplicationContext<Application>(),
             prepareBuilder()
                 .signalCache(signalCache)
-                .sessionProvider(sut))
+                .sessionProvider(sut)
+        )
         val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
 
         // act
@@ -106,7 +108,8 @@ class TelemetryDeckTest {
             prepareBuilder()
                 .signalCache(signalCache)
                 .sessionID(sessionID)
-                .sessionProvider(sut))
+                .sessionProvider(sut)
+        )
         val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
 
         // act
@@ -130,7 +133,8 @@ class TelemetryDeckTest {
             prepareBuilder()
                 .signalCache(signalCache)
                 .sessionProvider(sut)
-                .sendNewSessionBeganSignal(false))
+                .sendNewSessionBeganSignal(false)
+        )
         val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
 
         // act
@@ -155,7 +159,8 @@ class TelemetryDeckTest {
             prepareBuilder()
                 .signalCache(signalCache)
                 .sessionID(sessionID)
-                .sessionProvider(sut))
+                .sessionProvider(sut)
+        )
         val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         sut.onStart(lifecycleOwner)
 
@@ -180,7 +185,8 @@ class TelemetryDeckTest {
             ApplicationProvider.getApplicationContext<Application>(),
             prepareBuilder()
                 .signalCache(signalCache)
-                .sessionProvider(sut))
+                .sessionProvider(sut)
+        )
         val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
         sut.onStart(lifecycleOwner)
         val sessionID = UUID.randomUUID()
@@ -214,7 +220,10 @@ class TelemetryDeckTest {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
                 assertEquals(sessionID.toString(), it.sessionID)
-                assertEquals("6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149", it.clientUser)
+                assertEquals(
+                    "6721870580401922549fe8fdb09a064dba5b8792fa018d3bd9ffa90fe37a0149",
+                    it.clientUser
+                )
                 assertEquals("false", it.isTestMode)
             })
         }
@@ -231,10 +240,14 @@ class TelemetryDeckTest {
         )
 
         // simulate going into the background 10 minutes later
-        (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnBackground(Date(Date().time + 1000 * 10 * 60))
+        (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnBackground(
+            Date(Date().time + 1000 * 10 * 60)
+        )
 
         // and back to foreground an hour later
-        (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnForeground(Date(Date().time + 1000 * 60 * 60))
+        (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnForeground(
+            Date(Date().time + 1000 * 60 * 60)
+        )
 
         // act
         TelemetryDeck.signal("type", "clientUser", emptyMap())
@@ -244,12 +257,40 @@ class TelemetryDeckTest {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
                 assertNotEquals(sessionID.toString(), it.sessionID)
-                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Acquisition.firstSessionDate:") })
-                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.averageSessionSeconds:") })
-                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.distinctDaysUsed:") })
-                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.totalSessionsCount:") })
-                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.previousSessionSeconds:") })
-                assertNotNull(it.payload.find {  it.startsWith("TelemetryDeck.Retention.distinctDaysUsedLastMonth:") })
+                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Acquisition.firstSessionDate:") })
+                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.averageSessionSeconds:") })
+                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.distinctDaysUsed:") })
+                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.totalSessionsCount:") })
+                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.previousSessionSeconds:") })
+                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.distinctDaysUsedLastMonth:") })
+            })
+        }
+    }
+
+    @UiThreadTest
+    @Test
+    fun signal_sets_calendar_parameters() {
+        val sessionID = UUID.randomUUID()
+        val signalCache = startTelemetryDeck(
+            prepareBuilder()
+                .sessionID(sessionID)
+        )
+
+        // act
+        TelemetryDeck.signal("type", "clientUser", emptyMap())
+
+
+        verify {
+            signalCache.add(withArg { signal ->
+                assertEquals("type", signal.type)
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfMonth:") })
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfWeek:") })
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfYear:") })
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.weekOfYear:") })
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.isWeekend:") })
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.monthOfYear:") })
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.quarterOfYear:") })
+                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.hourOfDay:") })
             })
         }
     }
@@ -269,7 +310,8 @@ class TelemetryDeckTest {
         verify {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
-                val duration = it.payload.find {  it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+                val duration =
+                    it.payload.find { it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
                 assertNotNull(duration)
             })
         }
@@ -308,7 +350,7 @@ class TelemetryDeckTest {
     }
 }
 
-class MockApiFactory(private val client: TelemetryApiClient): TelemetryApiClientFactory {
+class MockApiFactory(private val client: TelemetryApiClient) : TelemetryApiClientFactory {
     override fun create(
         apiBaseURL: URL,
         showDebugLogs: Boolean,

@@ -37,7 +37,6 @@ internal fun getPackageInfo(context: Context, logger: DebugLogger?): PackageInfo
                 .packageManager
                 .getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0))
         } else {
-            @Suppress("DEPRECATION")
             return context.packageManager.getPackageInfo(context.packageName, 0)
         }
     } catch (e: Exception) {
@@ -93,7 +92,7 @@ internal fun getDisplayMetrics(context: Context, logger: DebugLogger?): ScreenMe
     }
 }
 
-internal fun getLocaleName(context: Context, logger: DebugLogger?): String? {
+internal fun getCurrentLocale(context: Context, logger: DebugLogger?): Locale? {
     try {
         val currentLocale: Locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             context.resources.configuration.locales[0]
@@ -102,9 +101,13 @@ internal fun getLocaleName(context: Context, logger: DebugLogger?): String? {
             context.resources.configuration.locale
         }
 
-        return currentLocale.displayName
+        return currentLocale
     } catch (e: Exception) {
-        logger?.error("getLocaleName failed: $e ${e.stackTraceToString()}")
+        logger?.error("getLocale failed: $e ${e.stackTraceToString()}")
         return null
     }
+}
+
+internal fun getLocaleName(context: Context, logger: DebugLogger?): String? {
+    return getCurrentLocale(context, logger)?.displayName
 }
