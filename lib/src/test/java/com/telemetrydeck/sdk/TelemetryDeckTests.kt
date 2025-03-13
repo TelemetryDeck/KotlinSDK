@@ -179,6 +179,51 @@ class TelemetryDeckTests {
     }
 
     @Test
+    fun telemetryDeck_sends_userAcquired() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.acquiredUser("channel 1")
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Acquisition.userAcquired", signal?.type)
+        Assert.assertEquals("TelemetryDeck.Acquisition.channel:channel 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.channel:") })
+    }
+
+    @Test
+    fun telemetryDeck_sends_leadStarted() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.leadStarted("lead 1")
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Acquisition.leadStarted", signal?.type)
+        Assert.assertEquals("TelemetryDeck.Acquisition.leadID:lead 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.leadID:") })
+    }
+
+    @Test
+    fun telemetryDeck_sends_leadConverted() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.leadConverted("lead 1")
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Acquisition.leadConverted", signal?.type)
+        Assert.assertEquals("TelemetryDeck.Acquisition.leadID:lead 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.leadID:") })
+    }
+
+    @Test
     fun telemetryDeck_addProvider_appends_after_default_providers() {
         val builder = TelemetryDeck.Builder()
         val sut = builder

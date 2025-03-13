@@ -1,18 +1,16 @@
 package com.telemetrydeck.sdk.providers
 
 import android.content.Context
-import android.app.Application
 import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
 import android.util.LayoutDirection
-import android.view.accessibility.AccessibilityManager
 import androidx.core.text.layoutDirection
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.params.Accessibility
-import com.telemetrydeck.sdk.params.Device
 import com.telemetrydeck.sdk.params.UserPreferences
+import com.telemetrydeck.sdk.providers.helpers.getCurrentAppLanguageAndRegion
 import java.lang.ref.WeakReference
 import java.util.Locale
 
@@ -64,7 +62,8 @@ class AccessibilityProvider : TelemetryDeckProvider {
 
         try {
             isDarkModeEnabled().let {
-                attributes[Accessibility.IsDarkerSystemColorsEnabled.paramName] = "$it"
+                attributes[Accessibility.IsDarkerSystemColorsEnabled.paramName] = "${it == true}"
+                attributes[UserPreferences.ColorScheme.paramName] = if (it == true) "Dark" else "Light"
             }
         } catch (e: Exception) {
             this.manager?.get()?.debugLogger?.error("Error detecting IsDarkerSystemColorsEnabled: ${e.stackTraceToString()}")
@@ -126,6 +125,14 @@ class AccessibilityProvider : TelemetryDeckProvider {
                     true -> "rightToLeft"
                     false -> "leftToRight"
                 }
+        } catch (e: Exception) {
+            this.manager?.get()?.debugLogger?.error("Error detecting LayoutDirection: ${e.stackTraceToString()}")
+        }
+
+        try {
+            val (language, region) = getCurrentAppLanguageAndRegion(context)
+            attributes[UserPreferences.Region.paramName] = region
+            attributes[UserPreferences.Language.paramName] = language
         } catch (e: Exception) {
             this.manager?.get()?.debugLogger?.error("Error detecting LayoutDirection: ${e.stackTraceToString()}")
         }

@@ -31,5 +31,8 @@ class AccessibilityProviderEnrichmentParametersTest {
         assertTrue(result.containsKey("TelemetryDeck.Accessibility.isReduceMotionEnabled"))
         assertTrue(result.containsKey("TelemetryDeck.Accessibility.isReduceTransparencyEnabled"))
         assertTrue(result.containsKey("TelemetryDeck.UserPreference.layoutDirection"))
+        assertTrue(result.containsKey("TelemetryDeck.UserPreference.region"))
+        assertTrue(result.containsKey("TelemetryDeck.UserPreference.language"))
+        assertTrue(result.containsKey("TelemetryDeck.UserPreference.colorScheme"))
     }
 }

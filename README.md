@@ -17,6 +17,7 @@ Android applications. Sign up for a free account at [telemetrydeck.com](https://
 * [Default Parameters](#default-parameters)
 * [Default Prefix](#default-prefix)
 * [Navigation Signals](#navigation-signals)
+* [Acquisition](#acquisition)
 * [Custom Telemetry](#custom-telemetry)
 * [Custom Logging](#custom-logging)
 * [Requirements](#requirements)
@@ -189,6 +190,9 @@ outgoing signal
 | `TelemetryDeck.Accessibility.isReduceTransparencyEnabled`     | `AccessibilityProvider`         |                                                    |
 | `TelemetryDeck.Accessibility.shouldDifferentiateWithoutColor` | `AccessibilityProvider`         |                                                    |
 | `TelemetryDeck.UserPreference.layoutDirection`                | `AccessibilityProvider`         | Possible values are "rightToLeft" or "leftToRight" |
+| `TelemetryDeck.UserPreference.region`                         | `AccessibilityProvider`         | Current device region in ISO 3166-1 alpha-2 format |
+| `TelemetryDeck.UserPreference.language`                       | `AccessibilityProvider`         | Current application language in ISO 639-1 format   |
+| `TelemetryDeck.UserPreference.colorScheme`                    | `AccessibilityProvider`         | "Dark" or "Light"                                  |
 | `TelemetryDeck.Session.started`                               | `SessionTrackingSignalProvider` |                                                    |
 | `TelemetryDeck.Acquisition.newInstallDetected`                | `SessionTrackingSignalProvider` |                                                    |
 | `TelemetryDeck.Acquisition.firstSessionDate`                  | `SessionTrackingSignalProvider` |                                                    |
@@ -278,6 +282,33 @@ TelemetryDeck.navigate(sourcePath = "/onboarding", destinationPath = "/home")
 TelemetryDeck.navigate("/onboarding")
 TelemetryDeck.navigate("/home")
 ```
+
+
+## Acquisition
+
+The following helper methods are available
+
+```kotlin
+/**
+ * Send a `TelemetryDeck.Acquisition.userAcquired` signal with the provided channel.
+ */
+fun acquiredUser(channel: String,...)
+```
+
+```kotlin
+/**
+ * Send a `TelemetryDeck.Acquisition.leadStarted` signal with the provided leadId.
+ */
+fun leadStarted(leadId: String,...)
+```
+
+```kotlin
+/**
+ * Send a `TelemetryDeck.Acquisition.leadConverted` signal with the provided leadId.
+ */
+fun leadConverted(leadId: String,...)
+```
+
 
 ## Session Tracking
 
