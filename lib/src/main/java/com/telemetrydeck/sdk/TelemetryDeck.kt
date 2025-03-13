@@ -2,6 +2,7 @@ package com.telemetrydeck.sdk
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import com.telemetrydeck.sdk.params.Acquisition
 import com.telemetrydeck.sdk.params.Navigation
 import com.telemetrydeck.sdk.providers.AccessibilityProvider
 import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
@@ -59,6 +60,39 @@ class TelemetryDeck(
 
     override fun navigate(destinationPath: String, customUserID: String?) {
         navigate(navigationStatus.getLastDestination(), destinationPath, customUserID)
+    }
+
+    override fun acquiredUser(channel: String, params: Map<String, String>, customUserID: String?) {
+        val signalParams = mergeMapsWithOverwrite(params, mapOf(
+            Acquisition.Channel.paramName to channel
+        ))
+        signal(
+            com.telemetrydeck.sdk.signals.Acquisition.UserAcquired.signalName,
+            params = signalParams,
+            customUserID = customUserID
+        )
+    }
+
+    override fun leadStarted(leadId: String, params: Map<String, String>, customUserID: String?) {
+        val signalParams = mergeMapsWithOverwrite(params, mapOf(
+            Acquisition.LeadId.paramName to leadId
+        ))
+        signal(
+            com.telemetrydeck.sdk.signals.Acquisition.LeadStarted.signalName,
+            params = signalParams,
+            customUserID = customUserID
+        )
+    }
+
+    override fun leadConverted(leadId: String, params: Map<String, String>, customUserID: String?) {
+        val signalParams = mergeMapsWithOverwrite(params, mapOf(
+            Acquisition.LeadId.paramName to leadId
+        ))
+        signal(
+            com.telemetrydeck.sdk.signals.Acquisition.LeadConverted.signalName,
+            params = signalParams,
+            customUserID = customUserID
+        )
     }
 
     override suspend fun send(
@@ -212,6 +246,13 @@ class TelemetryDeck(
             .fold("") { str, it -> str + "%02x".format(it) }
     }
 
+    private fun mergeMapsWithOverwrite(map1: Map<String, String>, map2: Map<String, String>): Map<String, String> {
+        val result = mutableMapOf<String, String>()
+        result.putAll(map1)
+        result.putAll(map2)
+        return result
+    }
+
     companion object : TelemetryDeckClient, TelemetryDeckSignalProcessor {
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
             get() = listOf(
@@ -288,6 +329,30 @@ class TelemetryDeck(
 
         override fun navigate(destinationPath: String, customUserID: String?) {
             getInstance()?.navigate(destinationPath, customUserID = customUserID)
+        }
+
+        override fun acquiredUser(
+            channel: String,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.acquiredUser(channel, params, customUserID)
+        }
+
+        override fun leadStarted(
+            leadId: String,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.leadStarted(leadId, params, customUserID)
+        }
+
+        override fun leadConverted(
+            leadId: String,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.leadConverted(leadId, params, customUserID)
         }
 
         override suspend fun send(
