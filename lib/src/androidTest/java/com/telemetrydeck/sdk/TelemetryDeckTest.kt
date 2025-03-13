@@ -22,9 +22,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.UUID
 
 
@@ -343,17 +341,13 @@ class TelemetryDeckTest {
         (sut.sessionManager as SessionTrackingSignalProvider).onStart(lifecycleOwner)
         return signalCache
     }
-
-    private fun parseDateString(dateString: String): Date {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-        return dateFormat.parse(dateString)!!
-    }
 }
 
 class MockApiFactory(private val client: TelemetryApiClient) : TelemetryApiClientFactory {
     override fun create(
         apiBaseURL: URL,
         showDebugLogs: Boolean,
+        namespace: String?,
         logger: DebugLogger?
     ): TelemetryApiClient {
         return client
