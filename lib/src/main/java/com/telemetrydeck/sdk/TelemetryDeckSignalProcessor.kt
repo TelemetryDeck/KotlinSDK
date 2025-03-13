@@ -14,6 +14,11 @@ interface TelemetryDeckSignalProcessor {
     val debugLogger: DebugLogger?
 
     /**
+     * The identifier of the current session
+     * */
+    val sessionID: UUID?
+
+    /**
      * Return the configuration used by the SDK.
      * */
     val configuration: TelemetryManagerConfiguration?
@@ -34,7 +39,7 @@ interface TelemetryDeckSignalProcessor {
      *  When running without a context, the signal cache is stored in memory. All cached (unsent) signals are discarded when the TelemetryDeck SDK instance has been disposed (see [MemorySignalCache]).
      *
      *
-     *  If you prefer to control the lifecycle of signals, use the [send] method instead.
+     *  If you prefer to control the lifecycle of signals, use the [TelemetryDeck.sendAll] method instead.
      *
      * @param signalName The name of the signal to be sent. This is a string that identifies the type of event or action being reported.
      * @param params A map of additional string key-value pairs that provide further context about the signal.

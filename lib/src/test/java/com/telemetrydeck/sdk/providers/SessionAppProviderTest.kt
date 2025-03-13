@@ -67,47 +67,4 @@ class SessionAppProviderTest {
 
         Assert.assertEquals(0, manager.cache?.count())
     }
-
-
-    @Test
-    fun sessionProvider_default_configuration_onStop_resets_the_sessionID() {
-        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
-        val sut = SessionAppProvider()
-        val manager = testDefaultTelemetryManager()
-        sut.register(null, manager)
-
-        val initialSessionID = manager.configuration.sessionID
-        sut.onStop(lifecycleOwner)
-        val nextSessionID = manager.configuration.sessionID
-
-        Assert.assertNotEquals(initialSessionID, nextSessionID)
-    }
-
-    @Test
-    fun sessionProvider_sendNewSessionBeganSignal_onStop_resets_the_sessionID() {
-        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
-        val sut = SessionAppProvider()
-        val manager = testTelemetryManager(true)
-        sut.register(null, manager)
-
-        val initialSessionID = manager.configuration.sessionID
-        sut.onStop(lifecycleOwner)
-        val nextSessionID = manager.configuration.sessionID
-
-        Assert.assertNotEquals(initialSessionID, nextSessionID)
-    }
-
-    @Test
-    fun sessionProvider_not_sendNewSessionBeganSignal_onStop_keeps_the_sessionID() {
-        val lifecycleOwner: LifecycleOwner = mockk<LifecycleOwner>()
-        val sut = SessionAppProvider()
-        val manager = testTelemetryManager(false)
-        sut.register(null, manager)
-
-        val initialSessionID = manager.configuration.sessionID
-        sut.onStop(lifecycleOwner)
-        val nextSessionID = manager.configuration.sessionID
-
-        Assert.assertEquals(initialSessionID, nextSessionID)
-    }
 }

@@ -25,14 +25,6 @@ data class TelemetryManagerConfiguration(
 
 
     /**
-     * A random identifier for the current user session.
-     * On iOS, tvOS, and watchOS, the session identifier will automatically update whenever your app returns from background, or if it is
-     * launched from cold storage. On other platforms, a new identifier will be generated each time your app launches. If you'd like
-     * more fine-grained session support, write a new random session identifier into this property each time a new session begins.
-     * */
-    var sessionID: UUID = UUID.randomUUID(),
-
-    /**
      * If `true` any signals sent will be marked as *Testing* signals.
      * Testing signals are only shown when your Telemetry Viewer App is in Testing mode. In live mode, they are ignored.
      *

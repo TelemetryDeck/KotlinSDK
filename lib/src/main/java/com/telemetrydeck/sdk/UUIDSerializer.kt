@@ -20,3 +20,15 @@ internal object UUIDSerializer : KSerializer<UUID> {
         return UUID.fromString(decoder.decodeString())
     }
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializer(forClass = UUID::class)
+internal object UUIDOptionalSerializer : KSerializer<UUID?> {
+    override fun serialize(encoder: Encoder, value: UUID?) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): UUID? {
+        return UUID.fromString(decoder.decodeString())
+    }
+}

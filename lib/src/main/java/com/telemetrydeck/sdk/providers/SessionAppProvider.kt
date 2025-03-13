@@ -12,7 +12,14 @@ import java.lang.ref.WeakReference
 
 /**
  * Monitors the app lifecycle in order to broadcast the NewSessionBegan signal.
+ *
+ * @deprecated Use [SessionTrackingSignalProvider] instead.
  */
+@Deprecated(
+    message = "Use SessionTrackingSignalProvider instead.",
+    replaceWith = ReplaceWith("SessionTrackingSignalProvider"),
+    level = DeprecationLevel.WARNING
+)
 class SessionAppProvider : TelemetryDeckProvider, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
 

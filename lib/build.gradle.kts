@@ -50,9 +50,12 @@ android {
     //    https://github.com/Kotlin/kotlinx.coroutines/blob/master/README.md#avoiding-including-the-debug-infrastructure-in-the-resulting-apk
     packaging {
         resources.excludes += "DebugProbesKt.bin"
-        resources {
-            pickFirsts += "META-INF/INDEX.LIST"
-        }
+        resources.merges.addAll(
+            listOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+            )
+        )
     }
     namespace = "com.telemetrydeck.sdk"
 }
@@ -93,6 +96,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.manifest)
     androidTestImplementation(libs.androidx.uiautomator)
 
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.mockk.agent)
+
     testImplementation(libs.mockk)
     testImplementation(libs.mockk.android)
     testImplementation(libs.mockk.agent)
@@ -100,11 +106,12 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk", "5.0.1")
+    coordinates("com.telemetrydeck", "kotlin-sdk", "6.0.0")
 
     pom {
         name = "TelemetryDeck SDK"
-        description = "Kotlin SDK for TelemetryDeck, a privacy-conscious analytics service for apps and websites"
+        description =
+            "Kotlin SDK for TelemetryDeck, a privacy-conscious analytics service for apps and websites"
         url = "https://telemetrydeck.com"
 
         licenses {
@@ -127,11 +134,4 @@ mavenPublishing {
             url = "https://github.com/TelemetryDeck/KotlinSDK"
         }
     }
-
-// publishToMavenCentral and signAllPublications are configured in gradle.properties
-//    // Configure publishing to Maven Central
-//    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-//
-//    // Enable GPG signing for all publications
-//    signAllPublications()
 }

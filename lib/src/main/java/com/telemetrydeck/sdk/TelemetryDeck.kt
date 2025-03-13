@@ -9,7 +9,6 @@ import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
-import com.telemetrydeck.sdk.providers.SessionAppProvider
 import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import java.lang.ref.WeakReference
 import java.net.URL
@@ -20,11 +19,13 @@ import kotlin.Result.Companion.success
 
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
-    val providers: List<TelemetryDeckProvider>
+    val providers: List<TelemetryDeckProvider>,
 ) : TelemetryDeckClient, TelemetryDeckSignalProcessor {
     var cache: SignalCache? = null
     var logger: DebugLogger? = null
+    var sessionManager: TelemetryDeckSessionManagerProvider? = null
     var identityProvider: TelemetryDeckIdentityProvider = FileUserIdentityProvider()
+    var telemetryClientFactory: TelemetryApiClientFactory = TelemetryClientFactory()
     private val navigationStatus: NavigationStatus = MemoryNavigationStatus()
 
     override val signalCache: SignalCache?
@@ -33,8 +34,13 @@ class TelemetryDeck(
     override val debugLogger: DebugLogger?
         get() = this.logger
 
+    override val sessionID: UUID?
+        get() {
+            return sessionManager?.getCurrentSessionID()
+        }
+
     override fun newSession(sessionID: UUID) {
-        this.configuration.sessionID = sessionID
+        sessionManager?.startNewSession(sessionID)
     }
 
     override fun newDefaultUser(user: String?) {
@@ -179,7 +185,7 @@ class TelemetryDeck(
         signals: List<Signal>
     ): Result<Unit> {
         return try {
-            val client = TelemetryClient(
+            val client = telemetryClientFactory.create(
                 configuration.apiBaseURL,
                 configuration.showDebugLogs,
                 logger
@@ -195,6 +201,8 @@ class TelemetryDeck(
     internal var broadcastTimer: TelemetryBroadcastTimer? = null
 
     private fun installProviders(context: Context?) {
+        // session manager must be installed first as some plugins may depend on it
+        sessionManager?.register(context, this)
         for (provider in providers) {
             logger?.debug("Installing provider ${provider::class}.")
             provider.register(context, this)
@@ -209,11 +217,13 @@ class TelemetryDeck(
         floatValue: Double?
     ): Signal {
         var enrichedPayload = additionalPayload
+        enrichedPayload = sessionManager?.enrich(signalType, clientUser, enrichedPayload) ?: enrichedPayload
         for (provider in this.providers) {
             enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
         }
 
         var signalTransform = SignalTransform(signalType, clientUser, enrichedPayload, floatValue)
+        signalTransform = sessionManager?.transform(signalTransform) ?: signalTransform
         for (provider in this.providers) {
             signalTransform = provider.transform(signalTransform)
         }
@@ -235,7 +245,7 @@ class TelemetryDeck(
             isTestMode = configuration.testMode.toString().lowercase(),
             floatValue = signalTransform.floatValue
         )
-        signal.sessionID = this.configuration.sessionID.toString()
+        signal.sessionID = this.sessionManager?.getCurrentSessionID()?.toString()
         logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}, test ${signal.isTestMode}")
         return signal
     }
@@ -256,17 +266,15 @@ class TelemetryDeck(
     companion object : TelemetryDeckClient, TelemetryDeckSignalProcessor {
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
             get() = listOf(
-                SessionAppProvider(),
                 EnvironmentParameterProvider(),
                 PlatformContextProvider(),
-                AccessibilityProvider(),
-                SessionTrackingSignalProvider()
+                AccessibilityProvider()
             )
         internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 
         // [TelemetryDeck] singleton
         @Volatile
-        private var instance: TelemetryDeck? = null
+        internal var instance: TelemetryDeck? = null
 
         /**
          * Builds and starts the application instance of [TelemetryDeck].
@@ -302,6 +310,7 @@ class TelemetryDeck(
                 provider.stop()
             }
             manager.identityProvider.stop()
+            manager.sessionManager?.stop()
             synchronized(this) {
                 instance = null
             }
@@ -426,6 +435,8 @@ class TelemetryDeck(
 
         override val debugLogger: DebugLogger?
             get() = getInstance()?.debugLogger
+        override val sessionID: UUID?
+            get() = getInstance()?.sessionID
 
         override val configuration: TelemetryManagerConfiguration?
             get() = getInstance()?.configuration
@@ -445,7 +456,10 @@ class TelemetryDeck(
         private var apiBaseURL: URL? = null,
         private var logger: DebugLogger? = null,
         private var salt: String? = null,
-        private var identityProvider: TelemetryDeckIdentityProvider? = null
+        private var identityProvider: TelemetryDeckIdentityProvider? = null,
+        private var sessionProvider: TelemetryDeckSessionManagerProvider? = null,
+        private var telemetryClientFactory: TelemetryApiClientFactory? = null,
+        private var signalCache: SignalCache? = null
     ) {
         /**
          * Set the [TelemetryDeck] configuration.
@@ -516,6 +530,18 @@ class TelemetryDeck(
             this.identityProvider = identityProvider
         }
 
+        fun sessionProvider(sessionManagerProvider: TelemetryDeckSessionManagerProvider?) = apply {
+            this.sessionProvider = sessionManagerProvider
+        }
+
+        fun apiClientFactory(factory: TelemetryApiClientFactory) = apply {
+            this.telemetryClientFactory = factory
+        }
+
+        fun signalCache(cache: SignalCache) = apply {
+            this.signalCache = cache
+        }
+
         /**
          * Provide a custom logger implementation to be used by [TelemetryDeck] when logging internal messages.
          */
@@ -546,11 +572,6 @@ class TelemetryDeck(
                 providers = providers + (additionalProviders?.toList() ?: listOf())
             }
 
-            // check if sessionID has been provided to override the default one
-            val sessionID = this.sessionID
-            if (sessionID != null) {
-                config.sessionID = sessionID
-            }
 
             // optional fields
             val defaultUser = this.defaultUser
@@ -595,15 +616,24 @@ class TelemetryDeck(
             val manager = TelemetryDeck(config, providers)
             manager.logger = logger
 
+            if (telemetryClientFactory != null) {
+                manager.telemetryClientFactory = telemetryClientFactory as TelemetryApiClientFactory
+            }
+
             val broadcaster =
                 TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
-            broadcaster.start()
             manager.broadcastTimer = broadcaster
 
-            if (context != null) {
-                manager.cache = PersistentSignalCache(context.cacheDir, logger)
+            if (signalCache != null) {
+                // user-specified cache implementation
+                manager.cache = signalCache
             } else {
-                manager.cache = MemorySignalCache()
+                // determine based on context availability
+                if (context != null) {
+                    manager.cache = PersistentSignalCache(context.cacheDir, logger)
+                } else {
+                    manager.cache = MemorySignalCache()
+                }
             }
 
             val userIdentityProvider = this.identityProvider
@@ -611,8 +641,18 @@ class TelemetryDeck(
                 manager.identityProvider = userIdentityProvider
             }
 
+            val customSessionProvider = this.sessionProvider
+            manager.sessionManager = customSessionProvider ?: SessionTrackingSignalProvider()
+            val sessionID = this.sessionID
+            if (sessionID != null) {
+                manager.sessionManager?.setFirstSessionID(sessionID)
+            }
+
             // providers must be installed at the end to allow them access to cache and full signal processing
             manager.installProviders(context)
+
+            // start signal broadcast
+            broadcaster.start()
             
             return manager
         }
