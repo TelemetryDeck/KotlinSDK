@@ -15,20 +15,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import java.net.URL
 
-internal class TelemetryClientFactory: TelemetryApiClientFactory {
-    override fun create(
-        apiBaseURL: URL,
-        showDebugLogs: Boolean,
-        logger: DebugLogger?
-    ): TelemetryApiClient {
-        return TelemetryClient(
-            apiBaseURL,
-            showDebugLogs,
-            logger
-        )
-    }
-}
-
 
 /**
  * The HTTP client to communicate with TelemetryDeck's API
@@ -36,6 +22,7 @@ internal class TelemetryClientFactory: TelemetryApiClientFactory {
 internal class TelemetryClient(
     private val apiBaseURL: URL,
     private val showDebugLogs: Boolean,
+    private val namespace: String?,
     private val debugLogger: DebugLogger?
 ) : TelemetryApiClient {
     private val client: HttpClient = HttpClient(OkHttp) {
@@ -71,8 +58,15 @@ internal class TelemetryClient(
 
     override fun getServiceUrl(): URL {
         val baseUri = apiBaseURL.toURI()
-        val serviceUri = baseUri.resolve("/v2/")
-        serviceUri.normalize()
+        val serviceUri = if (!namespace.isNullOrBlank()) {
+            val uri = baseUri.resolve("/v2/namespace/$namespace/")
+            uri.normalize()
+            uri
+        } else {
+            val uri = baseUri.resolve("/v2/")
+            uri.normalize()
+            uri
+        }
         return serviceUri.toURL()
     }
 }
