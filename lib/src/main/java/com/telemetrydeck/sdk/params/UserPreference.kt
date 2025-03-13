@@ -1,5 +1,8 @@
 package com.telemetrydeck.sdk.params
 
-enum class UserPreferences(val paramName: String) {
+internal enum class UserPreferences(val paramName: String) {
     LayoutDirection("TelemetryDeck.UserPreference.layoutDirection"),
+    Region("TelemetryDeck.UserPreference.region"),
+    Language("TelemetryDeck.UserPreference.language"),
+    ColorScheme("TelemetryDeck.UserPreference.colorScheme"),
 }
