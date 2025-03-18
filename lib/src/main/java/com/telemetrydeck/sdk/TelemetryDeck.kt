@@ -462,7 +462,8 @@ class TelemetryDeck(
         private var identityProvider: TelemetryDeckIdentityProvider? = null,
         private var sessionProvider: TelemetryDeckSessionManagerProvider? = null,
         private var telemetryClientFactory: TelemetryApiClientFactory? = null,
-        private var signalCache: SignalCache? = null
+        private var signalCache: SignalCache? = null,
+        private var namespace: String? = null,
     ) {
         /**
          * Set the [TelemetryDeck] configuration.
@@ -552,6 +553,10 @@ class TelemetryDeck(
             this.logger = debugLogger
         }
 
+        fun namespace(namespace: String?) = apply {
+            this.namespace = namespace
+        }
+
         fun build(context: Context?): TelemetryDeck {
             var config = this.configuration
             val appID = this.appID
@@ -601,6 +606,10 @@ class TelemetryDeck(
             val showDebugLogs = this.showDebugLogs
             if (showDebugLogs != null) {
                 config.showDebugLogs = showDebugLogs
+            }
+            val namespace = this.namespace
+            if (!namespace.isNullOrBlank()) {
+                config.namespace = namespace
             }
 
             val logger: DebugLogger = this.logger ?: TelemetryManagerDebugLogger

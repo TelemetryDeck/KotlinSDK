@@ -123,6 +123,16 @@ class TelemetryDeckTests {
     }
 
     @Test
+    fun telemetryDeck_builder_set_namespace() {
+        val sut = TelemetryDeck.Builder()
+        val result =
+            sut.appID("32CB6574-6732-4238-879F-582FEBEB6536")
+                .namespace("acme")
+                .build(null)
+        Assert.assertEquals("acme", result.configuration.namespace)
+    }
+
+    @Test
     fun telemetryDeck_builder_set_showDebugLogs() {
         val sut = TelemetryDeck.Builder()
         val result =
