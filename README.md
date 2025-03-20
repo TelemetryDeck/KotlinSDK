@@ -409,6 +409,23 @@ val builder = TelemetryDeck.Builder()
 * You can provide your own logic for session tracking by adopting
   `TelemetryDeckSessionManagerProvider` and setting it as the session manager.
 
+## Duration Signals
+
+The SDK offers convenience methods to facilitate tracking the duration of specific objects or events.
+
+Once started, a duration signal will be tracked internally by the SDK and upon completion, it will send the signal while also adding a `TelemetryDeck.Signal.durationInSeconds` parameter.
+
+```kotlin
+// start tracking, without sending a signal
+TelemetryDeck.startDurationSignal("wizard_step1")
+
+// end tracking, sends the signal including the total duration (excluding background time) 
+TelemetryDeck.stopAndSendDurationSignal("wizard_step1")
+```
+
+Duration signals are provided by the `DurationSignalTrackerProvider` which is always enabled. 
+
+
 ## Calendar Parameters
 
 By default, the KotlinSDK will append the following parameters to all outgoing signals:
