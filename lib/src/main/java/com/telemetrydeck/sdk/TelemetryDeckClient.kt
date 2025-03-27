@@ -121,8 +121,13 @@ interface TelemetryDeckClient {
      *
      * @param signalName The name of the signal to track. This will be used to identify and stop the duration tracking later.
      * @param parameters A dictionary of additional string key-value pairs that will be included when the duration signal is eventually sent.
+     * @param includeBackgroundTime Indicates if the duration tracked will include the time spent in the background.
      */
-    fun startDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap())
+    fun startDurationSignal(
+        signalName: String,
+        parameters: Map<String, String> = emptyMap(),
+        includeBackgroundTime: Boolean = false
+    )
 
     /** Stops tracking the duration of a signal and sends it with the total duration.
      *
