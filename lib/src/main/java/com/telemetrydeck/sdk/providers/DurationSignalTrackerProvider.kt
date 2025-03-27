@@ -38,14 +38,14 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        handleOnStart()
+        handleOnForeground()
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        handleOnStop()
+        handleOnBackground()
     }
 
-    fun handleOnStart() {
+    fun handleOnForeground(now: Date = Date()) {
         this.manager?.get()?.debugLogger?.debug("Commencing signal duration tracking")
 
         val preRestoreState = this.state
@@ -65,14 +65,17 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         val lastEnteredBackground = currentState.lastEnteredBackground
         if (lastEnteredBackground != null) {
             // subtracts background time from all signals by moving their start time forward
-            val now = Date()
             val backgroundDuration = now.time - lastEnteredBackground.time
             this.manager?.get()?.debugLogger?.debug("Adapting signal duration with -$backgroundDuration ms")
             currentState = currentState.copy(
                 signals = currentState.signals.mapValues {
-                    it.value.copy(
-                        startTime = Date(it.value.startTime.time + backgroundDuration)
-                    )
+                    if (it.value.includeBackgroundTime == true) {
+                        it.value.copy()
+                    } else {
+                        it.value.copy(
+                            startTime = Date(it.value.startTime.time + backgroundDuration)
+                        )
+                    }
                 }
             )
         }
@@ -81,31 +84,31 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         this.state = currentState
     }
 
-    fun handleOnStop() {
+    fun handleOnBackground(now: Date = Date()) {
         this.manager?.get()?.debugLogger?.debug("Signal duration tracking is shutting down")
-        val currentState = this.state
+        val currentState = this.state?.copy(
+            lastEnteredBackground = now
+        )
         if (currentState != null) {
-            val updatedState = currentState.copy(
-                lastEnteredBackground = Date()
-            )
-            writeStateToDisk(updatedState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+            this.state = currentState
+            writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
         }
     }
 
     @Synchronized
-    fun startTracking(signalName: String, parameters: Map<String, String>) {
+    fun startTracking(signalName: String, parameters: Map<String, String>, includeBackgroundTime: Boolean, now: Date = Date()) {
         val currentState = state ?: throw Exception("startTracking called before register")
-        val now = Date()
         this.state = currentState.copy(
             signals = currentState.signals + (signalName to CachedData(
                 now,
-                parameters
+                parameters,
+                includeBackgroundTime
             ))
         )
     }
 
     @Synchronized
-    fun stopTracking(signalName: String, parameters: Map<String, String>): Map<String, String>? {
+    fun stopTracking(signalName: String, parameters: Map<String, String>, now: Date = Date()): Map<String, String>? {
         val currentState = state ?: throw Exception("stopTracking called before register")
         val signalTracking = currentState.signals[signalName]
         if (signalTracking == null) {
@@ -116,7 +119,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         this.state = currentState.copy(signals = currentState.signals - signalName)
 
         // queue a duration signal for sending
-        val trackingDurationMs = Date().time - signalTracking.startTime.time
+        val trackingDurationMs = now.time - signalTracking.startTime.time
         val trackingDurationSec = trackingDurationMs / 1000.0
 
         val mergedParameters = mutableMapOf<String, String>()
@@ -145,6 +148,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     data class CachedData(
         @Serializable(with = DateSerializer::class)
         val startTime: Date,
-        val parameters: Map<String, String>
+        val parameters: Map<String, String>,
+        val includeBackgroundTime: Boolean?
     )
 }

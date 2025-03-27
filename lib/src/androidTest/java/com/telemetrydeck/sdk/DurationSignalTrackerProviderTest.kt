@@ -39,7 +39,7 @@ class DurationSignalTrackerProviderTest {
     @Test
     fun tracks_a_signal_duration() {
         val sut = createSut()
-        sut.startTracking("signal1", emptyMap())
+        sut.startTracking("signal1", emptyMap(), false)
         // sleep for 5 seconds
         Thread.sleep(5000)
         val params = sut.stopTracking("signal1", emptyMap())
@@ -60,7 +60,7 @@ class DurationSignalTrackerProviderTest {
     @Test
     fun tracks_a_signal_duration_with_starting_and_endingparams() {
         val sut = createSut()
-        sut.startTracking("signal1", mapOf("param1" to "value1"))
+        sut.startTracking("signal1", mapOf("param1" to "value1"), false)
         // sleep for 5 seconds
         Thread.sleep(5000)
         val params = sut.stopTracking("signal1", mapOf("param2" to "value3"))
@@ -86,7 +86,7 @@ class DurationSignalTrackerProviderTest {
         val twoHoursAgo = Date(now.time - 7200000)
         val hourAgo = Date(now.time - 3600000)
         val state = DurationSignalTrackerProvider.TrackerState(
-            signals = mapOf("signal1" to DurationSignalTrackerProvider.CachedData(startTime = twoHoursAgo, parameters = mapOf("param1" to "value1"))),
+            signals = mapOf("signal1" to DurationSignalTrackerProvider.CachedData(startTime = twoHoursAgo, parameters = mapOf("param1" to "value1"), false)),
             lastEnteredBackground = hourAgo
         )
         prepareState(state)
@@ -114,13 +114,13 @@ class DurationSignalTrackerProviderTest {
         val twoHoursAgo = Date(now.time - 7200000)
         val hourAgo = Date(now.time - 3700000)
         val state = DurationSignalTrackerProvider.TrackerState(
-            signals = mapOf("signal1" to DurationSignalTrackerProvider.CachedData(startTime = twoHoursAgo, parameters = mapOf("param1" to "value1"))),
+            signals = mapOf("signal1" to DurationSignalTrackerProvider.CachedData(startTime = twoHoursAgo, parameters = mapOf("param1" to "value1"), false)),
             lastEnteredBackground = hourAgo
         )
         prepareState(state)
         val sut = createSut()
 
-        sut.handleOnStart()
+        sut.handleOnForeground()
         val params = sut.stopTracking("signal1", mapOf("param2" to "value3"))
 
         assertEquals("value1", params?.get("param1"))
