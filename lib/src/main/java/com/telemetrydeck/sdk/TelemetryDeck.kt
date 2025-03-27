@@ -69,6 +69,7 @@ class TelemetryDeck(
         navigate(navigationStatus.getLastDestination(), destinationPath, customUserID)
     }
 
+    @ExperimentalFeature
     override fun acquiredUser(channel: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.Channel.paramName to channel
@@ -80,6 +81,7 @@ class TelemetryDeck(
         )
     }
 
+    @ExperimentalFeature
     override fun leadStarted(leadId: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.LeadId.paramName to leadId
@@ -91,6 +93,7 @@ class TelemetryDeck(
         )
     }
 
+    @ExperimentalFeature
     override fun leadConverted(leadId: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.LeadId.paramName to leadId
@@ -343,6 +346,7 @@ class TelemetryDeck(
             getInstance()?.navigate(destinationPath, customUserID = customUserID)
         }
 
+        @ExperimentalFeature
         override fun acquiredUser(
             channel: String,
             params: Map<String, String>,
@@ -351,6 +355,7 @@ class TelemetryDeck(
             getInstance()?.acquiredUser(channel, params, customUserID)
         }
 
+        @ExperimentalFeature
         override fun leadStarted(
             leadId: String,
             params: Map<String, String>,
@@ -359,6 +364,7 @@ class TelemetryDeck(
             getInstance()?.leadStarted(leadId, params, customUserID)
         }
 
+        @ExperimentalFeature
         override fun leadConverted(
             leadId: String,
             params: Map<String, String>,
