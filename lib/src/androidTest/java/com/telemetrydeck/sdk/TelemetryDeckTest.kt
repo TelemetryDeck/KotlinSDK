@@ -315,6 +315,30 @@ class TelemetryDeckTest {
         }
     }
 
+    @UiThreadTest
+    @Test
+    fun allows_for_duration_tracking_with_floatvalue_customer_id() {
+        val signalCache = startTelemetryDeck(
+            prepareBuilder()
+        )
+
+        // act
+        TelemetryDeck.startDurationSignal("type")
+        TelemetryDeck.stopAndSendDurationSignal("type", floatValue = 10.0, customUserID = "user")
+
+
+        verify {
+            signalCache.add(withArg {
+                assertEquals("type", it.type)
+                val duration =
+                    it.payload.find { it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+                assertNotNull(duration)
+                assertEquals(10.0, it.floatValue)
+                assertEquals("04f8996da763b7a969b1028ee3007569eaf3a635486ddab211d512c85b9df8fb", it.clientUser)
+            })
+        }
+    }
+
 
     private fun prepareBuilder(): TelemetryDeck.Builder {
         val httpClient = mockk<TelemetryApiClient>()

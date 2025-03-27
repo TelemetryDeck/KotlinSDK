@@ -138,9 +138,11 @@ interface TelemetryDeckClient {
      *
      * @param signalName The name of the signal that was previously started with [startDurationSignal]
      * @param parameters Additional parameters to include with the signal. These will be merged with the parameters provided at the start.
+     * @param floatValue An optional floating-point number that can be used to provide numerical data about the signal.
+     * @param customUserID An optional string specifying a custom user identifier. If provided, it will override the default user identifier from the configuration.
      *
      */
-    fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap())
+    fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap(), floatValue: Double? = null, customUserID: String? = null)
 
     val configuration: TelemetryManagerConfiguration?
 }

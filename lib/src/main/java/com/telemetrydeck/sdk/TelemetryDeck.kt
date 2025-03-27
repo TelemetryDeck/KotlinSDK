@@ -164,7 +164,7 @@ class TelemetryDeck(
         trackingProvider.startTracking(signalName, parameters)
     }
 
-    override fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String>) {
+    override fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String>, floatValue: Double?, customUserID: String?) {
         val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
         if (trackingProvider == null) {
             this.logger?.error("stopAndSendDurationSignal requires the DurationSignalTrackerProvider to be registered")
@@ -172,7 +172,12 @@ class TelemetryDeck(
         }
         val params = trackingProvider.stopTracking(signalName, parameters)
         if (params != null) {
-            processSignal(signalName, params = params)
+            processSignal(
+                signalName,
+                params = params,
+                floatValue = floatValue,
+                customUserID = customUserID
+            )
         }
     }
 
@@ -428,9 +433,11 @@ class TelemetryDeck(
 
         override fun stopAndSendDurationSignal(
             signalName: String,
-            parameters: Map<String, String>
+            parameters: Map<String, String>,
+            floatValue: Double?,
+            customUserID: String?
         ) {
-            getInstance()?.stopAndSendDurationSignal(signalName, parameters)
+            getInstance()?.stopAndSendDurationSignal(signalName, parameters, floatValue, customUserID)
         }
 
         override val signalCache: SignalCache?
