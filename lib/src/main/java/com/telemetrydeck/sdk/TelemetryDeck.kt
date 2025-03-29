@@ -11,6 +11,7 @@ import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
 import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
+import com.telemetrydeck.sdk.signals.Purchase
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.security.MessageDigest
@@ -174,6 +175,43 @@ class TelemetryDeck(
         if (params != null) {
             processSignal(signalName, params = params)
         }
+    }
+
+    override fun purchaseCompleted(
+        countryCode: String,
+        productID: String,
+        purchaseType: PurchaseType,
+        priceAmountMicros: Long,
+        currencyCode: String,
+        offerID: String?,
+        params: Map<String, String>,
+        customUserID: String?
+    ) {
+        val type = when (purchaseType) {
+            PurchaseType.SUBSCRIPTION -> "subscription"
+            PurchaseType.ONE_TIME_PURCHASE -> "one-time-purchase"
+        }
+
+        val purchaseParams = mutableMapOf(
+            com.telemetrydeck.sdk.params.Purchase.Type.paramName to type,
+            com.telemetrydeck.sdk.params.Purchase.CountryCode.paramName to countryCode,
+            com.telemetrydeck.sdk.params.Purchase.CurrencyCode.paramName to currencyCode,
+            com.telemetrydeck.sdk.params.Purchase.ProductID.paramName to productID,
+            com.telemetrydeck.sdk.params.Purchase.PriceMicros.paramName to priceAmountMicros.toString()
+        )
+
+        if (offerID != null) {
+            purchaseParams[com.telemetrydeck.sdk.params.Purchase.OfferID.paramName] = offerID
+        }
+
+        val signalParams = mergeMapsWithOverwrite(params, purchaseParams)
+
+        signal(
+            Purchase.Completed.signalName,
+            params = signalParams,
+            floatValue = CurrencyConverter.convertToUSD(priceAmountMicros, currencyCode),
+            customUserID = customUserID
+        )
     }
 
     private suspend fun send(
@@ -431,6 +469,28 @@ class TelemetryDeck(
             parameters: Map<String, String>
         ) {
             getInstance()?.stopAndSendDurationSignal(signalName, parameters)
+        }
+
+        override fun purchaseCompleted(
+            countryCode: String,
+            productID: String,
+            purchaseType: PurchaseType,
+            priceAmountMicros: Long,
+            currencyCode: String,
+            offerID: String?,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.purchaseCompleted(
+                countryCode,
+                productID,
+                purchaseType,
+                priceAmountMicros,
+                currencyCode,
+                offerID,
+                params,
+                customUserID
+            )
         }
 
         override val signalCache: SignalCache?
