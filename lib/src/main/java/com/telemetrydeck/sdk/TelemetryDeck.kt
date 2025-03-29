@@ -178,6 +178,7 @@ class TelemetryDeck(
     }
 
     override fun purchaseCompleted(
+        event: PurchaseEvent,
         countryCode: String,
         productID: String,
         purchaseType: PurchaseType,
@@ -187,13 +188,12 @@ class TelemetryDeck(
         params: Map<String, String>,
         customUserID: String?
     ) {
-        val type = when (purchaseType) {
-            PurchaseType.SUBSCRIPTION -> "subscription"
-            PurchaseType.ONE_TIME_PURCHASE -> "one-time-purchase"
-        }
 
         val purchaseParams = mutableMapOf(
-            com.telemetrydeck.sdk.params.Purchase.Type.paramName to type,
+            com.telemetrydeck.sdk.params.Purchase.Type.paramName to when (purchaseType) {
+                PurchaseType.SUBSCRIPTION -> "subscription"
+                PurchaseType.ONE_TIME_PURCHASE -> "one-time-purchase"
+            },
             com.telemetrydeck.sdk.params.Purchase.CountryCode.paramName to countryCode,
             com.telemetrydeck.sdk.params.Purchase.CurrencyCode.paramName to currencyCode,
             com.telemetrydeck.sdk.params.Purchase.ProductID.paramName to productID,
@@ -207,7 +207,11 @@ class TelemetryDeck(
         val signalParams = mergeMapsWithOverwrite(params, purchaseParams)
 
         signal(
-            Purchase.Completed.signalName,
+            when(event) {
+                PurchaseEvent.STARTED_FREE_TRIAL -> Purchase.FreeTrialStarted.signalName
+                PurchaseEvent.CONVERTED_FROM_TRIAL -> Purchase.ConvertedFromTrial.signalName
+                PurchaseEvent.PAID_PURCHASE -> Purchase.Completed.signalName
+            },
             params = signalParams,
             floatValue = CurrencyConverter.convertToUSD(priceAmountMicros, currencyCode),
             customUserID = customUserID
@@ -472,6 +476,7 @@ class TelemetryDeck(
         }
 
         override fun purchaseCompleted(
+            event: PurchaseEvent,
             countryCode: String,
             productID: String,
             purchaseType: PurchaseType,
@@ -482,6 +487,7 @@ class TelemetryDeck(
             customUserID: String?
         ) {
             getInstance()?.purchaseCompleted(
+                event,
                 countryCode,
                 productID,
                 purchaseType,

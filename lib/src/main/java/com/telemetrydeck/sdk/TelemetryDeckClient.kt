@@ -146,6 +146,20 @@ interface TelemetryDeckClient {
     /**
      * Logs the completion of a purchase event.
      *
+     *
+     * @param event A `PurchaseEvent` instance representing the type of purchase action being tracked. Instances can include purchase completion, free trial start, or conversion from trial.
+     * @param countryCode The country code format is based on ISO-3166-1 alpha2 (UN country codes). https://unicode.org/cldr/charts/latest/supplemental/territory_containment_un_m_49.html
+     * @param productID The unique identifier of the purchased product.
+     * @param purchaseType The type of purchase, either a subscription or a one-time purchase.
+     * @param priceAmountMicros The price of the product in micro-units of the currency (e.g., 1,000,000 micro-units equal 1 unit of the currency).
+     * @param currencyCode The ISO 4217 currency code (e.g., "EUR" for Euro) used for the purchase.
+     * @param offerID: The specific offer identifier for subscription products.
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier. If provided, it will override the default user identifier from the configuration.
+     *
+     *
+     *
+     *
      * Once a purchase is completed, you can obtain purchase detail information from the billing library:
      *
      * ```kotlin
@@ -190,18 +204,8 @@ interface TelemetryDeckClient {
      *     })
      *
      * ```
-     *
-     *
-     * @param countryCode The country code format is based on ISO-3166-1 alpha2 (UN country codes). https://unicode.org/cldr/charts/latest/supplemental/territory_containment_un_m_49.html
-     * @param productID The unique identifier of the purchased product.
-     * @param purchaseType The type of purchase, either a subscription or a one-time purchase.
-     * @param priceAmountMicros The price of the product in micro-units of the currency (e.g., 1,000,000 micro-units equal 1 unit of the currency).
-     * @param currencyCode The ISO 4217 currency code (e.g., "EUR" for Euro) used for the purchase.
-     * @param offerID: The specific offer identifier for subscription products.
-     * @param params A map of additional string key-value pairs that provide further context about the signal.
-     * @param customUserID An optional string specifying a custom user identifier. If provided, it will override the default user identifier from the configuration.
      */
-    fun purchaseCompleted(countryCode: String, productID: String, purchaseType: PurchaseType, priceAmountMicros: Long, currencyCode: String, offerID: String? = null, params: Map<String, String> = emptyMap(), customUserID: String? = null)
+    fun purchaseCompleted(event: PurchaseEvent, countryCode: String, productID: String, purchaseType: PurchaseType, priceAmountMicros: Long, currencyCode: String, offerID: String? = null, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
     val configuration: TelemetryManagerConfiguration?
 }

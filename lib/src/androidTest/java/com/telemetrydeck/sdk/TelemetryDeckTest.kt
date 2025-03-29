@@ -324,6 +324,7 @@ class TelemetryDeckTest {
 
         // act
         TelemetryDeck.purchaseCompleted(
+            event = PurchaseEvent.PAID_PURCHASE,
             countryCode = "BE",
             productID = "product1",
             purchaseType = PurchaseType.ONE_TIME_PURCHASE,

@@ -448,6 +448,7 @@ With information from the marketplace where the user made a purchase, you can in
 
 ```kotlin
 TelemetryDeck.purchaseCompleted(
+            event = PurchaseEvent.PAID_PURCHASE,
             countryCode = "BE",
             productID = "product1",
             purchaseType = PurchaseType.ONE_TIME_PURCHASE,
@@ -457,13 +458,19 @@ TelemetryDeck.purchaseCompleted(
         )
 ```
 
-This will result in a `TelemetryDeck.Purchase.completed` signal appearing on the dashboard with a `floatValue` set to the purchase amount, converted `USD`.
+Depending on the specified `PurchaseEvent`, one of the following signal will be sent:
+- `TelemetryDeck.Purchase.completed`
+- `TelemetryDeck.Purchase.freeTrialStarted`
+- `TelemetryDeck.Purchase.convertedFromTrial`
 
-The following parameters will be included with the signal:
+
+The `floatValue` of the signal will be set to the provided purchase amount, converted `USD`.
+
+The following parameters are also included with the signal:
 
 | Parameter                             | Description                                                                   |
 |---------------------------------------|-------------------------------------------------------------------------------|
-| `TelemetryDeck.Purchase.type`         | `ubscription` or `one-time-purchase`                                          |
+| `TelemetryDeck.Purchase.type`         | `subscription` or `one-time-purchase`                                         |
 | `TelemetryDeck.Purchase.countryCode`  | The country code of the marketplace where the purchase was made               |
 | `TelemetryDeck.Purchase.currencyCode` | The ISO 4217 currency code (e.g., "EUR" for Euro) used for the purchase.      |
 | `TelemetryDeck.Purchase.priceMicros`  | The price of the product in micro-units of the currency                       |
