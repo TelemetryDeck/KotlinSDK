@@ -458,7 +458,7 @@ TelemetryDeck.purchaseCompleted(
         )
 ```
 
-Depending on the specified `PurchaseEvent`, one of the following signal will be sent:
+Depending on the specified `PurchaseEvent`, one of the following signals will be sent:
 - `TelemetryDeck.Purchase.completed`
 - `TelemetryDeck.Purchase.freeTrialStarted`
 - `TelemetryDeck.Purchase.convertedFromTrial`
