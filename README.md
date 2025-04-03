@@ -34,14 +34,14 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central at the followin
 ```groovy
 // `build.gradle`
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:6.0.1'
+    implementation 'com.telemetrydeck:kotlin-sdk:6.1.0'
 }
 ```
 
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk:6.0.1")
+    implementation("com.telemetrydeck:kotlin-sdk:6.1.0")
 }
 ```
 

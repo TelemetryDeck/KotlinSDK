@@ -107,7 +107,7 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk", "6.0.1")
+    coordinates("com.telemetrydeck", "kotlin-sdk", "6.1.0")
 
     pom {
         name = "TelemetryDeck SDK"
