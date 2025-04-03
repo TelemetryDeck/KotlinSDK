@@ -70,6 +70,7 @@ class TelemetryDeck(
         navigate(navigationStatus.getLastDestination(), destinationPath, customUserID)
     }
 
+    @ExperimentalFeature
     override fun acquiredUser(channel: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.Channel.paramName to channel
@@ -81,6 +82,7 @@ class TelemetryDeck(
         )
     }
 
+    @ExperimentalFeature
     override fun leadStarted(leadId: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.LeadId.paramName to leadId
@@ -92,6 +94,7 @@ class TelemetryDeck(
         )
     }
 
+    @ExperimentalFeature
     override fun leadConverted(leadId: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.LeadId.paramName to leadId
@@ -156,16 +159,16 @@ class TelemetryDeck(
         )
     }
 
-    override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
+    override fun startDurationSignal(signalName: String, parameters: Map<String, String>, includeBackgroundTime: Boolean) {
         val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
         if (trackingProvider == null) {
             this.logger?.error("startDurationSignal requires the DurationSignalTrackerProvider to be registered")
             return
         }
-        trackingProvider.startTracking(signalName, parameters)
+        trackingProvider.startTracking(signalName, parameters, includeBackgroundTime)
     }
 
-    override fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String>) {
+    override fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String>, floatValue: Double?, customUserID: String?) {
         val trackingProvider = this.providers.find { it is DurationSignalTrackerProvider } as? DurationSignalTrackerProvider
         if (trackingProvider == null) {
             this.logger?.error("stopAndSendDurationSignal requires the DurationSignalTrackerProvider to be registered")
@@ -173,7 +176,12 @@ class TelemetryDeck(
         }
         val params = trackingProvider.stopTracking(signalName, parameters)
         if (params != null) {
-            processSignal(signalName, params = params)
+            processSignal(
+                signalName,
+                params = params,
+                floatValue = floatValue,
+                customUserID = customUserID
+            )
         }
     }
 
@@ -385,6 +393,7 @@ class TelemetryDeck(
             getInstance()?.navigate(destinationPath, customUserID = customUserID)
         }
 
+        @ExperimentalFeature
         override fun acquiredUser(
             channel: String,
             params: Map<String, String>,
@@ -393,6 +402,7 @@ class TelemetryDeck(
             getInstance()?.acquiredUser(channel, params, customUserID)
         }
 
+        @ExperimentalFeature
         override fun leadStarted(
             leadId: String,
             params: Map<String, String>,
@@ -401,6 +411,7 @@ class TelemetryDeck(
             getInstance()?.leadStarted(leadId, params, customUserID)
         }
 
+        @ExperimentalFeature
         override fun leadConverted(
             leadId: String,
             params: Map<String, String>,
@@ -464,15 +475,17 @@ class TelemetryDeck(
             )
         }
 
-        override fun startDurationSignal(signalName: String, parameters: Map<String, String>) {
-            getInstance()?.startDurationSignal(signalName, parameters)
+        override fun startDurationSignal(signalName: String, parameters: Map<String, String>, includeBackgroundTime: Boolean) {
+            getInstance()?.startDurationSignal(signalName, parameters, includeBackgroundTime)
         }
 
         override fun stopAndSendDurationSignal(
             signalName: String,
-            parameters: Map<String, String>
+            parameters: Map<String, String>,
+            floatValue: Double?,
+            customUserID: String?
         ) {
-            getInstance()?.stopAndSendDurationSignal(signalName, parameters)
+            getInstance()?.stopAndSendDurationSignal(signalName, parameters, floatValue, customUserID)
         }
 
         override fun purchaseCompleted(

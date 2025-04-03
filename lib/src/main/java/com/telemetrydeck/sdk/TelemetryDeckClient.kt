@@ -36,18 +36,21 @@ interface TelemetryDeckClient {
     /**
      * Send a `TelemetryDeck.Acquisition.userAcquired` signal with the provided channel.
      */
+    @ExperimentalFeature
     fun acquiredUser(channel: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
 
     /**
      * Send a `TelemetryDeck.Acquisition.leadStarted` signal with the provided leadId.
      */
+    @ExperimentalFeature
     fun leadStarted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
 
     /**
      * Send a `TelemetryDeck.Acquisition.leadConverted` signal with the provided leadId.
      */
+    @ExperimentalFeature
     fun leadConverted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
 
@@ -121,8 +124,13 @@ interface TelemetryDeckClient {
      *
      * @param signalName The name of the signal to track. This will be used to identify and stop the duration tracking later.
      * @param parameters A dictionary of additional string key-value pairs that will be included when the duration signal is eventually sent.
+     * @param includeBackgroundTime Indicates if the duration tracked will include the time spent in the background.
      */
-    fun startDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap())
+    fun startDurationSignal(
+        signalName: String,
+        parameters: Map<String, String> = emptyMap(),
+        includeBackgroundTime: Boolean = false
+    )
 
     /** Stops tracking the duration of a signal and sends it with the total duration.
      *
@@ -138,9 +146,11 @@ interface TelemetryDeckClient {
      *
      * @param signalName The name of the signal that was previously started with [startDurationSignal]
      * @param parameters Additional parameters to include with the signal. These will be merged with the parameters provided at the start.
+     * @param floatValue An optional floating-point number that can be used to provide numerical data about the signal.
+     * @param customUserID An optional string specifying a custom user identifier. If provided, it will override the default user identifier from the configuration.
      *
      */
-    fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap())
+    fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap(), floatValue: Double? = null, customUserID: String? = null)
 
 
     /**
