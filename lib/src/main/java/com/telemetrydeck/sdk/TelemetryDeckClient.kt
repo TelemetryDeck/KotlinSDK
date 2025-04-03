@@ -152,5 +152,70 @@ interface TelemetryDeckClient {
      */
     fun stopAndSendDurationSignal(signalName: String, parameters: Map<String, String> = emptyMap(), floatValue: Double? = null, customUserID: String? = null)
 
+
+    /**
+     * Logs the completion of a purchase event.
+     *
+     *
+     * @param event A `PurchaseEvent` instance representing the type of purchase action being tracked. Instances can include purchase completion, free trial start, or conversion from trial.
+     * @param countryCode The country code format is based on ISO-3166-1 alpha2 (UN country codes). https://unicode.org/cldr/charts/latest/supplemental/territory_containment_un_m_49.html
+     * @param productID The unique identifier of the purchased product.
+     * @param purchaseType The type of purchase, either a subscription or a one-time purchase.
+     * @param priceAmountMicros The price of the product in micro-units of the currency (e.g., 1,000,000 micro-units equal 1 unit of the currency).
+     * @param currencyCode The ISO 4217 currency code (e.g., "EUR" for Euro) used for the purchase.
+     * @param offerID: The specific offer identifier for subscription products.
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier. If provided, it will override the default user identifier from the configuration.
+     *
+     *
+     *
+     *
+     * Once a purchase is completed, you can obtain purchase detail information from the billing library:
+     *
+     * ```kotlin
+     * // For one-time purchases (ProductDetails from Billing Library 5.0+), [PurchaseType.ONE_TIME_PURCHASE]
+     * fun getPurchaseDetails(productDetails: ProductDetails) {
+     *     // Get one-time purchase offering
+     *     val oneTimePurchaseOfferDetails = productDetails.oneTimePurchaseOfferDetails
+     *     oneTimePurchaseOfferDetails?.let {
+     *         val formattedPrice = it.formattedPrice // e.g., "$1.99"
+     *         val priceAmountMicros = it.priceAmountMicros // e.g., 1990000 (for $1.99)
+     *         val currencyCode = it.priceCurrencyCode // e.g., "USD"
+     *     }
+     * }
+     *
+     * // For subscriptions, [PurchaseType.SUBSCRIPTION]
+     * fun getSubscriptionDetails(productDetails: ProductDetails) {
+     *     // Get all subscription offers
+     *     val subscriptionOfferDetails = productDetails.subscriptionOfferDetails
+     *     subscriptionOfferDetails?.forEach { offerDetails ->
+     *         // Each offer might have multiple pricing phases
+     *         offerDetails.pricingPhases.pricingPhaseList.forEach { pricingPhase ->
+     *             val priceAmountMicros = pricingPhase.priceAmountMicros
+     *             val currencyCode = pricingPhase.priceCurrencyCode
+     *         }
+     *     }
+     * }
+     *
+     * // Obtaining the Google Play Country code
+     * val getBillingConfigParams = GetBillingConfigParams.newBuilder().build()
+     * billingClient.getBillingConfigAsync(getBillingConfigParams,
+     *     object : BillingConfigResponseListener {
+     *         override fun onBillingConfigResponse(
+     *             billingResult: BillingResult,
+     *             billingConfig: BillingConfig?
+     *         ) {
+     *             if (billingResult.responseCode == BillingResponseCode.OK
+     *                 && billingConfig != null) {
+     *                 val countryCode = billingConfig.countryCode
+     *                 ...
+     *             }
+     *         }
+     *     })
+     *
+     * ```
+     */
+    fun purchaseCompleted(event: PurchaseEvent, countryCode: String, productID: String, purchaseType: PurchaseType, priceAmountMicros: Long, currencyCode: String, offerID: String? = null, params: Map<String, String> = emptyMap(), customUserID: String? = null)
+
     val configuration: TelemetryManagerConfiguration?
 }

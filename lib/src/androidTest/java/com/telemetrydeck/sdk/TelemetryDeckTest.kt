@@ -386,6 +386,39 @@ class TelemetryDeckTest {
         assertEquals("4200.000", paramsForeAndBackground?.get("TelemetryDeck.Signal.durationInSeconds"))
     }
 
+    @UiThreadTest
+    @Test
+    fun purchase_completed_converts_currency() {
+        val signalCache = startTelemetryDeck(
+            prepareBuilder()
+        )
+
+        // act
+        TelemetryDeck.purchaseCompleted(
+            event = PurchaseEvent.PAID_PURCHASE,
+            countryCode = "BE",
+            productID = "product1",
+            purchaseType = PurchaseType.ONE_TIME_PURCHASE,
+            priceAmountMicros = 7990000,
+            currencyCode = "EUR",
+            offerID = "offer1"
+        )
+
+
+        verify {
+            signalCache.add(withArg {
+                assertEquals("TelemetryDeck.Purchase.completed", it.type)
+                assert(it.payload.any { it == "TelemetryDeck.Purchase.type:one-time-purchase" })
+                assert(it.payload.any { it == "TelemetryDeck.Purchase.countryCode:BE" })
+                assert(it.payload.any { it == "TelemetryDeck.Purchase.currencyCode:EUR" })
+                assert(it.payload.any { it == "TelemetryDeck.Purchase.productID:product1" })
+                assert(it.payload.any { it == "TelemetryDeck.Purchase.offerID:offer1" })
+                assert(it.payload.any { it == "TelemetryDeck.Purchase.priceMicros:7990000" })
+                assert(it.floatValue == 8.38)
+            })
+        }
+    }
+
 
     private fun prepareBuilder(): TelemetryDeck.Builder {
         val httpClient = mockk<TelemetryApiClient>()

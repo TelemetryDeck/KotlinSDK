@@ -19,6 +19,7 @@ Android applications. Sign up for a free account at [telemetrydeck.com](https://
 * [Acquisition](#acquisition)
 * [Session Tracking](#session-tracking)
 * [Custom Telemetry](#custom-telemetry)
+* [Purchase Completed](#purchase-completed)
 * [Custom Logging](#custom-logging)
 * [Requirements](#requirements)
 * [Migrating providers to 5.0+](#migrating-providers-to-50)
@@ -438,6 +439,44 @@ By default, the KotlinSDK will append the following parameters to all outgoing s
 - `TelemetryDeck.Calendar.monthOfYear`: The number-of-the-month (1..12) component of the date.
 - `TelemetryDeck.Calendar.quarterOfYear`: The the quarter-of-year (1..4). For API 26 and earlier, it's the number of the month divided by 3.
 - `TelemetryDeck.Calendar.hourOfDay`: The hour-of-day (0..23) time component of this time value.
+
+
+## Purchase Completed
+
+The SDK offers a facility method `TelemetryDeck.purchaseCompleted()` that can be invoked in response to a user purchase.
+With information from the marketplace where the user made a purchase, you can inform TelemetryDeck as follows:
+
+```kotlin
+TelemetryDeck.purchaseCompleted(
+            event = PurchaseEvent.PAID_PURCHASE,
+            countryCode = "BE",
+            productID = "product1",
+            purchaseType = PurchaseType.ONE_TIME_PURCHASE,
+            priceAmountMicros = 7990000,
+            currencyCode = "EUR",
+            offerID = "offer1"
+        )
+```
+
+Depending on the specified `PurchaseEvent`, one of the following signals will be sent:
+- `TelemetryDeck.Purchase.completed`
+- `TelemetryDeck.Purchase.freeTrialStarted`
+- `TelemetryDeck.Purchase.convertedFromTrial`
+
+
+The `floatValue` of the signal will be set to the provided purchase amount, converted `USD`.
+
+The following parameters are also included with the signal:
+
+| Parameter                             | Description                                                                   |
+|---------------------------------------|-------------------------------------------------------------------------------|
+| `TelemetryDeck.Purchase.type`         | `subscription` or `one-time-purchase`                                         |
+| `TelemetryDeck.Purchase.countryCode`  | The country code of the marketplace where the purchase was made               |
+| `TelemetryDeck.Purchase.currencyCode` | The ISO 4217 currency code (e.g., "EUR" for Euro) used for the purchase.      |
+| `TelemetryDeck.Purchase.priceMicros`  | The price of the product in micro-units of the currency                       |
+| `TelemetryDeck.Purchase.productID`    | The unique identifier of the purchased product                                |
+| `TelemetryDeck.Purchase.offerID`      | The specific offer identifier for subscription products or customized pricing |
+
 
 ## Custom Telemetry
 
