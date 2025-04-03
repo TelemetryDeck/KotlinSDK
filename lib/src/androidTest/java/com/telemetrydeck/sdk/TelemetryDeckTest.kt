@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.test.annotation.UiThreadTest
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import com.telemetrydeck.sdk.signals.Acquisition
 import com.telemetrydeck.sdk.signals.Session
@@ -24,6 +25,8 @@ import java.io.File
 import java.net.URL
 import java.util.Date
 import java.util.UUID
+import kotlin.collections.find
+import kotlin.text.startsWith
 
 
 @RunWith(AndroidJUnit4::class)
@@ -313,6 +316,74 @@ class TelemetryDeckTest {
                 assertNotNull(duration)
             })
         }
+    }
+
+    @UiThreadTest
+    @Test
+    fun allows_for_duration_tracking_with_floatvalue_customer_id() {
+        val signalCache = startTelemetryDeck(
+            prepareBuilder()
+        )
+
+        // act
+        TelemetryDeck.startDurationSignal("type")
+        TelemetryDeck.stopAndSendDurationSignal("type", floatValue = 10.0, customUserID = "user")
+
+
+        verify {
+            signalCache.add(withArg {
+                assertEquals("type", it.type)
+                val duration =
+                    it.payload.find { it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+                assertNotNull(duration)
+                assertEquals(10.0, it.floatValue)
+                assertEquals(
+                    "04f8996da763b7a969b1028ee3007569eaf3a635486ddab211d512c85b9df8fb",
+                    it.clientUser
+                )
+            })
+        }
+    }
+
+    @UiThreadTest
+    @Test
+    fun duration_tracking_with_and_without_background_time() {
+        startTelemetryDeck(
+            prepareBuilder()
+                .testMode(false)
+        )
+
+        val sut =
+            (TelemetryDeck.instance!!.providers.find { it is DurationSignalTrackerProvider } as DurationSignalTrackerProvider)
+
+        val now = Date()
+        sut.handleOnForeground(now)
+
+        sut.startTracking("foreground", emptyMap(), includeBackgroundTime = false, now)
+        sut.startTracking("foreground_and_background", emptyMap(), includeBackgroundTime = true, now)
+
+        // +600seconds, simulate going into the background 10 minutes later
+        val time1 = Date(now.time + 1000 * 10 * 60)
+        sut.handleOnBackground(
+            Date(now.time + 1000 * 10 * 60)
+        )
+
+        // +3600seconds, and back to foreground an hour later
+        val endTime = Date(time1.time + (1000 * 60 * 60))
+
+        sut.handleOnForeground(
+            endTime
+        )
+
+        val paramsForeground = sut.stopTracking("foreground", emptyMap(), endTime)
+        val paramsForeAndBackground =
+            sut.stopTracking("foreground_and_background", emptyMap(), endTime)
+
+        assertNotNull(paramsForeground)
+        assertNotNull(paramsForeAndBackground)
+
+        assertEquals("600.000", paramsForeground?.get("TelemetryDeck.Signal.durationInSeconds"))
+        assertEquals("4200.000", paramsForeAndBackground?.get("TelemetryDeck.Signal.durationInSeconds"))
     }
 
 
