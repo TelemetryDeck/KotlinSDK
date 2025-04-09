@@ -18,6 +18,7 @@ mockk = "1.13.13"
 robolectric = "4.7.3"
 androidxTest = "1.6.1"
 datetime = "0.6.2"
+google-play-billing = "7.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,6 +50,7 @@ mockk = {group = "io.mockk", name = "mockk", version.ref = "mockk" }
 mockk-agent = {group = "io.mockk", name = "mockk-agent", version.ref = "mockk" }
 mockk-android = {group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
 androidx-jUnitTestRules = { module = "androidx.test:rules", version.ref = "androidxTest" }
+google-play-billing = { module = "com.android.billingclient:billing", version.ref = "google-play-billing"}
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
