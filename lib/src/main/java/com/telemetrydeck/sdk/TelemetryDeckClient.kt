@@ -154,7 +154,7 @@ interface TelemetryDeckClient {
 
 
     /**
-     * Logs the completion of a purchase event.
+     * Tracks the completion of a purchase event.
      *
      *
      * @param event A `PurchaseEvent` instance representing the type of purchase action being tracked. Instances can include purchase completion, free trial start, or conversion from trial.
@@ -170,7 +170,7 @@ interface TelemetryDeckClient {
      *
      *
      *
-     * Once a purchase is completed, you can obtain purchase detail information from the billing library:
+     * Once a purchase is completed, you can obtain purchase detail information from the Google Play Billing library:
      *
      * ```kotlin
      * // For one-time purchases (ProductDetails from Billing Library 5.0+), [PurchaseType.ONE_TIME_PURCHASE]

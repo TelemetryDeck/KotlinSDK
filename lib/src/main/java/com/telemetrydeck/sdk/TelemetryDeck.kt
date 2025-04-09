@@ -369,7 +369,13 @@ class TelemetryDeck(
             }
         }
 
-        private fun getInstance(): TelemetryDeck? {
+        /**
+         * Retrieves the current instance of the `TelemetryDeck` singleton if available.
+         * If no instance exists, this method returns `null`.
+         *
+         * @return The current `TelemetryDeck` instance, or `null` if no instance is available.
+         */
+        fun getInstance(): TelemetryDeck? {
             val knownInstance = instance
             if (knownInstance != null) {
                 return knownInstance
