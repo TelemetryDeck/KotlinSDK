@@ -72,7 +72,7 @@ dependencies {
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk-google-services", "6.1.0")
+    coordinates("com.telemetrydeck", "kotlin-sdk-google-services", "6.2.0")
 
     pom {
         name = "TelemetryDeck SDK Google Services"

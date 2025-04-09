@@ -8,7 +8,57 @@ import com.telemetrydeck.sdk.PurchaseType
 import com.telemetrydeck.sdk.TelemetryDeck
 
 
-fun TelemetryDeck.purchaseCompleted(
+/**
+ * Tracks the completion of a purchase and sends the associated telemetry data.
+ *
+ * @param billingConfig Google Play Billing Configuration details for the billing process.
+ * @param purchase The Google Play Billing purchase object containing details about the completed transaction.
+ * @param productDetails Google Play Billing Details about the product that was purchased.
+ * @param purchaseOrigin The origin event of the purchase. Defaults to a paid purchase. Use server-side validation to calculate this value. TelemetryDeck provides a simple helper [toTelemetryDeckPurchaseEvent] to try to determine the value locally.
+ * @param params A map of additional parameters to include with the telemetry data.
+ * @param customUserID An optional custom user identifier.
+ *
+ *
+ * * You can obtain billing configuration from the Google Play Billing library:
+ *
+ * ```kotlin
+ * // Obtaining the Google Play Country code
+ * val getBillingConfigParams = GetBillingConfigParams.newBuilder().build()
+ * billingClient.getBillingConfigAsync(getBillingConfigParams,
+ *     object : BillingConfigResponseListener {
+ *         override fun onBillingConfigResponse(
+ *             billingResult: BillingResult,
+ *             billingConfig: BillingConfig?
+ *         ) {
+ *             if (billingResult.responseCode == BillingResponseCode.OK
+ *                 && billingConfig != null) {
+ *                 // keep billingConfig around until the purchase is completed:
+ *                 TelemetryDeck.purchaseCompleted(billingConfig = billingConfig, purchase, productDetails)
+ *             }
+ *         }
+ * })
+ *
+ * ```
+ */
+fun TelemetryDeck.Companion.purchaseCompleted(
+    billingConfig: BillingConfig,
+    purchase: Purchase,
+    productDetails: ProductDetails,
+    purchaseOrigin: PurchaseEvent = PurchaseEvent.PAID_PURCHASE,
+    params: Map<String, String> = emptyMap(),
+    customUserID: String? = null
+) {
+    getInstance()?.purchaseCompleted(
+        billingConfig = billingConfig,
+        purchase = purchase,
+        productDetails = productDetails,
+        purchaseOrigin = purchaseOrigin,
+        params = params,
+        customUserID = customUserID
+    )
+}
+
+internal fun TelemetryDeck.purchaseCompleted(
     billingConfig: BillingConfig,
     purchase: Purchase,
     productDetails: ProductDetails,
@@ -20,7 +70,8 @@ fun TelemetryDeck.purchaseCompleted(
     val countryCode = billingConfig.countryCode
 
     val isSubscription = productDetails.subscriptionOfferDetails != null
-    val purchaseType = if (isSubscription) PurchaseType.SUBSCRIPTION else PurchaseType.ONE_TIME_PURCHASE
+    val purchaseType =
+        if (isSubscription) PurchaseType.SUBSCRIPTION else PurchaseType.ONE_TIME_PURCHASE
     val oneTimeOffer = productDetails.oneTimePurchaseOfferDetails
 
     when (purchaseType) {
@@ -48,6 +99,7 @@ fun TelemetryDeck.purchaseCompleted(
                 customUserID = customUserID
             )
         }
+
         PurchaseType.ONE_TIME_PURCHASE -> {
             // one time purchase
             val priceAmountMicros = oneTimeOffer?.priceAmountMicros ?: 0L
