@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "TelemetryDeck SDK"
 include(":lib")
+include(":google-services")

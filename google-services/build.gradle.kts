@@ -4,7 +4,6 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.vanniktech.publish)
 }
 
@@ -67,52 +66,18 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.process)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.ktor.client.core)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.ktor.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.client.okhttp)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.properties)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.kotlinx.datetime)
+    implementation(libs.google.play.billing)
+    implementation(project(":lib"))
 
-
-    testImplementation(libs.junit)
-    testImplementation(libs.androidx.arch.core)
-    // As of Kotlin 2.0, the Compose Compiler and runtime are required in the classpath https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-compiler.html
-    testImplementation(libs.androidx.activity.compose)
-    testImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    androidTestImplementation(libs.androidx.jUnitTestRules)
-    androidTestImplementation(libs.androidx.ui.tooling)
-    androidTestImplementation(libs.androidx.ui.test.manifest)
-    androidTestImplementation(libs.androidx.uiautomator)
-
-    androidTestImplementation(libs.mockk.android)
-    androidTestImplementation(libs.mockk.agent)
-
-    testImplementation(libs.mockk)
-    testImplementation(libs.mockk.android)
-    testImplementation(libs.mockk.agent)
-    testImplementation(libs.robolectric)
 }
 
 mavenPublishing {
-    coordinates("com.telemetrydeck", "kotlin-sdk", "6.2.0")
+    coordinates("com.telemetrydeck", "kotlin-sdk-google-services", "6.2.0")
 
     pom {
-        name = "TelemetryDeck SDK"
+        name = "TelemetryDeck SDK Google Services"
         description =
-            "Kotlin SDK for TelemetryDeck, a privacy-conscious analytics service for apps and websites"
+            "Google Services facilities for Kotlin SDK for TelemetryDeck, a privacy-conscious analytics service for apps and websites"
         url = "https://telemetrydeck.com"
 
         licenses {

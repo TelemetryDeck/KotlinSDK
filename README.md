@@ -34,14 +34,14 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central at the followin
 ```groovy
 // `build.gradle`
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:6.1.0'
+    implementation 'com.telemetrydeck:kotlin-sdk:6.2.0'
 }
 ```
 
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk:6.1.0")
+    implementation("com.telemetrydeck:kotlin-sdk:6.2.0")
 }
 ```
 
@@ -476,6 +476,51 @@ The following parameters are also included with the signal:
 | `TelemetryDeck.Purchase.priceMicros`  | The price of the product in micro-units of the currency                       |
 | `TelemetryDeck.Purchase.productID`    | The unique identifier of the purchased product                                |
 | `TelemetryDeck.Purchase.offerID`      | The specific offer identifier for subscription products or customized pricing |
+
+
+### Google Play
+
+When integrating with Google Play Billing Library, you can adopt the TelemetryDeck SDK with Google Play Services in order to let us determine the exact purchase parameters.
+
+1. Add the following package as a dependency to your app:
+
+```kotlin
+// `build.gradle.kts`
+dependencies {
+    implementation("com.telemetrydeck:kotlin-sdk-google-services:6.2.0")
+}
+```
+
+2. You can now use the `purchaseCompleted` function optimized for Google Play Billing:
+
+```kotlin
+fun purchaseHandlerInYourApp(
+  billingConfig: BillingConfig,
+  purchase: Purchase,
+  productDetails: ProductDetails
+) {
+  TelemetryDeck.purchaseCompleted(
+    billingConfig = billingConfig,
+    purchase = purchase,
+    productDetails = productDetails
+  )
+}
+```
+
+By default, this method assumes the purchase is a `PAID_PURCHASE`. To determine if the user is converting or starting a trial, you will have to implement your own [server-side validation](https://developer.android.com/google/play/billing/integrate) and inspect the `paymentState` of a subscription.
+
+To make it easier to get started, the TelemetryDeck SDK offers a helper method which attempts to guess the purchase origin based on locally available data, so you could:
+
+```kotlin
+TelemetryDeck.purchaseCompleted(
+  billingConfig = billingConfig,
+  purchase = purchase,
+  productDetails = productDetails,
+  purchaseOrigin = purchase.toTelemetryDeckPurchaseEvent(setOf("TRIAL_SKU"))
+)
+```
+
+Note that this approach is not exact and comes with a certain number of limitations, please check the doc notes on `com.telemetrydeck.sdk.googleservices.toTelemetryDeckPurchaseEvent` for more details.
 
 
 ## Custom Telemetry
