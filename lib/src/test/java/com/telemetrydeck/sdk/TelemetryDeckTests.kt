@@ -200,7 +200,7 @@ class TelemetryDeckTests {
 
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Acquisition.userAcquired", signal?.type)
-        Assert.assertEquals("TelemetryDeck.Acquisition.channel:channel 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.channel:") })
+        Assert.assertEquals("channel 1", signal?.payload["TelemetryDeck.Acquisition.channel"])
     }
 
     @Test
@@ -215,7 +215,7 @@ class TelemetryDeckTests {
 
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Acquisition.leadStarted", signal?.type)
-        Assert.assertEquals("TelemetryDeck.Acquisition.leadID:lead 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.leadID:") })
+        Assert.assertEquals("lead 1", signal?.payload["TelemetryDeck.Acquisition.leadID"])
     }
 
     @Test
@@ -230,7 +230,7 @@ class TelemetryDeckTests {
 
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Acquisition.leadConverted", signal?.type)
-        Assert.assertEquals("TelemetryDeck.Acquisition.leadID:lead 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.leadID:") })
+        Assert.assertEquals("lead 1", signal?.payload["TelemetryDeck.Acquisition.leadID"])
     }
 
     @Test
@@ -277,20 +277,20 @@ class TelemetryDeckTests {
         // validate the navigation status payload
         // https://github.com/TelemetryDeck/KotlinSDK/issues/28
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
-            "TelemetryDeck.Navigation.schemaVersion:1"
+            queuedSignal?.payload["TelemetryDeck.Navigation.schemaVersion"],
+            "1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
-            "TelemetryDeck.Navigation.identifier:source -> destination"
+            queuedSignal?.payload["TelemetryDeck.Navigation.identifier"],
+            "source -> destination"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
-            "TelemetryDeck.Navigation.sourcePath:source"
+            queuedSignal?.payload["TelemetryDeck.Navigation.sourcePath"],
+            "source"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
-            "TelemetryDeck.Navigation.destinationPath:destination"
+            queuedSignal?.payload["TelemetryDeck.Navigation.destinationPath"],
+            "destination"
         )
     }
 
@@ -349,20 +349,20 @@ class TelemetryDeckTests {
         // validate the navigation status payload
         // https://github.com/TelemetryDeck/KotlinSDK/issues/28
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
-            "TelemetryDeck.Navigation.schemaVersion:1"
+            queuedSignal?.payload["TelemetryDeck.Navigation.schemaVersion"],
+            "1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
-            "TelemetryDeck.Navigation.identifier: -> destination"
+            queuedSignal?.payload["TelemetryDeck.Navigation.identifier"],
+            " -> destination"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
-            "TelemetryDeck.Navigation.sourcePath:"
+            queuedSignal?.payload["TelemetryDeck.Navigation.sourcePath"],
+            ""
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
-            "TelemetryDeck.Navigation.destinationPath:destination"
+            queuedSignal?.payload["TelemetryDeck.Navigation.destinationPath"],
+            "destination"
         )
     }
 
@@ -384,20 +384,20 @@ class TelemetryDeckTests {
         // validate the navigation status payload
         // https://github.com/TelemetryDeck/KotlinSDK/issues/28
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
-            "TelemetryDeck.Navigation.schemaVersion:1"
+            queuedSignal?.payload["TelemetryDeck.Navigation.schemaVersion"],
+            "1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
-            "TelemetryDeck.Navigation.identifier:destination1 -> destination2"
+            queuedSignal?.payload["TelemetryDeck.Navigation.identifier"],
+            "destination1 -> destination2"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
-            "TelemetryDeck.Navigation.sourcePath:destination1"
+            queuedSignal?.payload["TelemetryDeck.Navigation.sourcePath"],
+            "destination1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
-            "TelemetryDeck.Navigation.destinationPath:destination2"
+            queuedSignal?.payload["TelemetryDeck.Navigation.destinationPath"],
+            "destination2"
         )
     }
 
@@ -446,7 +446,7 @@ class TelemetryDeckTests {
         // validate the signal type
         Assert.assertEquals(queuedSignal?.type, "test")
 
-        Assert.assertEquals("param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("param1:") }, )
+        Assert.assertEquals("value1", queuedSignal?.payload["param1"])
     }
 
     @Test
@@ -463,7 +463,7 @@ class TelemetryDeckTests {
         // validate the signal type
         Assert.assertEquals("SignalPrefix.test", queuedSignal?.type)
         Assert.assertEquals(1.0, queuedSignal?.floatValue)
-        Assert.assertEquals("ParamPrefix.param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("ParamPrefix.") }, )
+        Assert.assertEquals("value1", queuedSignal?.payload["ParamPrefix.param1"])
     }
 
     private fun hashString(input: String, algorithm: String = "SHA-256"): String {

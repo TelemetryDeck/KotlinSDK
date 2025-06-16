@@ -37,9 +37,9 @@ data class Signal(
 
 
     /**
-     * Tags in the form "key:value" to attach to the signal
+     * Tags in key-value pairs to attach to the signal
      */
-    var payload: List<String>,
+    var payload: Map<String, String>,
 
     /**
      * If "true", mark the signal as a testing signal and only show it in a dedicated test mode UI
@@ -55,6 +55,6 @@ data class Signal(
         appID = appID,
         type = signalType,
         clientUser = clientUser,
-        payload = payload.asMultiValueDimension
+        payload = payload.asMap
     )
 }

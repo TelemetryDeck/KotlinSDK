@@ -258,12 +258,12 @@ class TelemetryDeckTest {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
                 assertNotEquals(sessionID.toString(), it.sessionID)
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Acquisition.firstSessionDate:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.averageSessionSeconds:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.distinctDaysUsed:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.totalSessionsCount:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.previousSessionSeconds:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.distinctDaysUsedLastMonth:") })
+                assertNotNull(it.payload["TelemetryDeck.Acquisition.firstSessionDate"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.averageSessionSeconds"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.distinctDaysUsed"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.totalSessionsCount"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.previousSessionSeconds"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.distinctDaysUsedLastMonth"])
             })
         }
     }
@@ -284,14 +284,14 @@ class TelemetryDeckTest {
         verify {
             signalCache.add(withArg { signal ->
                 assertEquals("type", signal.type)
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfMonth:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfWeek:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.weekOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.isWeekend:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.monthOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.quarterOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.hourOfDay:") })
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.dayOfMonth"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.dayOfWeek"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.dayOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.weekOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.isWeekend"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.monthOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.quarterOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.hourOfDay"])
             })
         }
     }
@@ -312,7 +312,7 @@ class TelemetryDeckTest {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
                 val duration =
-                    it.payload.find { it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+                    it.payload["TelemetryDeck.Signal.durationInSeconds"]
                 assertNotNull(duration)
             })
         }
@@ -334,7 +334,7 @@ class TelemetryDeckTest {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
                 val duration =
-                    it.payload.find { it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+                    it.payload["TelemetryDeck.Signal.durationInSeconds"]
                 assertNotNull(duration)
                 assertEquals(10.0, it.floatValue)
                 assertEquals(
@@ -408,12 +408,12 @@ class TelemetryDeckTest {
         verify {
             signalCache.add(withArg {
                 assertEquals("TelemetryDeck.Purchase.completed", it.type)
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.type:one-time-purchase" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.countryCode:BE" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.currencyCode:EUR" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.productID:product1" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.offerID:offer1" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.priceMicros:7990000" })
+                assert(it.payload["TelemetryDeck.Purchase.type"] == "one-time-purchase")
+                assert(it.payload["TelemetryDeck.Purchase.countryCode"] == "BE")
+                assert(it.payload["TelemetryDeck.Purchase.currencyCode"] == "EUR")
+                assert(it.payload["TelemetryDeck.Purchase.productID"] == "product1")
+                assert(it.payload["TelemetryDeck.Purchase.offerID"] == "offer1")
+                assert(it.payload["TelemetryDeck.Purchase.priceMicros"] == "7990000")
                 assert(it.floatValue == 8.38)
             })
         }

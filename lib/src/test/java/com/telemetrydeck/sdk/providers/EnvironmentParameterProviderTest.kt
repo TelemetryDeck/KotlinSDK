@@ -24,8 +24,7 @@ class EnvironmentParameterProviderTest {
         Assert.assertNotNull(queuedSignal)
         Assert.assertEquals(
             true,
-            queuedSignal?.payload?.any { it.startsWith("TelemetryDeck.SDK.version:") }
-
+            queuedSignal?.payload["TelemetryDeck.SDK.version"]?.isNotEmpty()
         )
     }
 
@@ -42,7 +41,7 @@ class EnvironmentParameterProviderTest {
         Assert.assertNotNull(queuedSignal)
         Assert.assertEquals(
             true,
-            queuedSignal?.payload?.contains("telemetryClientVersion:my value")
+            queuedSignal?.payload["telemetryClientVersion"] == "my value"
         )
     }
 
@@ -59,7 +58,7 @@ class EnvironmentParameterProviderTest {
         Assert.assertNotNull(queuedSignal)
         Assert.assertEquals(
             true,
-            queuedSignal?.payload?.filter { it.startsWith("TelemetryDeck.SDK.buildType:") }?.isNotEmpty()
+            queuedSignal?.payload["TelemetryDeck.SDK.buildType"]?.isNotEmpty()
         )
     }
 }

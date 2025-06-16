@@ -25,7 +25,7 @@ class SignalsUnitTest {
 
         assertEquals("type", signal.type)
         assertEquals("clientUser", signal.clientUser)
-        assertEquals("platform:Android", signal.payload[0])
+        assertEquals("Android", signal.payload["platform"])
     }
 
     @Test

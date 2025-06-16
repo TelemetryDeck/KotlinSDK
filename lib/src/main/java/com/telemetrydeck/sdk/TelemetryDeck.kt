@@ -293,7 +293,7 @@ class TelemetryDeck(
             appID = configuration.telemetryAppID,
             type = signalTransform.signalType,
             clientUser = hashedUser,
-            payload = payload.asMultiValueDimension,
+            payload = payload.asMap,
             isTestMode = configuration.testMode.toString().lowercase(),
             floatValue = signalTransform.floatValue
         )
