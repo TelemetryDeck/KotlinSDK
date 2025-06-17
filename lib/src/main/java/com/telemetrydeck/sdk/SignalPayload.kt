@@ -3,7 +3,6 @@ package com.telemetrydeck.sdk
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.properties.Properties
-import kotlinx.serialization.properties.encodeToMap
 import kotlinx.serialization.properties.encodeToStringMap
 
 @Serializable
