@@ -234,6 +234,37 @@ class TelemetryDeckTests {
     }
 
     @Test
+    fun telemetryDeck_coreFeatureUsed_sends_featureName() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.coreFeatureUsed("feature 1")
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Activation.coreFeatureUsed", signal?.type)
+        Assert.assertEquals(
+            "TelemetryDeck.Activation.featureName:feature 1",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Activation.featureName:") })
+    }
+
+    @Test
+    fun telemetryDeck_onboardingCompleted_sends_onboardingCompleted() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.onboardingCompleted()
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Activation.onboardingCompleted", signal?.type)
+    }
+
+    @Test
     fun telemetryDeck_addProvider_appends_after_default_providers() {
         val builder = TelemetryDeck.Builder()
         val sut = builder

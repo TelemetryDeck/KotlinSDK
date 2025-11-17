@@ -53,6 +53,21 @@ interface TelemetryDeckClient {
     @ExperimentalFeature
     fun leadConverted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
+    /**
+     * Send a `TelemetryDeck.Activation.onboardingCompleted` signal.
+     */
+    @ExperimentalFeature
+    fun onboardingCompleted(params: Map<String, String> = emptyMap(), customUserID: String? = null)
+
+    /**
+     * Send a `TelemetryDeck.Activation.coreFeatureUsed` signal.
+     */
+    @ExperimentalFeature
+    fun coreFeatureUsed(
+        featureName: String,
+        params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
 
     /**
      * Send a signal immediately
