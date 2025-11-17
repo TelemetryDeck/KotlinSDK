@@ -3,6 +3,7 @@ package com.telemetrydeck.sdk
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Acquisition
+import com.telemetrydeck.sdk.params.Activation
 import com.telemetrydeck.sdk.params.Navigation
 import com.telemetrydeck.sdk.providers.AccessibilityProvider
 import com.telemetrydeck.sdk.providers.CalendarParameterProvider
@@ -101,6 +102,36 @@ class TelemetryDeck(
         ))
         signal(
             com.telemetrydeck.sdk.signals.Acquisition.LeadConverted.signalName,
+            params = signalParams,
+            customUserID = customUserID
+        )
+    }
+
+    @ExperimentalFeature
+    override fun onboardingCompleted(
+        params: Map<String, String>,
+        customUserID: String?
+    ) {
+        signal(
+            com.telemetrydeck.sdk.signals.Activation.OnboardingCompleted.signalName,
+            params = params,
+            customUserID = customUserID
+        )
+    }
+
+    @ExperimentalFeature
+    override fun coreFeatureUsed(
+        featureName: String,
+        params: Map<String, String>,
+        customUserID: String?
+    ) {
+        val signalParams = mergeMapsWithOverwrite(
+            params, mapOf(
+                Activation.FeatureName.paramName to featureName
+            )
+        )
+        signal(
+            com.telemetrydeck.sdk.signals.Activation.CoreFeatureUsed.signalName,
             params = signalParams,
             customUserID = customUserID
         )
@@ -424,6 +455,23 @@ class TelemetryDeck(
             customUserID: String?
         ) {
             getInstance()?.leadConverted(leadId, params, customUserID)
+        }
+
+        @ExperimentalFeature
+        override fun onboardingCompleted(
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.onboardingCompleted(params, customUserID)
+        }
+
+        @ExperimentalFeature
+        override fun coreFeatureUsed(
+            featureName: String,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.coreFeatureUsed(featureName, params, customUserID)
         }
 
         override suspend fun send(
