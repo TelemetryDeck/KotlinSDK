@@ -265,6 +265,24 @@ class TelemetryDeckTests {
     }
 
     @Test
+    fun telemetryDeck_paywallShown_sends_signal_with_reason() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.paywallShown("trial_ended")
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Revenue.paywallShown", signal?.type)
+        Assert.assertEquals(
+            "TelemetryDeck.Revenue.paywallShowReason:trial_ended",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Revenue.paywallShowReason:") }
+        )
+    }
+
+    @Test
     fun telemetryDeck_addProvider_appends_after_default_providers() {
         val builder = TelemetryDeck.Builder()
         val sut = builder

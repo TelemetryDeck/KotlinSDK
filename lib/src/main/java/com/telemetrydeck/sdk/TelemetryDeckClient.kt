@@ -232,5 +232,18 @@ interface TelemetryDeckClient {
      */
     fun purchaseCompleted(event: PurchaseEvent, countryCode: String, productID: String, purchaseType: PurchaseType, priceAmountMicros: Long, currencyCode: String, offerID: String? = null, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
+    /**
+     * Send a `TelemetryDeck.Revenue.paywallShown` signal with the provided reason.
+     *
+     * @param reason The reason why the paywall was shown (e.g., "trial_ended", "feature_locked").
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
+     */
+    fun paywallShown(
+        reason: String,
+        params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
+
     val configuration: TelemetryManagerConfiguration?
 }
