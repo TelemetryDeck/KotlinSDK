@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Acquisition
 import com.telemetrydeck.sdk.params.Activation
 import com.telemetrydeck.sdk.params.Navigation
+import com.telemetrydeck.sdk.params.Revenue
 import com.telemetrydeck.sdk.providers.AccessibilityProvider
 import com.telemetrydeck.sdk.providers.CalendarParameterProvider
 import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
@@ -132,6 +133,23 @@ class TelemetryDeck(
         )
         signal(
             com.telemetrydeck.sdk.signals.Activation.CoreFeatureUsed.signalName,
+            params = signalParams,
+            customUserID = customUserID
+        )
+    }
+
+    override fun paywallShown(
+        reason: String,
+        params: Map<String, String>,
+        customUserID: String?
+    ) {
+        val signalParams = mergeMapsWithOverwrite(
+            params, mapOf(
+                Revenue.PaywallShowReason.paramName to reason
+            )
+        )
+        signal(
+            com.telemetrydeck.sdk.signals.Revenue.PaywallShown.signalName,
             params = signalParams,
             customUserID = customUserID
         )
@@ -472,6 +490,14 @@ class TelemetryDeck(
             customUserID: String?
         ) {
             getInstance()?.coreFeatureUsed(featureName, params, customUserID)
+        }
+
+        override fun paywallShown(
+            reason: String,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.paywallShown(reason, params, customUserID)
         }
 
         override suspend fun send(
