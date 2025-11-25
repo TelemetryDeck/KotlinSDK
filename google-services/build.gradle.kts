@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin.android)
@@ -8,21 +5,21 @@ plugins {
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
     lint {
-        targetSdk = 34
+        targetSdk = 35
     }
 
     @Suppress("UnstableApiUsage")
     testOptions {
-        targetSdk = 34
+        targetSdk = 35
     }
 
     buildTypes {
