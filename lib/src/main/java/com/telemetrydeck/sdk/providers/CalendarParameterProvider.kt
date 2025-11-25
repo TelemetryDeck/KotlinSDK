@@ -5,15 +5,16 @@ import android.os.Build
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.platform.getCurrentLocale
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import java.lang.ref.WeakReference
 import java.time.LocalDate
 import java.time.temporal.IsoFields
 import java.util.Calendar
 
+@OptIn(kotlin.time.ExperimentalTime::class)
 class CalendarParameterProvider : TelemetryDeckProvider {
     private var app: WeakReference<Context?>? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
@@ -46,10 +47,10 @@ class CalendarParameterProvider : TelemetryDeckProvider {
 
         val signalPayload = additionalPayload.toMutableMap()
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfMonth.paramName] = "${now.dayOfMonth}"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfMonth.paramName] = "${now.day}"
         signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfWeek.paramName] = "${now.dayOfWeek.isoDayNumber}"
         signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfYear.paramName] = "${now.dayOfYear}"
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.MonthOfYear.paramName] = "${now.monthNumber}"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.MonthOfYear.paramName] = "${now.month.ordinal + 1}"
         signalPayload[com.telemetrydeck.sdk.params.Calendar.HourOfDay.paramName] = "${now.hour}"
 
         // Note: isWeekend only accounts for Sat-Sun counties
@@ -61,7 +62,7 @@ class CalendarParameterProvider : TelemetryDeckProvider {
             signalPayload[com.telemetrydeck.sdk.params.Calendar.QuarterOfYear.paramName] = "${currentDate.get(IsoFields.QUARTER_OF_YEAR)}"
         } else {
             // falling back to simple 3 month approach
-            val quarterNumber = when (now.monthNumber) {
+            val quarterNumber = when (now.month.ordinal + 1) {
                 in 1..3 -> 1
                 in 4..6 -> 2
                 in 7..9 -> 3

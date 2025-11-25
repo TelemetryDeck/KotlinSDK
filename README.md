@@ -45,10 +45,10 @@ dependencies {
 }
 ```
 
-If needed, update your `gradle.settings` to reference Kotlin version compatible with 2.0.20, e.g.:
+If needed, update your `gradle.settings` to reference Kotlin version compatible with 2.2.21, e.g.:
 
 ```
-id "org.jetbrains.kotlin.android" version "2.0.20" apply false
+id "org.jetbrains.kotlin.android" version "2.2.21" apply false
 ```
 
 ### Permission for internet access
@@ -636,7 +636,7 @@ queues and contexts.
 ## Requirements
 
 - Android API 21 or later
-- Kotlin 2.0.20
+- Kotlin 2.2.21
 - Gradle 6.8.3–8.8\*
 - AGP 7.1.3–8.5
 
