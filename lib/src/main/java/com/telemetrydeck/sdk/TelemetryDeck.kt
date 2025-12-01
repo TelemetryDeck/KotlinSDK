@@ -155,6 +155,52 @@ class TelemetryDeck(
         )
     }
 
+    @ExperimentalFeature
+    override fun referralSent(
+        receiversCount: Int,
+        kind: String?,
+        params: Map<String, String>,
+        customUserID: String?
+    ) {
+        val referralParams = mutableMapOf(
+            com.telemetrydeck.sdk.params.Referral.ReceiversCount.paramName to receiversCount.toString()
+        )
+        if (kind != null) {
+            referralParams[com.telemetrydeck.sdk.params.Referral.Kind.paramName] = kind
+        }
+        val signalParams = mergeMapsWithOverwrite(params, referralParams)
+        signal(
+            com.telemetrydeck.sdk.signals.Referral.Sent.signalName,
+            params = signalParams,
+            customUserID = customUserID
+        )
+    }
+
+    @ExperimentalFeature
+    override fun userRatingSubmitted(
+        rating: Int,
+        comment: String?,
+        params: Map<String, String>,
+        customUserID: String?
+    ) {
+        if (rating < 0 || rating > 10) {
+            logger?.error("userRatingSubmitted: rating must be between 0 and 10, got $rating")
+            return
+        }
+        val referralParams = mutableMapOf(
+            com.telemetrydeck.sdk.params.Referral.RatingValue.paramName to rating.toString()
+        )
+        if (comment != null) {
+            referralParams[com.telemetrydeck.sdk.params.Referral.RatingComment.paramName] = comment
+        }
+        val signalParams = mergeMapsWithOverwrite(params, referralParams)
+        signal(
+            com.telemetrydeck.sdk.signals.Referral.UserRatingSubmitted.signalName,
+            params = signalParams,
+            customUserID = customUserID
+        )
+    }
+
     override suspend fun send(
         signalType: String,
         clientUser: String?,
@@ -498,6 +544,26 @@ class TelemetryDeck(
             customUserID: String?
         ) {
             getInstance()?.paywallShown(reason, params, customUserID)
+        }
+
+        @ExperimentalFeature
+        override fun referralSent(
+            receiversCount: Int,
+            kind: String?,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.referralSent(receiversCount, kind, params, customUserID)
+        }
+
+        @ExperimentalFeature
+        override fun userRatingSubmitted(
+            rating: Int,
+            comment: String?,
+            params: Map<String, String>,
+            customUserID: String?
+        ) {
+            getInstance()?.userRatingSubmitted(rating, comment, params, customUserID)
         }
 
         override suspend fun send(

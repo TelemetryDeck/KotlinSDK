@@ -9,7 +9,7 @@ package com.telemetrydeck.sdk.params
 // TelemetryDeck.UserPreference.language
 // TelemetryDeck.UserPreference.region
 
-internal enum class RunContext(val paramName: String) {
+enum class RunContext(val paramName: String) {
     Locale("TelemetryDeck.RunContext.locale"),
     TargetEnvironment("TelemetryDeck.RunContext.targetEnvironment"),
     IsSideLoaded("TelemetryDeck.RunContext.isSideLoaded"),

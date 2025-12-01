@@ -245,5 +245,37 @@ interface TelemetryDeckClient {
         customUserID: String? = null
     )
 
+    /**
+     * Send a `TelemetryDeck.Referral.sent` signal.
+     *
+     * @param receiversCount The number of receivers the referral was sent to (defaults to 1).
+     * @param kind Optional string describing the kind of referral.
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
+     */
+    @ExperimentalFeature
+    fun referralSent(
+        receiversCount: Int = 1,
+        kind: String? = null,
+        params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
+
+    /**
+     * Send a `TelemetryDeck.Referral.userRatingSubmitted` signal.
+     *
+     * @param rating The rating value (must be between 0 and 10 inclusive).
+     * @param comment Optional comment accompanying the rating.
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
+     */
+    @ExperimentalFeature
+    fun userRatingSubmitted(
+        rating: Int,
+        comment: String? = null,
+        params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
+
     val configuration: TelemetryManagerConfiguration?
 }
