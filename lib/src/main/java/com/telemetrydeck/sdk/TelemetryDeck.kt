@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.telemetrydeck.sdk.params.Acquisition
 import com.telemetrydeck.sdk.params.Activation
+import com.telemetrydeck.sdk.params.ErrorCategory
 import com.telemetrydeck.sdk.params.Navigation
 import com.telemetrydeck.sdk.params.Revenue
 import com.telemetrydeck.sdk.providers.AccessibilityProvider
@@ -72,7 +73,6 @@ class TelemetryDeck(
         navigate(navigationStatus.getLastDestination(), destinationPath, customUserID)
     }
 
-    @ExperimentalFeature
     override fun acquiredUser(channel: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.Channel.paramName to channel
@@ -84,7 +84,6 @@ class TelemetryDeck(
         )
     }
 
-    @ExperimentalFeature
     override fun leadStarted(leadId: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.LeadId.paramName to leadId
@@ -96,7 +95,6 @@ class TelemetryDeck(
         )
     }
 
-    @ExperimentalFeature
     override fun leadConverted(leadId: String, params: Map<String, String>, customUserID: String?) {
         val signalParams = mergeMapsWithOverwrite(params, mapOf(
             Acquisition.LeadId.paramName to leadId
@@ -108,7 +106,6 @@ class TelemetryDeck(
         )
     }
 
-    @ExperimentalFeature
     override fun onboardingCompleted(
         params: Map<String, String>,
         customUserID: String?
@@ -120,7 +117,6 @@ class TelemetryDeck(
         )
     }
 
-    @ExperimentalFeature
     override fun coreFeatureUsed(
         featureName: String,
         params: Map<String, String>,
@@ -155,7 +151,6 @@ class TelemetryDeck(
         )
     }
 
-    @ExperimentalFeature
     override fun referralSent(
         receiversCount: Int,
         kind: String?,
@@ -176,7 +171,6 @@ class TelemetryDeck(
         )
     }
 
-    @ExperimentalFeature
     override fun userRatingSubmitted(
         rating: Int,
         comment: String?,
@@ -197,6 +191,32 @@ class TelemetryDeck(
         signal(
             com.telemetrydeck.sdk.signals.Referral.UserRatingSubmitted.signalName,
             params = signalParams,
+            customUserID = customUserID
+        )
+    }
+
+    override fun errorOccurred(
+        id: String,
+        category: ErrorCategory?,
+        message: String?,
+        parameters: Map<String, String>,
+        floatValue: Double?,
+        customUserID: String?
+    ) {
+        val errorParams = mutableMapOf(
+            com.telemetrydeck.sdk.params.Error.Id.paramName to id
+        )
+        if (category != null) {
+            errorParams[com.telemetrydeck.sdk.params.Error.Category.paramName] = category.rawValue
+        }
+        if (message != null) {
+            errorParams[com.telemetrydeck.sdk.params.Error.Message.paramName] = message
+        }
+        val signalParams = mergeMapsWithOverwrite(parameters, errorParams)
+        signal(
+            com.telemetrydeck.sdk.signals.Error.Occurred.signalName,
+            params = signalParams,
+            floatValue = floatValue,
             customUserID = customUserID
         )
     }
@@ -494,7 +514,6 @@ class TelemetryDeck(
             getInstance()?.navigate(destinationPath, customUserID = customUserID)
         }
 
-        @ExperimentalFeature
         override fun acquiredUser(
             channel: String,
             params: Map<String, String>,
@@ -503,7 +522,6 @@ class TelemetryDeck(
             getInstance()?.acquiredUser(channel, params, customUserID)
         }
 
-        @ExperimentalFeature
         override fun leadStarted(
             leadId: String,
             params: Map<String, String>,
@@ -512,7 +530,6 @@ class TelemetryDeck(
             getInstance()?.leadStarted(leadId, params, customUserID)
         }
 
-        @ExperimentalFeature
         override fun leadConverted(
             leadId: String,
             params: Map<String, String>,
@@ -521,7 +538,6 @@ class TelemetryDeck(
             getInstance()?.leadConverted(leadId, params, customUserID)
         }
 
-        @ExperimentalFeature
         override fun onboardingCompleted(
             params: Map<String, String>,
             customUserID: String?
@@ -529,7 +545,6 @@ class TelemetryDeck(
             getInstance()?.onboardingCompleted(params, customUserID)
         }
 
-        @ExperimentalFeature
         override fun coreFeatureUsed(
             featureName: String,
             params: Map<String, String>,
@@ -546,7 +561,6 @@ class TelemetryDeck(
             getInstance()?.paywallShown(reason, params, customUserID)
         }
 
-        @ExperimentalFeature
         override fun referralSent(
             receiversCount: Int,
             kind: String?,
@@ -556,7 +570,6 @@ class TelemetryDeck(
             getInstance()?.referralSent(receiversCount, kind, params, customUserID)
         }
 
-        @ExperimentalFeature
         override fun userRatingSubmitted(
             rating: Int,
             comment: String?,
@@ -564,6 +577,17 @@ class TelemetryDeck(
             customUserID: String?
         ) {
             getInstance()?.userRatingSubmitted(rating, comment, params, customUserID)
+        }
+
+        override fun errorOccurred(
+            id: String,
+            category: ErrorCategory?,
+            message: String?,
+            parameters: Map<String, String>,
+            floatValue: Double?,
+            customUserID: String?
+        ) {
+            getInstance()?.errorOccurred(id, category, message, parameters, floatValue, customUserID)
         }
 
         override suspend fun send(

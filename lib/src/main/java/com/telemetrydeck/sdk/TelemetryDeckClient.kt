@@ -1,5 +1,6 @@
 package com.telemetrydeck.sdk
 
+import com.telemetrydeck.sdk.params.ErrorCategory
 import java.util.UUID
 
 interface TelemetryDeckClient {
@@ -36,33 +37,28 @@ interface TelemetryDeckClient {
     /**
      * Send a `TelemetryDeck.Acquisition.userAcquired` signal with the provided channel.
      */
-    @ExperimentalFeature
     fun acquiredUser(channel: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
 
     /**
      * Send a `TelemetryDeck.Acquisition.leadStarted` signal with the provided leadId.
      */
-    @ExperimentalFeature
     fun leadStarted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
 
     /**
      * Send a `TelemetryDeck.Acquisition.leadConverted` signal with the provided leadId.
      */
-    @ExperimentalFeature
     fun leadConverted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
     /**
      * Send a `TelemetryDeck.Activation.onboardingCompleted` signal.
      */
-    @ExperimentalFeature
     fun onboardingCompleted(params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
     /**
      * Send a `TelemetryDeck.Activation.coreFeatureUsed` signal.
      */
-    @ExperimentalFeature
     fun coreFeatureUsed(
         featureName: String,
         params: Map<String, String> = emptyMap(),
@@ -253,7 +249,6 @@ interface TelemetryDeckClient {
      * @param params A map of additional string key-value pairs that provide further context about the signal.
      * @param customUserID An optional string specifying a custom user identifier.
      */
-    @ExperimentalFeature
     fun referralSent(
         receiversCount: Int = 1,
         kind: String? = null,
@@ -269,11 +264,29 @@ interface TelemetryDeckClient {
      * @param params A map of additional string key-value pairs that provide further context about the signal.
      * @param customUserID An optional string specifying a custom user identifier.
      */
-    @ExperimentalFeature
     fun userRatingSubmitted(
         rating: Int,
         comment: String? = null,
         params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
+
+    /**
+     * Send a `TelemetryDeck.Error.occurred` signal with error details.
+     *
+     * @param id A unique identifier for the error.
+     * @param category The category of the error (e.g., thrown exception, user input, app state).
+     * @param message An optional error message.
+     * @param parameters A map of additional string key-value pairs that provide further context about the error.
+     * @param floatValue An optional floating-point number that can be used to provide numerical data about the error.
+     * @param customUserID An optional string specifying a custom user identifier.
+     */
+    fun errorOccurred(
+        id: String,
+        category: ErrorCategory? = null,
+        message: String? = null,
+        parameters: Map<String, String> = emptyMap(),
+        floatValue: Double? = null,
         customUserID: String? = null
     )
 
