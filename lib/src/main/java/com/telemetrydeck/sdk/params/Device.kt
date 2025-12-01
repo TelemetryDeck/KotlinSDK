@@ -1,7 +1,7 @@
 package com.telemetrydeck.sdk.params
 
 
-internal enum class Device(val paramName: String) {
+enum class Device(val paramName: String) {
     Architecture("TelemetryDeck.Device.architecture"),
     ModelName("TelemetryDeck.Device.modelName"),
     OperatingSystem("TelemetryDeck.Device.operatingSystem"),

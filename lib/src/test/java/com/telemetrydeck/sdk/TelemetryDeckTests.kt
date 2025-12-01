@@ -515,6 +515,143 @@ class TelemetryDeckTests {
         Assert.assertEquals("ParamPrefix.param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("ParamPrefix.") }, )
     }
 
+    @Test
+    fun telemetryDeck_referralSent_sends_signal_with_default_receiversCount() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.referralSent()
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Referral.sent", signal?.type)
+        Assert.assertEquals(
+            "TelemetryDeck.Referral.receiversCount:1",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.receiversCount:") }
+        )
+    }
+
+    @Test
+    fun telemetryDeck_referralSent_sends_signal_with_custom_receiversCount() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.referralSent(receiversCount = 5)
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Referral.sent", signal?.type)
+        Assert.assertEquals(
+            "TelemetryDeck.Referral.receiversCount:5",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.receiversCount:") }
+        )
+    }
+
+    @Test
+    fun telemetryDeck_referralSent_sends_signal_with_kind() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.referralSent(kind = "email")
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Referral.sent", signal?.type)
+        Assert.assertEquals(
+            "TelemetryDeck.Referral.kind:email",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.kind:") }
+        )
+    }
+
+    @Test
+    fun telemetryDeck_userRatingSubmitted_sends_signal_with_rating() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.userRatingSubmitted(rating = 8)
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Referral.userRatingSubmitted", signal?.type)
+        Assert.assertEquals(
+            "TelemetryDeck.Referral.ratingValue:8",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.ratingValue:") }
+        )
+    }
+
+    @Test
+    fun telemetryDeck_userRatingSubmitted_sends_signal_with_comment() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.userRatingSubmitted(rating = 9, comment = "Great app!")
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNotNull(signal)
+        Assert.assertEquals("TelemetryDeck.Referral.userRatingSubmitted", signal?.type)
+        Assert.assertEquals(
+            "TelemetryDeck.Referral.ratingValue:9",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.ratingValue:") }
+        )
+        Assert.assertEquals(
+            "TelemetryDeck.Referral.ratingComment:Great app!",
+            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.ratingComment:") }
+        )
+    }
+
+    @Test
+    fun telemetryDeck_userRatingSubmitted_validates_rating_too_low() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.userRatingSubmitted(rating = -1)
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNull(signal)
+    }
+
+    @Test
+    fun telemetryDeck_userRatingSubmitted_validates_rating_too_high() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.userRatingSubmitted(rating = 11)
+
+        val signal = sut.cache?.empty()?.firstOrNull()
+
+        Assert.assertNull(signal)
+    }
+
+    @Test
+    fun telemetryDeck_userRatingSubmitted_accepts_boundary_values() {
+        val builder = TelemetryDeck.Builder()
+        val sut = builder
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .build(null)
+        sut.userRatingSubmitted(rating = 0)
+        sut.userRatingSubmitted(rating = 10)
+
+        val signals = sut.cache?.empty()
+
+        Assert.assertNotNull(signals)
+        Assert.assertEquals(2, signals?.size)
+        Assert.assertEquals("TelemetryDeck.Referral.userRatingSubmitted", signals?.get(0)?.type)
+        Assert.assertEquals("TelemetryDeck.Referral.userRatingSubmitted", signals?.get(1)?.type)
+    }
+
     private fun hashString(input: String, algorithm: String = "SHA-256"): String {
         return MessageDigest.getInstance(algorithm)
             .digest(input.toByteArray())

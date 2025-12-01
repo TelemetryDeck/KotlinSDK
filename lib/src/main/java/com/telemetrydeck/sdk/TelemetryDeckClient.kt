@@ -1,5 +1,6 @@
 package com.telemetrydeck.sdk
 
+import com.telemetrydeck.sdk.params.ErrorCategory
 import java.util.UUID
 
 interface TelemetryDeckClient {
@@ -34,35 +35,59 @@ interface TelemetryDeckClient {
     fun navigate(destinationPath: String, customUserID: String? = null)
 
     /**
-     * Send a `TelemetryDeck.Acquisition.userAcquired` signal with the provided channel.
+     * Tracks user acquisition through a specific marketing or organic channel.
+     *
+     * Sends signal: `TelemetryDeck.Acquisition.userAcquired`
+     *
+     * @param channel The acquisition channel (e.g., "organic", "facebook_ads", "google_search").
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
      */
-    @ExperimentalFeature
     fun acquiredUser(channel: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
 
     /**
-     * Send a `TelemetryDeck.Acquisition.leadStarted` signal with the provided leadId.
+     * Tracks when a potential customer begins the conversion process.
+     *
+     * Sends signal: `TelemetryDeck.Acquisition.leadStarted`
+     *
+     * @param leadId A unique identifier for the lead (e.g., email, signup ID).
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
      */
-    @ExperimentalFeature
     fun leadStarted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
 
     /**
-     * Send a `TelemetryDeck.Acquisition.leadConverted` signal with the provided leadId.
+     * Tracks when a lead successfully converts to a user.
+     *
+     * Sends signal: `TelemetryDeck.Acquisition.leadConverted`
+     *
+     * @param leadId The unique identifier for the lead that converted.
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
      */
-    @ExperimentalFeature
     fun leadConverted(leadId: String, params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
     /**
-     * Send a `TelemetryDeck.Activation.onboardingCompleted` signal.
+     * Tracks when a user successfully completes the onboarding process.
+     *
+     * Sends signal: `TelemetryDeck.Activation.onboardingCompleted`
+     *
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
      */
-    @ExperimentalFeature
     fun onboardingCompleted(params: Map<String, String> = emptyMap(), customUserID: String? = null)
 
     /**
-     * Send a `TelemetryDeck.Activation.coreFeatureUsed` signal.
+     * Tracks when a user engages with a core feature of the application.
+     *
+     * Sends signal: `TelemetryDeck.Activation.coreFeatureUsed`
+     *
+     * @param featureName The name of the core feature that was used.
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
      */
-    @ExperimentalFeature
     fun coreFeatureUsed(
         featureName: String,
         params: Map<String, String> = emptyMap(),
@@ -242,6 +267,63 @@ interface TelemetryDeckClient {
     fun paywallShown(
         reason: String,
         params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
+
+    /**
+     * Tracks when a user sends a referral to others.
+     *
+     * Sends signal: `TelemetryDeck.Referral.sent`
+     *
+     * @param receiversCount The number of receivers the referral was sent to (defaults to 1).
+     * @param kind Optional string describing the kind of referral (e.g., "email", "social_share").
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
+     */
+    fun referralSent(
+        receiversCount: Int = 1,
+        kind: String? = null,
+        params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
+
+    /**
+     * Tracks when a user submits a rating for the application.
+     *
+     * Sends signal: `TelemetryDeck.Referral.userRatingSubmitted`
+     *
+     * Note: Rating values are validated to be between 0 and 10 inclusive.
+     *
+     * @param rating The rating value (must be between 0 and 10 inclusive).
+     * @param comment Optional comment accompanying the rating.
+     * @param params A map of additional string key-value pairs that provide further context about the signal.
+     * @param customUserID An optional string specifying a custom user identifier.
+     */
+    fun userRatingSubmitted(
+        rating: Int,
+        comment: String? = null,
+        params: Map<String, String> = emptyMap(),
+        customUserID: String? = null
+    )
+
+    /**
+     * Tracks when an error occurs in the application.
+     *
+     * Sends signal: `TelemetryDeck.Error.occurred`
+     *
+     * @param id A unique identifier for the error (e.g., error code, exception class name).
+     * @param category The category of the error (e.g., thrown exception, user input, app state).
+     * @param message An optional error message describing what went wrong.
+     * @param parameters A map of additional string key-value pairs that provide further context about the error.
+     * @param floatValue An optional floating-point number that can be used to provide numerical data about the error.
+     * @param customUserID An optional string specifying a custom user identifier.
+     */
+    fun errorOccurred(
+        id: String,
+        category: ErrorCategory? = null,
+        message: String? = null,
+        parameters: Map<String, String> = emptyMap(),
+        floatValue: Double? = null,
         customUserID: String? = null
     )
 
