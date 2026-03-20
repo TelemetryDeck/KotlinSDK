@@ -18,7 +18,7 @@ mockk = "1.14.6"
 robolectric = "4.16"
 androidxTest = "1.7.0"
 datetime = "0.7.1"
-google-play-billing = "8.1.0"
+google-play-billing = "8.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
