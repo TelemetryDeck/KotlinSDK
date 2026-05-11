@@ -18,7 +18,6 @@ import kotlinx.serialization.Serializable
 import java.lang.ref.WeakReference
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
@@ -79,8 +78,17 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         clientUser: String?,
         additionalPayload: Map<String, String>
     ): Map<String, String> {
+        return enrichInternal(signalType, clientUser, additionalPayload, Date())
+    }
+
+    internal fun enrichInternal(
+        signalType: String,
+        clientUser: String?,
+        additionalPayload: Map<String, String>,
+        now: Date
+    ): Map<String, String> {
         val signalPayload = additionalPayload.toMutableMap()
-        for (item in createMetadata()) {
+        for (item in createMetadata(now)) {
             if (!signalPayload.containsKey(item.key)) {
                 signalPayload[item.key] = item.value
             }
@@ -88,17 +96,14 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         return signalPayload
     }
 
-    private fun createMetadata(): Map<String, String> {
+    private fun createMetadata(now: Date): Map<String, String> {
         val currentState = this.providerState?.copy() ?: return emptyMap()
 
-        // list distinct days which are "last month"
         val daysLastMonth = currentState.distinctDays.filter {
             val day = dateFormat.parse(it)
             if (day != null) {
-                val calendar = Calendar.getInstance()
-                calendar.add(Calendar.MONTH, -1)
-                val lastMonth = calendar.time
-                day.after(lastMonth) && day.before(Date())
+                val thirtyDaysAgo = Date(now.time - (30L * 24L * 60L * 60L * 1000L))
+                day.after(thirtyDaysAgo) && day.before(now)
             } else {
                 false
             }

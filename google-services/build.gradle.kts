@@ -1,28 +1,24 @@
-import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.vanniktech.publish)
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
     lint {
-        targetSdk = 34
+        targetSdk = 36
     }
 
     @Suppress("UnstableApiUsage")
     testOptions {
-        targetSdk = 34
+        targetSdk = 36
     }
 
     buildTypes {
@@ -37,9 +33,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
     buildFeatures {
         compose = false
@@ -62,6 +55,9 @@ android {
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
+    }
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 

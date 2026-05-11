@@ -286,6 +286,36 @@ class SessionTrackingSignalProviderTest {
         assertNotNull(session.id)
     }
 
+    @UiThreadTest
+    @Test
+    fun distinct_days_used_last_month_uses_30_day_window() {
+        val now = parseDateString("2025-03-15T00:00:00.000Z")
+        val sut = createSut(stateFromJson("""
+            {
+              "sessions": [
+                {
+                  "firstStart": "2025-02-08T10:00:00.000Z",
+                  "ended": "2025-02-08T10:30:00.000Z",
+                  "durationMillis": 1800000
+                }
+              ],
+              "distinctDays": [
+                "2025-01-10",
+                "2025-02-13",
+                "2025-02-14",
+                "2025-02-16",
+                "2025-03-10"
+              ],
+              "lifetimeSessionsCount": 5
+            }
+        """.trimIndent()))
+
+        sut.handleOnForeground(now)
+
+        val attributes = sut.enrichInternal("signal1", "clientUser", mapOf(), now)
+        assertEquals("6", attributes[Retention.DistinctDaysUsed.paramName])
+        assertEquals("3", attributes[Retention.DistinctDaysUsedLastMonth.paramName])
+    }
 
 
     // Helpers
