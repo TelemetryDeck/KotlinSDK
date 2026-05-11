@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.vanniktech.publish)
 }
 
@@ -14,12 +13,12 @@ android {
     }
 
     lint {
-        targetSdk = 35
+        targetSdk = 36
     }
 
     @Suppress("UnstableApiUsage")
     testOptions {
-        targetSdk = 35
+        targetSdk = 36
     }
 
     buildTypes {
@@ -34,9 +33,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
     buildFeatures {
         compose = false
@@ -59,6 +55,9 @@ android {
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
+    }
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 

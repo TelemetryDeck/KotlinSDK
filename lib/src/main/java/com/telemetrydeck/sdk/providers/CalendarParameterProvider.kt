@@ -14,7 +14,6 @@ import java.time.LocalDate
 import java.time.temporal.IsoFields
 import java.util.Calendar
 
-@OptIn(kotlin.time.ExperimentalTime::class)
 class CalendarParameterProvider : TelemetryDeckProvider {
     private var app: WeakReference<Context?>? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
