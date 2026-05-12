@@ -21,6 +21,7 @@ import java.security.MessageDigest
 import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
+import kotlinx.serialization.SerializationException
 
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
@@ -234,6 +235,10 @@ class TelemetryDeck(
         return send(signals)
     }
 
+    override suspend fun flush() {
+        broadcastTimer?.flush()
+    }
+
     override fun processSignal(
         signalName: String,
         params: Map<String, String>,
@@ -358,6 +363,11 @@ class TelemetryDeck(
                 logger,
             )
             client.send(signals)
+            broadcastTimer?.resetBackoff()
+            success(Unit)
+        } catch (e: SerializationException) {
+            logger?.error("Failed to encode ${signals.size} signals, dropping batch: $e")
+            broadcastTimer?.resetBackoff()
             success(Unit)
         } catch (e: Exception) {
             logger?.error("Failed to send signals due to an error $e ${e.stackTraceToString()}")
@@ -611,6 +621,10 @@ class TelemetryDeck(
             return failure(NullPointerException())
         }
 
+        override suspend fun flush() {
+            getInstance()?.flush()
+        }
+
         override fun processSignal(
             signalName: String,
             params: Map<String, String>,
@@ -713,6 +727,8 @@ class TelemetryDeck(
         private var telemetryClientFactory: TelemetryApiClientFactory? = null,
         private var signalCache: SignalCache? = null,
         private var namespace: String? = null,
+        private var transmitInterval: Long? = null,
+        private var maxBackoffInterval: Long? = null,
     ) {
         /**
          * Set the [TelemetryDeck] configuration.
@@ -793,6 +809,16 @@ class TelemetryDeck(
 
         fun signalCache(cache: SignalCache) = apply {
             this.signalCache = cache
+        }
+
+        fun transmitInterval(intervalMs: Long) = apply {
+            require(intervalMs > 0) { "intervalMs must be greater than zero" }
+            this.transmitInterval = intervalMs
+        }
+
+        fun maxBackoffInterval(intervalMs: Long) = apply {
+            require(intervalMs > 0) { "intervalMs must be greater than zero" }
+            this.maxBackoffInterval = intervalMs
         }
 
         /**
@@ -881,8 +907,12 @@ class TelemetryDeck(
                 manager.telemetryClientFactory = telemetryClientFactory as TelemetryApiClientFactory
             }
 
-            val broadcaster =
-                TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
+            val broadcaster = TelemetryBroadcastTimer(
+                manager = WeakReference(manager),
+                debugLogger = WeakReference(manager.logger),
+                transmitInterval = this.transmitInterval ?: 10_000L,
+                maxBackoffInterval = this.maxBackoffInterval ?: 300_000L,
+            )
             manager.broadcastTimer = broadcaster
 
             if (signalCache != null) {

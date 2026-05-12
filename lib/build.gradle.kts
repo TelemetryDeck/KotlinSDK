@@ -81,6 +81,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.androidx.arch.core)
+    testImplementation(libs.kotlinx.coroutines.test)
     // As of Kotlin 2.0, the Compose Compiler and runtime are required in the classpath https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-compiler.html
     testImplementation(libs.androidx.activity.compose)
     testImplementation(platform(libs.androidx.compose.bom))
