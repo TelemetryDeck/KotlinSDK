@@ -454,6 +454,18 @@ class TelemetryDeck(
         @Volatile
         internal var instance: TelemetryDeck? = null
 
+        private fun missingInstance(operation: String): Nothing? {
+            TelemetryManagerDebugLogger.error(
+                "TelemetryDeck.$operation called before initialization. Call TelemetryDeck.start(context, Builder()...) in Application.onCreate() to enable telemetry."
+            )
+            return null
+        }
+
+        private inline fun <T> requireInstance(operation: String, block: (TelemetryDeck) -> T): T? {
+            val current = getInstance() ?: return missingInstance(operation)
+            return block(current)
+        }
+
         /**
          * Builds and starts the application instance of [TelemetryDeck].
          * Calling this method multiple times has no effect.
@@ -509,19 +521,19 @@ class TelemetryDeck(
         }
 
         override fun newSession(sessionID: UUID) {
-            getInstance()?.newSession(sessionID)
+            requireInstance("newSession") { it.newSession(sessionID) }
         }
 
         override fun newDefaultUser(user: String?) {
-            getInstance()?.newDefaultUser(user)
+            requireInstance("newDefaultUser") { it.newDefaultUser(user) }
         }
 
         override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
-            getInstance()?.navigate(sourcePath, destinationPath, clientUser = clientUser)
+            requireInstance("navigate") { it.navigate(sourcePath, destinationPath, clientUser = clientUser) }
         }
 
         override fun navigate(destinationPath: String, customUserID: String?) {
-            getInstance()?.navigate(destinationPath, customUserID = customUserID)
+            requireInstance("navigate") { it.navigate(destinationPath, customUserID = customUserID) }
         }
 
         override fun acquiredUser(
@@ -529,7 +541,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.acquiredUser(channel, params, customUserID)
+            requireInstance("acquiredUser") { it.acquiredUser(channel, params, customUserID) }
         }
 
         override fun leadStarted(
@@ -537,7 +549,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.leadStarted(leadId, params, customUserID)
+            requireInstance("leadStarted") { it.leadStarted(leadId, params, customUserID) }
         }
 
         override fun leadConverted(
@@ -545,14 +557,14 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.leadConverted(leadId, params, customUserID)
+            requireInstance("leadConverted") { it.leadConverted(leadId, params, customUserID) }
         }
 
         override fun onboardingCompleted(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.onboardingCompleted(params, customUserID)
+            requireInstance("onboardingCompleted") { it.onboardingCompleted(params, customUserID) }
         }
 
         override fun coreFeatureUsed(
@@ -560,7 +572,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.coreFeatureUsed(featureName, params, customUserID)
+            requireInstance("coreFeatureUsed") { it.coreFeatureUsed(featureName, params, customUserID) }
         }
 
         override fun paywallShown(
@@ -568,7 +580,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.paywallShown(reason, params, customUserID)
+            requireInstance("paywallShown") { it.paywallShown(reason, params, customUserID) }
         }
 
         override fun referralSent(
@@ -577,7 +589,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.referralSent(receiversCount, kind, params, customUserID)
+            requireInstance("referralSent") { it.referralSent(receiversCount, kind, params, customUserID) }
         }
 
         override fun userRatingSubmitted(
@@ -586,7 +598,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.userRatingSubmitted(rating, comment, params, customUserID)
+            requireInstance("userRatingSubmitted") { it.userRatingSubmitted(rating, comment, params, customUserID) }
         }
 
         override fun errorOccurred(
@@ -597,7 +609,7 @@ class TelemetryDeck(
             floatValue: Double?,
             customUserID: String?
         ) {
-            getInstance()?.errorOccurred(id, category, message, parameters, floatValue, customUserID)
+            requireInstance("errorOccurred") { it.errorOccurred(id, category, message, parameters, floatValue, customUserID) }
         }
 
         override suspend fun send(
@@ -606,23 +618,23 @@ class TelemetryDeck(
             additionalPayload: Map<String, String>,
             floatValue: Double?
         ): Result<Unit> {
-            val result = getInstance()?.send(signalType, clientUser, additionalPayload, floatValue)
-            if (result != null) {
-                return result
+            val current = getInstance() ?: run {
+                missingInstance("send")
+                return failure(IllegalStateException("TelemetryDeck not initialized"))
             }
-            return failure(NullPointerException())
+            return current.send(signalType, clientUser, additionalPayload, floatValue)
         }
 
         override suspend fun sendAll(signals: List<Signal>): Result<Unit> {
-            val result = getInstance()?.sendAll(signals)
-            if (result != null) {
-                return result
+            val current = getInstance() ?: run {
+                missingInstance("sendAll")
+                return failure(IllegalStateException("TelemetryDeck not initialized"))
             }
-            return failure(NullPointerException())
+            return current.sendAll(signals)
         }
 
         override suspend fun flush() {
-            getInstance()?.flush()
+            requireInstance("flush") { it.flush() }
         }
 
         override fun processSignal(
@@ -644,7 +656,7 @@ class TelemetryDeck(
             floatValue: Double?,
             customUserID: String?
         ) {
-            getInstance()?.signal(signalName, params, floatValue, customUserID)
+            requireInstance("signal") { it.signal(signalName, params, floatValue, customUserID) }
         }
 
         override fun signal(
@@ -652,15 +664,11 @@ class TelemetryDeck(
             customUserID: String?,
             params: Map<String, String>
         ) {
-            getInstance()?.signal(
-                signalName = signalName,
-                customUserID = customUserID,
-                params = params
-            )
+            requireInstance("signal") { it.signal(signalName = signalName, customUserID = customUserID, params = params) }
         }
 
         override fun startDurationSignal(signalName: String, parameters: Map<String, String>, includeBackgroundTime: Boolean) {
-            getInstance()?.startDurationSignal(signalName, parameters, includeBackgroundTime)
+            requireInstance("startDurationSignal") { it.startDurationSignal(signalName, parameters, includeBackgroundTime) }
         }
 
         override fun stopAndSendDurationSignal(
@@ -669,7 +677,7 @@ class TelemetryDeck(
             floatValue: Double?,
             customUserID: String?
         ) {
-            getInstance()?.stopAndSendDurationSignal(signalName, parameters, floatValue, customUserID)
+            requireInstance("stopAndSendDurationSignal") { it.stopAndSendDurationSignal(signalName, parameters, floatValue, customUserID) }
         }
 
         override fun purchaseCompleted(
@@ -683,17 +691,19 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.purchaseCompleted(
-                event,
-                countryCode,
-                productID,
-                purchaseType,
-                priceAmountMicros,
-                currencyCode,
-                offerID,
-                params,
-                customUserID
-            )
+            requireInstance("purchaseCompleted") {
+                it.purchaseCompleted(
+                    event,
+                    countryCode,
+                    productID,
+                    purchaseType,
+                    priceAmountMicros,
+                    currencyCode,
+                    offerID,
+                    params,
+                    customUserID
+                )
+            }
         }
 
         override val signalCache: SignalCache?
