@@ -2,7 +2,6 @@ package com.telemetrydeck.sdk.providers
 
 import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.DateSerializer
@@ -44,11 +43,6 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         this.manager = WeakReference(client)
         this.appContext = WeakReference(ctx)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-        
-        // Check if the process is already in foreground and initialize session tracking immediately
-        if (ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            handleOnForeground()
-        }
     }
 
     @Synchronized
