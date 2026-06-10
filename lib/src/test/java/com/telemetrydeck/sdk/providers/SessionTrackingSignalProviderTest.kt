@@ -13,13 +13,6 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28])
 class SessionTrackingSignalProviderTest {
 
-    // Robolectric unit tests leave ProcessLifecycleOwner at INITIALIZED (no activity running),
-    // so addObserver catch-up does not fire onStart() automatically. Tests drive foreground
-    // transitions by calling handleOnForeground() directly, which is the same code path invoked
-    // by onStart(). The regression guard for the double-fire (point 4 in the spec) relies on the
-    // process already being STARTED when register() runs — that path requires an instrumented
-    // (device/emulator) test and is not covered here.
-
     @Test
     fun sessionStarted_emits_exactly_one_signal_when_foreground_triggered_after_registration() {
         val context = RuntimeEnvironment.getApplication()
