@@ -378,13 +378,12 @@ class TelemetryDeck(
     internal var broadcastTimer: TelemetryBroadcastTimer? = null
 
     private fun installProviders(context: Context?) {
-        // session manager must be installed first as some plugins may depend on it
-        sessionManager?.register(context, this)
         for (provider in providers) {
             logger?.debug("Installing provider ${provider::class}.")
             provider.register(context, this)
         }
         identityProvider.register(context, this)
+        sessionManager?.register(context, this)
     }
 
     private fun createSignal(
