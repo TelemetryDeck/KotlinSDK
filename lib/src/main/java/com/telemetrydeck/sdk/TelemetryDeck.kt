@@ -21,6 +21,7 @@ import java.security.MessageDigest
 import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
+import kotlinx.serialization.SerializationException
 
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
@@ -234,6 +235,10 @@ class TelemetryDeck(
         return send(signals)
     }
 
+    override suspend fun flush() {
+        broadcastTimer?.flush()
+    }
+
     override fun processSignal(
         signalName: String,
         params: Map<String, String>,
@@ -358,6 +363,11 @@ class TelemetryDeck(
                 logger,
             )
             client.send(signals)
+            broadcastTimer?.resetBackoff()
+            success(Unit)
+        } catch (e: SerializationException) {
+            logger?.error("Failed to encode ${signals.size} signals, dropping batch: $e")
+            broadcastTimer?.resetBackoff()
             success(Unit)
         } catch (e: Exception) {
             logger?.error("Failed to send signals due to an error $e ${e.stackTraceToString()}")
@@ -444,6 +454,18 @@ class TelemetryDeck(
         @Volatile
         internal var instance: TelemetryDeck? = null
 
+        private fun missingInstance(operation: String): Nothing? {
+            TelemetryManagerDebugLogger.error(
+                "TelemetryDeck.$operation called before initialization. Call TelemetryDeck.start(context, Builder()...) in Application.onCreate() to enable telemetry."
+            )
+            return null
+        }
+
+        private inline fun <T> requireInstance(operation: String, block: (TelemetryDeck) -> T): T? {
+            val current = getInstance() ?: return missingInstance(operation)
+            return block(current)
+        }
+
         /**
          * Builds and starts the application instance of [TelemetryDeck].
          * Calling this method multiple times has no effect.
@@ -499,19 +521,19 @@ class TelemetryDeck(
         }
 
         override fun newSession(sessionID: UUID) {
-            getInstance()?.newSession(sessionID)
+            requireInstance("newSession") { it.newSession(sessionID) }
         }
 
         override fun newDefaultUser(user: String?) {
-            getInstance()?.newDefaultUser(user)
+            requireInstance("newDefaultUser") { it.newDefaultUser(user) }
         }
 
         override fun navigate(sourcePath: String, destinationPath: String, clientUser: String?) {
-            getInstance()?.navigate(sourcePath, destinationPath, clientUser = clientUser)
+            requireInstance("navigate") { it.navigate(sourcePath, destinationPath, clientUser = clientUser) }
         }
 
         override fun navigate(destinationPath: String, customUserID: String?) {
-            getInstance()?.navigate(destinationPath, customUserID = customUserID)
+            requireInstance("navigate") { it.navigate(destinationPath, customUserID = customUserID) }
         }
 
         override fun acquiredUser(
@@ -519,7 +541,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.acquiredUser(channel, params, customUserID)
+            requireInstance("acquiredUser") { it.acquiredUser(channel, params, customUserID) }
         }
 
         override fun leadStarted(
@@ -527,7 +549,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.leadStarted(leadId, params, customUserID)
+            requireInstance("leadStarted") { it.leadStarted(leadId, params, customUserID) }
         }
 
         override fun leadConverted(
@@ -535,14 +557,14 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.leadConverted(leadId, params, customUserID)
+            requireInstance("leadConverted") { it.leadConverted(leadId, params, customUserID) }
         }
 
         override fun onboardingCompleted(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.onboardingCompleted(params, customUserID)
+            requireInstance("onboardingCompleted") { it.onboardingCompleted(params, customUserID) }
         }
 
         override fun coreFeatureUsed(
@@ -550,7 +572,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.coreFeatureUsed(featureName, params, customUserID)
+            requireInstance("coreFeatureUsed") { it.coreFeatureUsed(featureName, params, customUserID) }
         }
 
         override fun paywallShown(
@@ -558,7 +580,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.paywallShown(reason, params, customUserID)
+            requireInstance("paywallShown") { it.paywallShown(reason, params, customUserID) }
         }
 
         override fun referralSent(
@@ -567,7 +589,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.referralSent(receiversCount, kind, params, customUserID)
+            requireInstance("referralSent") { it.referralSent(receiversCount, kind, params, customUserID) }
         }
 
         override fun userRatingSubmitted(
@@ -576,7 +598,7 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.userRatingSubmitted(rating, comment, params, customUserID)
+            requireInstance("userRatingSubmitted") { it.userRatingSubmitted(rating, comment, params, customUserID) }
         }
 
         override fun errorOccurred(
@@ -587,7 +609,7 @@ class TelemetryDeck(
             floatValue: Double?,
             customUserID: String?
         ) {
-            getInstance()?.errorOccurred(id, category, message, parameters, floatValue, customUserID)
+            requireInstance("errorOccurred") { it.errorOccurred(id, category, message, parameters, floatValue, customUserID) }
         }
 
         override suspend fun send(
@@ -596,19 +618,23 @@ class TelemetryDeck(
             additionalPayload: Map<String, String>,
             floatValue: Double?
         ): Result<Unit> {
-            val result = getInstance()?.send(signalType, clientUser, additionalPayload, floatValue)
-            if (result != null) {
-                return result
+            val current = getInstance() ?: run {
+                missingInstance("send")
+                return failure(IllegalStateException("TelemetryDeck not initialized"))
             }
-            return failure(NullPointerException())
+            return current.send(signalType, clientUser, additionalPayload, floatValue)
         }
 
         override suspend fun sendAll(signals: List<Signal>): Result<Unit> {
-            val result = getInstance()?.sendAll(signals)
-            if (result != null) {
-                return result
+            val current = getInstance() ?: run {
+                missingInstance("sendAll")
+                return failure(IllegalStateException("TelemetryDeck not initialized"))
             }
-            return failure(NullPointerException())
+            return current.sendAll(signals)
+        }
+
+        override suspend fun flush() {
+            requireInstance("flush") { it.flush() }
         }
 
         override fun processSignal(
@@ -630,7 +656,7 @@ class TelemetryDeck(
             floatValue: Double?,
             customUserID: String?
         ) {
-            getInstance()?.signal(signalName, params, floatValue, customUserID)
+            requireInstance("signal") { it.signal(signalName, params, floatValue, customUserID) }
         }
 
         override fun signal(
@@ -638,15 +664,11 @@ class TelemetryDeck(
             customUserID: String?,
             params: Map<String, String>
         ) {
-            getInstance()?.signal(
-                signalName = signalName,
-                customUserID = customUserID,
-                params = params
-            )
+            requireInstance("signal") { it.signal(signalName = signalName, customUserID = customUserID, params = params) }
         }
 
         override fun startDurationSignal(signalName: String, parameters: Map<String, String>, includeBackgroundTime: Boolean) {
-            getInstance()?.startDurationSignal(signalName, parameters, includeBackgroundTime)
+            requireInstance("startDurationSignal") { it.startDurationSignal(signalName, parameters, includeBackgroundTime) }
         }
 
         override fun stopAndSendDurationSignal(
@@ -655,7 +677,7 @@ class TelemetryDeck(
             floatValue: Double?,
             customUserID: String?
         ) {
-            getInstance()?.stopAndSendDurationSignal(signalName, parameters, floatValue, customUserID)
+            requireInstance("stopAndSendDurationSignal") { it.stopAndSendDurationSignal(signalName, parameters, floatValue, customUserID) }
         }
 
         override fun purchaseCompleted(
@@ -669,17 +691,19 @@ class TelemetryDeck(
             params: Map<String, String>,
             customUserID: String?
         ) {
-            getInstance()?.purchaseCompleted(
-                event,
-                countryCode,
-                productID,
-                purchaseType,
-                priceAmountMicros,
-                currencyCode,
-                offerID,
-                params,
-                customUserID
-            )
+            requireInstance("purchaseCompleted") {
+                it.purchaseCompleted(
+                    event,
+                    countryCode,
+                    productID,
+                    purchaseType,
+                    priceAmountMicros,
+                    currencyCode,
+                    offerID,
+                    params,
+                    customUserID
+                )
+            }
         }
 
         override val signalCache: SignalCache?
@@ -713,6 +737,8 @@ class TelemetryDeck(
         private var telemetryClientFactory: TelemetryApiClientFactory? = null,
         private var signalCache: SignalCache? = null,
         private var namespace: String? = null,
+        private var transmitInterval: Long? = null,
+        private var maxBackoffInterval: Long? = null,
     ) {
         /**
          * Set the [TelemetryDeck] configuration.
@@ -793,6 +819,16 @@ class TelemetryDeck(
 
         fun signalCache(cache: SignalCache) = apply {
             this.signalCache = cache
+        }
+
+        fun transmitInterval(intervalMs: Long) = apply {
+            require(intervalMs > 0) { "intervalMs must be greater than zero" }
+            this.transmitInterval = intervalMs
+        }
+
+        fun maxBackoffInterval(intervalMs: Long) = apply {
+            require(intervalMs > 0) { "intervalMs must be greater than zero" }
+            this.maxBackoffInterval = intervalMs
         }
 
         /**
@@ -881,8 +917,12 @@ class TelemetryDeck(
                 manager.telemetryClientFactory = telemetryClientFactory as TelemetryApiClientFactory
             }
 
-            val broadcaster =
-                TelemetryBroadcastTimer(WeakReference(manager), WeakReference(manager.logger))
+            val broadcaster = TelemetryBroadcastTimer(
+                manager = WeakReference(manager),
+                debugLogger = WeakReference(manager.logger),
+                transmitInterval = this.transmitInterval ?: 10_000L,
+                maxBackoffInterval = this.maxBackoffInterval ?: 300_000L,
+            )
             manager.broadcastTimer = broadcaster
 
             if (signalCache != null) {

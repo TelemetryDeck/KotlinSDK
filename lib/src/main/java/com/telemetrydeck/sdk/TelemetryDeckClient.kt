@@ -95,6 +95,11 @@ interface TelemetryDeckClient {
     )
 
     /**
+     * Immediately transmits all queued events without waiting for the next scheduled interval, resets the backoff counter to 0 before transmitting.
+     */
+    suspend fun flush()
+
+    /**
      * Send a signal immediately
      */
     suspend fun send(
