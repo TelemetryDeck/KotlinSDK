@@ -18,12 +18,12 @@ Android applications. Sign up for a free account at [telemetrydeck.com](https://
 * [Navigation Signals](#navigation-signals)
 * [Acquisition](#acquisition)
 * [Session Tracking](#session-tracking)
-* [Custom Telemetry](#custom-telemetry)
+* [Duration Signals](#duration-signals)
+* [Calendar Parameters](#calendar-parameters)
 * [Purchase Completed](#purchase-completed)
+* [Custom Telemetry](#custom-telemetry)
 * [Custom Logging](#custom-logging)
 * [Requirements](#requirements)
-* [Migrating providers to 5.0+](#migrating-providers-to-50)
-* [Migrating providers to 3.0+](#migrating-providers-to-30)
 
 ## Installation
 
@@ -34,16 +34,18 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central at the followin
 ```groovy
 // `build.gradle`
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:6.3.0'
+    implementation 'com.telemetrydeck:kotlin-sdk:7.0.0'
 }
 ```
 
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk:6.3.0")
+    implementation("com.telemetrydeck:kotlin-sdk:7.0.0")
 }
 ```
+
+> **Upgrading to 7.0.0?** This is a major release with breaking changes (minimum Android API 23, Gradle 9 / AGP 9). See [CHANGELOG.md](CHANGELOG.md) for the full list and migration steps.
 
 If needed, update your `gradle.settings` to reference Kotlin version compatible with 2.3.21, e.g.:
 
@@ -487,7 +489,7 @@ When integrating with Google Play Billing Library, you can adopt the TelemetryDe
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk-google-services:6.3.0")
+    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.0.0")
 }
 ```
 
@@ -639,84 +641,3 @@ queues and contexts.
 - Kotlin 2.3.21
 - Gradle 9.5 or later
 - AGP 9.2.1 or later
-
-## Migrating providers to 5.0+
-
-* The provider interface `TelemetryDeckProvider` has changed to accept a `Context` instance instead
-  of an `Application`.
-* The deprecated fallback provider callbacks are no longer used and the functionality has been
-  removed.
-* Providers can now optionally override the `transform` method in order to modify any component of
-  the signal.
-
-## Migrating providers to 3.0+
-
-If you had Kotlin SDK for TelemetryDeck added to your app, you will notice that `TelemetryManager`
-and related classes have been deprecated.
-You can read more about the motivation behind these
-changes [here](https://telemetrydeck.com/docs/articles/grand-rename/).
-
-To upgrade, please perform the following changes depending on how you use TelemetryDeck SDK.
-
-### If you're using the application manifest
-
-- Adapt the manifest of your app and rename all keys from `com.telemetrydeck.sdk.*` to
-  `com.telemetrydeck.*` for example:
-
-Before:
-
-```xml
-
-<meta-data android:name="com.telemetrydeck.sdk.appID"
-    android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
-```
-
-After:
-
-```xml
-
-<meta-data android:name="com.telemetrydeck.appID"
-    android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
-```
-
-- In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
-- If you were using `send()` to send signals, no further changes are needed!
-- If you were using `queue()` to send signals, you will need to rename the method to
-  `TelemetryDeck.signal()`.
-
-### Programmatic Usage
-
-- In your app sourcecode, rename all uses of `TelemetryManager` to `TelemetryDeck`.
-- If you were using `send()` to send signals, no further changes are needed!
-- If you were using `queue()` to send signals, you will need to rename the method to
-  `TelemetryDeck.signal()`.
-- If you had a custom provider configuration, please replace the corresponding providers as follows:
-
-| Provider (old name)             | Provider (new, 3.0+)                                      |
-|---------------------------------|-----------------------------------------------------------|
-| `AppLifecycleTelemetryProvider` | `SessionAppProvider`, `SessionActivityProvider`           |
-| `SessionProvider`               | `SessionAppProvider`                                      |
-| `EnvironmentMetadataProvider`   | `EnvironmentParameterProvider`, `PlatformContextProvider` |
-
-> [!TIP]
-> You can rename all deprecated classes in your project using the Code Cleanup function in
-> IntelliJ/Android Studio.
-
-> [!WARNING]
-> Do not mix usage of `TelemetryManager` and `TelemetryDeck`. Once you're ready to migrate, adapt
-> all uses at the same time.
-
-### Custom Telemetry
-
-Your custom providers must replace `TelemetryProvider` with `TelemetryDeckProvider`.
-
-To adopt the new interface:
-
-- Adapt the signature of the `register` method to
-  `register(ctx: Context?, client: TelemetryDeckSignalProcessor)`
-
-The `TelemetryDeckSignalProcessor` interface offers a subset of the `TelemetryDeck` client API which
-gives you access to:
-
-- To access the logger, use can use `client.debugLogger`
-- To access the signal cache, use `client.signalCache`
