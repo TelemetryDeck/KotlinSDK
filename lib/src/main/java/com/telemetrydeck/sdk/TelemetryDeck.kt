@@ -12,6 +12,8 @@ import com.telemetrydeck.sdk.providers.CalendarParameterProvider
 import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
+import com.telemetrydeck.sdk.providers.MemorySessionProvider
+import com.telemetrydeck.sdk.providers.MemoryUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
 import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import com.telemetrydeck.sdk.signals.Purchase
@@ -738,6 +740,7 @@ class TelemetryDeck(
         private var namespace: String? = null,
         private var transmitInterval: Long? = null,
         private var maxBackoffInterval: Long? = null,
+        private var inMemoryOnly: Boolean = false,
     ) {
         /**
          * Set the [TelemetryDeck] configuration.
@@ -798,6 +801,10 @@ class TelemetryDeck(
 
         fun showDebugLogs(showDebugLogs: Boolean) = apply {
             this.showDebugLogs = showDebugLogs
+        }
+
+        fun inMemoryOnly(enabled: Boolean) = apply {
+            this.inMemoryOnly = enabled
         }
 
         fun salt(salt: String?) = apply {
@@ -909,6 +916,14 @@ class TelemetryDeck(
                 config.sendNewSessionBeganSignal = sendNewSessionBeganSignal
             }
 
+            val useInMemoryOnly = inMemoryOnly || context == null
+            if (context == null && !inMemoryOnly) {
+                logger.error(
+                    "build() was called without a Context. Falling back to in-memory-only mode: " +
+                        "signals, user identity, and session data will not be persisted."
+                )
+            }
+
             val manager = TelemetryDeck(config, providers)
             manager.logger = logger
 
@@ -925,31 +940,40 @@ class TelemetryDeck(
             manager.broadcastTimer = broadcaster
 
             if (signalCache != null) {
-                // user-specified cache implementation
                 manager.cache = signalCache
+            } else if (useInMemoryOnly) {
+                manager.cache = MemorySignalCache()
             } else {
-                // determine based on context availability
-                if (context != null) {
-                    manager.cache = PersistentSignalCache(context.cacheDir, logger)
-                } else {
-                    manager.cache = MemorySignalCache()
-                }
+                manager.cache = PersistentSignalCache(context.cacheDir, logger)
             }
 
             val userIdentityProvider = this.identityProvider
             if (userIdentityProvider != null) {
                 manager.identityProvider = userIdentityProvider
+            } else if (useInMemoryOnly) {
+                manager.identityProvider = MemoryUserIdentityProvider()
             }
 
             val customSessionProvider = this.sessionProvider
-            manager.sessionManager = customSessionProvider ?: SessionTrackingSignalProvider()
+            manager.sessionManager = customSessionProvider
+                ?: if (useInMemoryOnly) MemorySessionProvider() else SessionTrackingSignalProvider()
             val sessionID = this.sessionID
             if (sessionID != null) {
                 manager.sessionManager?.setFirstSessionID(sessionID)
             }
 
             // providers must be installed at the end to allow them access to cache and full signal processing
-            manager.installProviders(context)
+            if (useInMemoryOnly) {
+                for (provider in providers) {
+                    logger?.debug("Installing provider ${provider::class}.")
+                    val ctx = if (provider is DurationSignalTrackerProvider) null else context
+                    provider.register(ctx, manager)
+                }
+                manager.identityProvider.register(context, manager)
+                manager.sessionManager?.register(null, manager)
+            } else {
+                manager.installProviders(context)
+            }
 
             // start signal broadcast
             broadcaster.start()

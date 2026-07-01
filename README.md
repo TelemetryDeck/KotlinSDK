@@ -18,6 +18,7 @@ Android applications. Sign up for a free account at [telemetrydeck.com](https://
 * [Navigation Signals](#navigation-signals)
 * [Acquisition](#acquisition)
 * [Session Tracking](#session-tracking)
+* [In-memory-only mode (no local storage)](#in-memory-only-mode-no-local-storage)
 * [Duration Signals](#duration-signals)
 * [Calendar Parameters](#calendar-parameters)
 * [Purchase Completed](#purchase-completed)
@@ -411,6 +412,34 @@ val builder = TelemetryDeck.Builder()
 
 * You can provide your own logic for session tracking by adopting
   `TelemetryDeckSessionManagerProvider` and setting it as the session manager.
+
+## In-memory-only mode (no local storage)
+
+For situations where writing to disk is undesirable (sandboxed processes, privacy-sensitive deployments, etc), call `inMemoryOnly(true)` on the builder to run the SDK without writing anything to disk.
+
+```kotlin
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .inMemoryOnly(true)
+
+TelemetryDeck.start(context, builder)
+```
+
+This tells the SDK to turn off features that require persistent storage and switches to in-memory operation only. For example, this activates `MemoryUserIdentityProvider`, `MemorySessionProvider` and `MemoryUserIdentityProvider` instead of their disk-based defaults.
+
+Features that become unavailable in this mode include: automatic user identity, new-install detection and retention metrics (distinct days used, average session length, etc.). We are also unable to cache events for later transmission - any unsent events are discarded when the app is terminated.
+
+
+Note: 
+Starting the SDK without a `Context` turns on the same mode. When no `Context` is available (for example in
+unit tests or on non-Android runtimes), call `build(null)` directly and the SDK runs in-memory-only,
+since disk access needs a `Context`:
+
+```kotlin
+val telemetryDeck = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .build(null)
+```
 
 ## Duration Signals
 
