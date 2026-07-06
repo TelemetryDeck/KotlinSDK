@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.1.0
+
+Adds in-memory mode: In this mode, none of our default providers will use client side persistence to disk.
+
 ## 7.0.0
 
 ### Before You Upgrade

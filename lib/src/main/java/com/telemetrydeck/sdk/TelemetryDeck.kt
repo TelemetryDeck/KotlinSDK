@@ -12,6 +12,7 @@ import com.telemetrydeck.sdk.providers.CalendarParameterProvider
 import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
+import com.telemetrydeck.sdk.providers.MemorySessionProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
 import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import com.telemetrydeck.sdk.signals.Purchase
@@ -36,6 +37,8 @@ class TelemetryDeck(
 
     override val signalCache: SignalCache?
         get() = this.cache
+
+    override var storage: TelemetryStorage? = null
 
     override val debugLogger: DebugLogger?
         get() = this.logger
@@ -708,6 +711,9 @@ class TelemetryDeck(
         override val signalCache: SignalCache?
             get() = getInstance()?.signalCache
 
+        override val storage: TelemetryStorage?
+            get() = getInstance()?.storage
+
         override val debugLogger: DebugLogger?
             get() = getInstance()?.debugLogger
         override val sessionID: UUID?
@@ -735,9 +741,11 @@ class TelemetryDeck(
         private var sessionProvider: TelemetryDeckSessionManagerProvider? = null,
         private var telemetryClientFactory: TelemetryApiClientFactory? = null,
         private var signalCache: SignalCache? = null,
+        private var storage: TelemetryStorage? = null,
         private var namespace: String? = null,
         private var transmitInterval: Long? = null,
         private var maxBackoffInterval: Long? = null,
+        private var inMemoryOnly: Boolean = false,
     ) {
         /**
          * Set the [TelemetryDeck] configuration.
@@ -800,6 +808,10 @@ class TelemetryDeck(
             this.showDebugLogs = showDebugLogs
         }
 
+        fun inMemoryOnly(enabled: Boolean) = apply {
+            this.inMemoryOnly = enabled
+        }
+
         fun salt(salt: String?) = apply {
             this.salt = salt
         }
@@ -818,6 +830,10 @@ class TelemetryDeck(
 
         fun signalCache(cache: SignalCache) = apply {
             this.signalCache = cache
+        }
+
+        fun storage(storage: TelemetryStorage) = apply {
+            this.storage = storage
         }
 
         fun transmitInterval(intervalMs: Long) = apply {
@@ -909,6 +925,14 @@ class TelemetryDeck(
                 config.sendNewSessionBeganSignal = sendNewSessionBeganSignal
             }
 
+            val useInMemoryOnly = inMemoryOnly || context == null
+            if (context == null && !inMemoryOnly) {
+                logger.error(
+                    "build() was called without a Context. Falling back to in-memory-only mode: " +
+                        "signals, user identity, and session data will not be persisted."
+                )
+            }
+
             val manager = TelemetryDeck(config, providers)
             manager.logger = logger
 
@@ -925,16 +949,15 @@ class TelemetryDeck(
             manager.broadcastTimer = broadcaster
 
             if (signalCache != null) {
-                // user-specified cache implementation
                 manager.cache = signalCache
+            } else if (useInMemoryOnly) {
+                manager.cache = MemorySignalCache()
             } else {
-                // determine based on context availability
-                if (context != null) {
-                    manager.cache = PersistentSignalCache(context.cacheDir, logger)
-                } else {
-                    manager.cache = MemorySignalCache()
-                }
+                manager.cache = PersistentSignalCache(context.cacheDir, logger)
             }
+
+            manager.storage = this.storage
+                ?: if (useInMemoryOnly) InMemoryStorage() else PersistentStorage(context.filesDir, logger)
 
             val userIdentityProvider = this.identityProvider
             if (userIdentityProvider != null) {
@@ -942,7 +965,8 @@ class TelemetryDeck(
             }
 
             val customSessionProvider = this.sessionProvider
-            manager.sessionManager = customSessionProvider ?: SessionTrackingSignalProvider()
+            manager.sessionManager = customSessionProvider
+                ?: if (useInMemoryOnly) MemorySessionProvider() else SessionTrackingSignalProvider()
             val sessionID = this.sessionID
             if (sessionID != null) {
                 manager.sessionManager?.setFirstSessionID(sessionID)

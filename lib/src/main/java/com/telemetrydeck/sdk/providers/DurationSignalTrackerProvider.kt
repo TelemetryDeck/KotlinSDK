@@ -7,29 +7,24 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.DateSerializer
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
-import com.telemetrydeck.sdk.providers.helpers.restoreStateFromDisk
-import com.telemetrydeck.sdk.providers.helpers.writeStateToDisk
+import com.telemetrydeck.sdk.TelemetryStorage
+import com.telemetrydeck.sdk.readState
 import com.telemetrydeck.sdk.signals.Signal
+import com.telemetrydeck.sdk.writeState
 import kotlinx.serialization.Serializable
 import java.lang.ref.WeakReference
 import java.util.Date
 
 class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObserver {
-    private var appContext: WeakReference<Context?>? = null
+    private var storage: TelemetryStorage? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
     private var state: TrackerState? = null
     private val fileName = "telemetrydeckduration"
-    private val fileEncoding = Charsets.UTF_8
 
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
-        this.appContext = WeakReference(ctx)
-        this.state = restoreStateFromDisk<TrackerState?>(
-            this.appContext?.get(),
-            this.fileName,
-            this.fileEncoding,
-            this.manager?.get()?.debugLogger
-        ) ?: TrackerState(emptyMap())
+        this.storage = client.storage
+        this.state = storage?.readState<TrackerState>(fileName, manager?.get()?.debugLogger) ?: TrackerState(emptyMap())
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
@@ -51,13 +46,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         val preRestoreState = this.state
         if (preRestoreState == null) {
             // no state present in memory, restore it
-            val restoredState = restoreStateFromDisk<TrackerState?>(
-                this.appContext?.get(),
-                this.fileName,
-                this.fileEncoding,
-                this.manager?.get()?.debugLogger
-            )
-            this.state = restoredState
+            this.state = storage?.readState<TrackerState>(fileName, manager?.get()?.debugLogger)
         }
 
         var currentState = this.state ?: TrackerState(emptyMap())
@@ -80,7 +69,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
             )
         }
 
-        writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+        storage?.writeState(fileName, currentState)
         this.state = currentState
     }
 
@@ -91,7 +80,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         )
         if (currentState != null) {
             this.state = currentState
-            writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+            storage?.writeState(fileName, currentState)
         }
     }
 

@@ -9,6 +9,15 @@ interface TelemetryDeckSignalProcessor {
     val signalCache: SignalCache?
 
     /**
+     * Return the storage used by the SDK to persist provider state.
+     *
+     * The default returns a new [InMemoryStorage] instance on every access, which does not
+     * persist state across accesses. Implementers should override this property to return a
+     * stable instance.
+     * */
+    val storage: TelemetryStorage? get() = InMemoryStorage()
+
+    /**
      * Return the logger used by the SDK.
      * */
     val debugLogger: DebugLogger?

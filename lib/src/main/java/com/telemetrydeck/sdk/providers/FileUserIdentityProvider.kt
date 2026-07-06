@@ -3,8 +3,7 @@ package com.telemetrydeck.sdk.providers
 import android.content.Context
 import com.telemetrydeck.sdk.TelemetryDeckIdentityProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
-import java.io.File
-import java.lang.ref.WeakReference
+import com.telemetrydeck.sdk.TelemetryStorage
 import java.util.UUID
 
 /**
@@ -19,14 +18,11 @@ import java.util.UUID
  *
  * */
 class FileUserIdentityProvider: TelemetryDeckIdentityProvider {
-    private var app: WeakReference<Context?>? = null
-    private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
+    private var storage: TelemetryStorage? = null
     private val fileName = "telemetrydeckid"
-    private val fileEncoding = Charsets.UTF_8
 
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
-        this.app = WeakReference(ctx)
-        this.manager = WeakReference(client)
+        this.storage = client.storage
     }
 
     override fun stop() {
@@ -40,32 +36,17 @@ class FileUserIdentityProvider: TelemetryDeckIdentityProvider {
 
     override fun resetIdentity() {
         // to reset, we delete the identity file if it exists
-        val context = this.app?.get() ?: return
-        val file = File(context.filesDir, fileName)
-        try {
-            if (file.exists()) {
-                file.delete()
-            }
-        } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
-        }
+        storage?.delete(fileName)
     }
 
     private fun readOrCreateStableIdentity(): String? {
-        val context = this.app?.get() ?: return null
-
-        try {
-            val file = File(context.filesDir, fileName)
-            if (!file.exists()) {
-                val newId = UUID.randomUUID().toString()
-                file.writeText(newId, fileEncoding)
-                return newId
-            }
-
-            return file.readText(fileEncoding)
-        } catch (e: Exception) {
-            this.manager?.get()?.debugLogger?.error(e.stackTraceToString())
-            return null
+        val existingId = storage?.read(fileName)
+        if (existingId != null) {
+            return existingId
         }
+
+        val newId = UUID.randomUUID().toString()
+        storage?.write(fileName, newId)
+        return newId
     }
 }

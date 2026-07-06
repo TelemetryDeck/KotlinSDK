@@ -18,6 +18,7 @@ Android applications. Sign up for a free account at [telemetrydeck.com](https://
 * [Navigation Signals](#navigation-signals)
 * [Acquisition](#acquisition)
 * [Session Tracking](#session-tracking)
+* [In-memory-only mode (no local storage)](#in-memory-only-mode-no-local-storage)
 * [Duration Signals](#duration-signals)
 * [Calendar Parameters](#calendar-parameters)
 * [Purchase Completed](#purchase-completed)
@@ -34,18 +35,18 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central at the followin
 ```groovy
 // `build.gradle`
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:7.0.0'
+    implementation 'com.telemetrydeck:kotlin-sdk:7.1.0'
 }
 ```
 
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk:7.0.0")
+    implementation("com.telemetrydeck:kotlin-sdk:7.1.0")
 }
 ```
 
-> **Upgrading to 7.0.0?** This is a major release with breaking changes (minimum Android API 23, Gradle 9 / AGP 9). See [CHANGELOG.md](CHANGELOG.md) for the full list and migration steps.
+> **Upgrading to 7.1.0?** This is a major release with breaking changes (minimum Android API 23, Gradle 9 / AGP 9). See [CHANGELOG.md](CHANGELOG.md) for the full list and migration steps.
 
 If needed, update your `gradle.settings` to reference Kotlin version compatible with 2.3.21, e.g.:
 
@@ -412,6 +413,34 @@ val builder = TelemetryDeck.Builder()
 * You can provide your own logic for session tracking by adopting
   `TelemetryDeckSessionManagerProvider` and setting it as the session manager.
 
+## In-memory-only mode (no local storage)
+
+For situations where writing to disk is undesirable (sandboxed processes, privacy-sensitive deployments, etc), call `inMemoryOnly(true)` on the builder to run the SDK without writing anything to disk.
+
+```kotlin
+val builder = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .inMemoryOnly(true)
+
+TelemetryDeck.start(context, builder)
+```
+
+This tells the SDK to turn off features that require persistent storage and switches to in-memory operation only. For example, this activates `MemorySignalCache`, `MemorySessionProvider` and an in-memory provider storage backend (`InMemoryStorage`) instead of their disk-based defaults.
+
+User identity is still generated in this mode, but it is not persisted across restarts: a new random identifier is generated on every process launch unless the app supplies its own user identifier.
+
+New-install detection and retention metrics (distinct days used, average session length, etc.) become unavailable since they rely on state surviving a restart. We are also unable to cache events for later transmission - any unsent events are discarded when the app is terminated.
+
+If you need persistence with a backend other than the filesystem, supply your own implementation via `.storage(...)` on the builder.
+
+Note: Starting the SDK without a `Context` turns on in-memory mode too.
+
+```kotlin
+val telemetryDeck = TelemetryDeck.Builder()
+    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .build(null)
+```
+
 ## Duration Signals
 
 The SDK offers convenience methods to facilitate tracking the duration of specific objects or events.
@@ -489,7 +518,7 @@ When integrating with Google Play Billing Library, you can adopt the TelemetryDe
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.0.0")
+    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.1.0")
 }
 ```
 
