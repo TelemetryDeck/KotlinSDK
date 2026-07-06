@@ -7,12 +7,13 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.DateSerializer
 import com.telemetrydeck.sdk.TelemetryDeckSessionManagerProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.TelemetryStorage
 import com.telemetrydeck.sdk.UUIDOptionalSerializer
 import com.telemetrydeck.sdk.params.Retention
-import com.telemetrydeck.sdk.providers.helpers.restoreStateFromDisk
-import com.telemetrydeck.sdk.providers.helpers.writeStateToDisk
+import com.telemetrydeck.sdk.readState
 import com.telemetrydeck.sdk.signals.Acquisition
 import com.telemetrydeck.sdk.signals.Session
+import com.telemetrydeck.sdk.writeState
 import kotlinx.serialization.Serializable
 import java.lang.ref.WeakReference
 import java.text.DateFormat
@@ -31,17 +32,16 @@ import java.util.UUID
 *
 */
 class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, DefaultLifecycleObserver {
-    private var appContext: WeakReference<Context?>? = null
+    private var storage: TelemetryStorage? = null
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
     private var providerState: TrackingState? = null
     private var requestedSessionID: UUID? = null
     private val fileName = "telemetrydeckstracking"
-    private val fileEncoding = Charsets.UTF_8
     private val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
-        this.appContext = WeakReference(ctx)
+        this.storage = client.storage
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
@@ -50,16 +50,11 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         val currentState = this.providerState
         if (currentState == null) {
             // restore offline state
-            val restoredState = restoreStateFromDisk<TrackingState?>(
-                this.appContext?.get(),
-                this.fileName,
-                this.fileEncoding,
-                this.manager?.get()?.debugLogger
-            )
+            val restoredState = storage?.readState<TrackingState>(fileName, manager?.get()?.debugLogger)
             var newState = restoredState ?: TrackingState(emptyList(), emptyList())
             newState = repairOldSessions(newState)
             this.providerState = newState
-            writeStateToDisk(newState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+            storage?.writeState(fileName, newState)
         }
     }
 
@@ -251,7 +246,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         )
         if (currentState != null) {
             this.providerState = currentState
-            writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+            storage?.writeState(fileName, currentState)
         } else {
             this.manager?.get()?.debugLogger?.debug("Session tracking state is empty")
         }
@@ -296,7 +291,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
             ?: throw IllegalStateException("Session tracking is not running yet")
         currentState = endLastSessionIfPresent(currentState, now)
         currentState = startNewSessionAndTruncateStorage(currentState, now, sessionID)
-        writeStateToDisk(currentState, this.appContext?.get(), this.fileName, this.fileEncoding, this.manager?.get()?.debugLogger)
+        storage?.writeState(fileName, currentState)
         this.providerState = currentState
         if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
             manager?.get()?.processSignal(

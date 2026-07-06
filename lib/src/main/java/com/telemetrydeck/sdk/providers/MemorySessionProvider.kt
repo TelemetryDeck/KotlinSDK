@@ -12,6 +12,11 @@ import java.util.UUID
 
 /**
  * [MemorySessionProvider] tracks the current session in memory without any disk I/O.
+ *
+ * This stays a distinct implementation rather than [SessionTrackingSignalProvider] backed by an in-memory
+ * [com.telemetrydeck.sdk.TelemetryStorage]: [SessionTrackingSignalProvider] treats an empty state as a fresh
+ * install, so restarting it in-memory on every launch would wrongly emit `NewInstallDetected` and reset
+ * retention metrics each time the process starts.
  */
 class MemorySessionProvider : TelemetryDeckSessionManagerProvider, DefaultLifecycleObserver {
     private var manager: WeakReference<TelemetryDeckSignalProcessor>? = null
@@ -40,6 +45,7 @@ class MemorySessionProvider : TelemetryDeckSessionManagerProvider, DefaultLifecy
         handleOnForeground()
     }
 
+    @Synchronized
     fun handleOnForeground() {
         if (sessionID != null) return
         val id = requestedFirstSessionID ?: UUID.randomUUID()
@@ -59,7 +65,7 @@ class MemorySessionProvider : TelemetryDeckSessionManagerProvider, DefaultLifecy
 
     @Synchronized
     override fun startNewSession(sessionID: UUID) {
-        this.sessionID = sessionID
+        startSession(sessionID)
     }
 
     @Synchronized

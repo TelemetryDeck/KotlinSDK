@@ -35,18 +35,18 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central at the followin
 ```groovy
 // `build.gradle`
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:7.0.0'
+    implementation 'com.telemetrydeck:kotlin-sdk:7.1.0'
 }
 ```
 
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk:7.0.0")
+    implementation("com.telemetrydeck:kotlin-sdk:7.1.0")
 }
 ```
 
-> **Upgrading to 7.0.0?** This is a major release with breaking changes (minimum Android API 23, Gradle 9 / AGP 9). See [CHANGELOG.md](CHANGELOG.md) for the full list and migration steps.
+> **Upgrading to 7.1.0?** This is a major release with breaking changes (minimum Android API 23, Gradle 9 / AGP 9). See [CHANGELOG.md](CHANGELOG.md) for the full list and migration steps.
 
 If needed, update your `gradle.settings` to reference Kotlin version compatible with 2.3.21, e.g.:
 
@@ -425,15 +425,15 @@ val builder = TelemetryDeck.Builder()
 TelemetryDeck.start(context, builder)
 ```
 
-This tells the SDK to turn off features that require persistent storage and switches to in-memory operation only. For example, this activates `MemoryUserIdentityProvider`, `MemorySessionProvider` and `MemoryUserIdentityProvider` instead of their disk-based defaults.
+This tells the SDK to turn off features that require persistent storage and switches to in-memory operation only. For example, this activates `MemorySignalCache`, `MemorySessionProvider` and an in-memory provider storage backend (`InMemoryStorage`) instead of their disk-based defaults.
 
-Features that become unavailable in this mode include: automatic user identity, new-install detection and retention metrics (distinct days used, average session length, etc.). We are also unable to cache events for later transmission - any unsent events are discarded when the app is terminated.
+User identity is still generated in this mode, but it is not persisted across restarts: a new random identifier is generated on every process launch unless the app supplies its own user identifier.
 
+New-install detection and retention metrics (distinct days used, average session length, etc.) become unavailable since they rely on state surviving a restart. We are also unable to cache events for later transmission - any unsent events are discarded when the app is terminated.
 
-Note: 
-Starting the SDK without a `Context` turns on the same mode. When no `Context` is available (for example in
-unit tests or on non-Android runtimes), call `build(null)` directly and the SDK runs in-memory-only,
-since disk access needs a `Context`:
+If you need persistence with a backend other than the filesystem, supply your own implementation via `.storage(...)` on the builder.
+
+Note: Starting the SDK without a `Context` turns on in-memory mode too.
 
 ```kotlin
 val telemetryDeck = TelemetryDeck.Builder()
@@ -518,7 +518,7 @@ When integrating with Google Play Billing Library, you can adopt the TelemetryDe
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.0.0")
+    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.1.0")
 }
 ```
 

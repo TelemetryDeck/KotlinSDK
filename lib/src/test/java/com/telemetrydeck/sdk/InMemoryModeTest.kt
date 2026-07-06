@@ -1,8 +1,8 @@
 package com.telemetrydeck.sdk
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.MemorySessionProvider
-import com.telemetrydeck.sdk.providers.MemoryUserIdentityProvider
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -26,13 +26,14 @@ class InMemoryModeTest {
     }
 
     @Test
-    fun inMemoryOnly_uses_MemoryUserIdentityProvider() {
+    fun inMemoryOnly_uses_FileUserIdentityProvider_with_InMemoryStorage() {
         val manager = TelemetryDeck.Builder()
             .appID(appID)
             .inMemoryOnly(true)
             .build(null)
 
-        Assert.assertTrue(manager.identityProvider is MemoryUserIdentityProvider)
+        Assert.assertTrue(manager.identityProvider is FileUserIdentityProvider)
+        Assert.assertTrue(manager.storage is InMemoryStorage)
     }
 
     @Test
@@ -55,6 +56,18 @@ class InMemoryModeTest {
             .build(null)
 
         Assert.assertSame(customCache, manager.cache)
+    }
+
+    @Test
+    fun inMemoryOnly_explicit_storage_overrides_flag() {
+        val customStorage = InMemoryStorage()
+        val manager = TelemetryDeck.Builder()
+            .appID(appID)
+            .inMemoryOnly(true)
+            .storage(customStorage)
+            .build(null)
+
+        Assert.assertSame(customStorage, manager.storage)
     }
 
     @Test
@@ -148,12 +161,13 @@ class InMemoryModeTest {
     }
 
     @Test
-    fun nullContext_uses_MemoryUserIdentityProvider() {
+    fun nullContext_uses_FileUserIdentityProvider_with_InMemoryStorage() {
         val manager = TelemetryDeck.Builder()
             .appID(appID)
             .build(null)
 
-        Assert.assertTrue(manager.identityProvider is MemoryUserIdentityProvider)
+        Assert.assertTrue(manager.identityProvider is FileUserIdentityProvider)
+        Assert.assertTrue(manager.storage is InMemoryStorage)
     }
 
     @Test

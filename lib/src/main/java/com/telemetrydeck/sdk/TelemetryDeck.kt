@@ -13,7 +13,6 @@ import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
 import com.telemetrydeck.sdk.providers.MemorySessionProvider
-import com.telemetrydeck.sdk.providers.MemoryUserIdentityProvider
 import com.telemetrydeck.sdk.providers.PlatformContextProvider
 import com.telemetrydeck.sdk.providers.SessionTrackingSignalProvider
 import com.telemetrydeck.sdk.signals.Purchase
@@ -38,6 +37,8 @@ class TelemetryDeck(
 
     override val signalCache: SignalCache?
         get() = this.cache
+
+    override var storage: TelemetryStorage? = null
 
     override val debugLogger: DebugLogger?
         get() = this.logger
@@ -710,6 +711,9 @@ class TelemetryDeck(
         override val signalCache: SignalCache?
             get() = getInstance()?.signalCache
 
+        override val storage: TelemetryStorage?
+            get() = getInstance()?.storage
+
         override val debugLogger: DebugLogger?
             get() = getInstance()?.debugLogger
         override val sessionID: UUID?
@@ -737,6 +741,7 @@ class TelemetryDeck(
         private var sessionProvider: TelemetryDeckSessionManagerProvider? = null,
         private var telemetryClientFactory: TelemetryApiClientFactory? = null,
         private var signalCache: SignalCache? = null,
+        private var storage: TelemetryStorage? = null,
         private var namespace: String? = null,
         private var transmitInterval: Long? = null,
         private var maxBackoffInterval: Long? = null,
@@ -825,6 +830,10 @@ class TelemetryDeck(
 
         fun signalCache(cache: SignalCache) = apply {
             this.signalCache = cache
+        }
+
+        fun storage(storage: TelemetryStorage) = apply {
+            this.storage = storage
         }
 
         fun transmitInterval(intervalMs: Long) = apply {
@@ -947,11 +956,12 @@ class TelemetryDeck(
                 manager.cache = PersistentSignalCache(context.cacheDir, logger)
             }
 
+            manager.storage = this.storage
+                ?: if (useInMemoryOnly) InMemoryStorage() else PersistentStorage(context.filesDir, logger)
+
             val userIdentityProvider = this.identityProvider
             if (userIdentityProvider != null) {
                 manager.identityProvider = userIdentityProvider
-            } else if (useInMemoryOnly) {
-                manager.identityProvider = MemoryUserIdentityProvider()
             }
 
             val customSessionProvider = this.sessionProvider
@@ -963,17 +973,7 @@ class TelemetryDeck(
             }
 
             // providers must be installed at the end to allow them access to cache and full signal processing
-            if (useInMemoryOnly) {
-                for (provider in providers) {
-                    logger?.debug("Installing provider ${provider::class}.")
-                    val ctx = if (provider is DurationSignalTrackerProvider) null else context
-                    provider.register(ctx, manager)
-                }
-                manager.identityProvider.register(context, manager)
-                manager.sessionManager?.register(null, manager)
-            } else {
-                manager.installProviders(context)
-            }
+            manager.installProviders(context)
 
             // start signal broadcast
             broadcaster.start()
