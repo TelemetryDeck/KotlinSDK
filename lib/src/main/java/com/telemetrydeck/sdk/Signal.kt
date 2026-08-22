@@ -1,8 +1,9 @@
 package com.telemetrydeck.sdk
 
 import kotlinx.serialization.Serializable
-import java.util.Date
 import java.util.UUID
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Serializable
 data class Signal(
@@ -10,7 +11,7 @@ data class Signal(
      * When was this signal generated
      */
     @Serializable(with = DateSerializer::class)
-    var receivedAt: Date = Date(),
+    var receivedAt: Instant = Clock.System.now(),
 
     /**
      * The App ID of this signal

@@ -6,27 +6,22 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
+import kotlin.time.Instant
 
 
-internal object DateSerializer : KSerializer<Date> {
+internal object DateSerializer : KSerializer<Instant> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
-    private val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
 
-    init {
-        val tz = TimeZone.getTimeZone("UTC")
-        df.timeZone = tz
+    override fun serialize(encoder: Encoder, value: Instant) {
+        val epochMillis = value.toEpochMilliseconds()
+        val epochSeconds = Math.floorDiv(epochMillis, 1000L)
+        val millisOfSecond = Math.floorMod(epochMillis, 1000L)
+        val withoutFraction = Instant.fromEpochSeconds(epochSeconds).toString().removeSuffix("Z")
+        val fraction = millisOfSecond.toString().padStart(3, '0')
+        encoder.encodeString("$withoutFraction.${fraction}Z")
     }
 
-    override fun serialize(encoder: Encoder, value: Date) {
-        encoder.encodeString(df.format(value))
-    }
-
-    override fun deserialize(decoder: Decoder): Date {
-        return df.parse(decoder.decodeString())!!
+    override fun deserialize(decoder: Decoder): Instant {
+        return Instant.parse(decoder.decodeString())
     }
 }

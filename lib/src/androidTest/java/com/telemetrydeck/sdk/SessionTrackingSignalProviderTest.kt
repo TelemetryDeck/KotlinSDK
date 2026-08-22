@@ -16,9 +16,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import kotlin.time.Instant
 
 
 @RunWith(AndroidJUnit4::class)
@@ -355,12 +353,15 @@ class SessionTrackingSignalProviderTest {
         return null
     }
 
-    private fun formatTimeStamp(date: Date): String {
-        return  SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).format(date)
+    private fun formatTimeStamp(instant: Instant): String {
+        val epochMillis = instant.toEpochMilliseconds()
+        val epochSeconds = Math.floorDiv(epochMillis, 1000L)
+        val millisOfSecond = Math.floorMod(epochMillis, 1000L)
+        val withoutFraction = Instant.fromEpochSeconds(epochSeconds).toString().removeSuffix("Z")
+        return "$withoutFraction.${millisOfSecond.toString().padStart(3, '0')}Z"
     }
 
-    private fun parseDateString(dateString: String): Date {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-        return dateFormat.parse(dateString)!!
+    private fun parseDateString(dateString: String): Instant {
+        return Instant.parse(dateString)
     }
 }

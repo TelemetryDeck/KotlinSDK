@@ -16,11 +16,13 @@ import com.telemetrydeck.sdk.signals.Session
 import com.telemetrydeck.sdk.writeState
 import kotlinx.serialization.Serializable
 import java.lang.ref.WeakReference
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.Calendar
+import java.util.GregorianCalendar
 import java.util.UUID
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 
 /**
 *
@@ -37,7 +39,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
     private var providerState: TrackingState? = null
     private var requestedSessionID: UUID? = null
     private val fileName = "telemetrydeckstracking"
-    private val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    private val dayStringPattern = Regex("""^(\d{4})-(\d{2})-(\d{2})$""")
 
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
         this.manager = WeakReference(client)
@@ -67,14 +69,14 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         clientUser: String?,
         additionalPayload: Map<String, String>
     ): Map<String, String> {
-        return enrichInternal(signalType, clientUser, additionalPayload, Date())
+        return enrichInternal(signalType, clientUser, additionalPayload, Clock.System.now())
     }
 
     internal fun enrichInternal(
         signalType: String,
         clientUser: String?,
         additionalPayload: Map<String, String>,
-        now: Date
+        now: Instant
     ): Map<String, String> {
         val signalPayload = additionalPayload.toMutableMap()
         for (item in createMetadata(now)) {
@@ -85,17 +87,13 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         return signalPayload
     }
 
-    private fun createMetadata(now: Date): Map<String, String> {
+    private fun createMetadata(now: Instant): Map<String, String> {
         val currentState = this.providerState?.copy() ?: return emptyMap()
 
+        val thirtyDaysAgo = now - 30.days
         val daysLastMonth = currentState.distinctDays.filter {
-            val day = dateFormat.parse(it)
-            if (day != null) {
-                val thirtyDaysAgo = Date(now.time - (30L * 24L * 60L * 60L * 1000L))
-                day.after(thirtyDaysAgo) && day.before(now)
-            } else {
-                false
-            }
+            val dayStart = parseDayStart(it) ?: return@filter false
+            dayStart > thirtyDaysAgo && dayStart < now
         }
 
         val attributes = mutableMapOf(
@@ -126,7 +124,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         handleOnForeground()
     }
 
-    fun handleOnForeground(now: Date = Date()) {
+    fun handleOnForeground(now: Instant = Clock.System.now()) {
         this.manager?.get()?.debugLogger?.debug("Starting session tracking")
         restoreStateIfNeeded()
         var currentState = this.providerState?.copy()
@@ -152,7 +150,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         if (newInstall) {
             // we're running for the first time
             this.manager?.get()?.debugLogger?.debug("Session tracking is running for the first time")
-            val today = dateFormat.format(now)
+            val today = dayString(now)
             manager?.get()?.processSignal(
                 Acquisition.NewInstallDetected.signalName,
                 mapOf(
@@ -165,29 +163,29 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
     /**
      * Returns `true` if more than 5 minutes have expired since the app was sent in the background
      * */
-    private fun shouldStartNewSession(state: TrackingState, now: Date): Boolean {
+    private fun shouldStartNewSession(state: TrackingState, now: Instant): Boolean {
         val lastEnteredBackground = state.lastEnteredBackground
         if (lastEnteredBackground != null) {
-            val backgroundDuration = now.time - lastEnteredBackground.time
-            return backgroundDuration > 5 * 60 * 1000
+            val backgroundDuration = now - lastEnteredBackground
+            return backgroundDuration > 5.minutes
         } else {
             return true
         }
     }
 
-    private fun startNewSessionAndTruncateStorage(state: TrackingState, now: Date, sessionID: UUID): TrackingState {
+    private fun startNewSessionAndTruncateStorage(state: TrackingState, now: Instant, sessionID: UUID): TrackingState {
         val newSession = StoredSession(sessionID, now, null, 0)
         var result = state.copy()
         val lifetimeSessionsCount = (result.lifetimeSessionsCount ?: 0) + 1
         result = result.copy(
             sessions = result.sessions + newSession,
             lifetimeSessionsCount = lifetimeSessionsCount,
-            distinctDays = (result.distinctDays + dateFormat.format(now)).distinctBy { it.lowercase() }
+            distinctDays = (result.distinctDays + dayString(now)).distinctBy { it.lowercase() }
         )
 
         // truncate started more than 90 days ago
-        val cutOff = Date(now.time - (90L * 24L * 60L * 60L * 1000L))
-        val survivingSessions = result.sessions.filter { it.firstStart.after(cutOff) }
+        val cutOff = now - 90.days
+        val survivingSessions = result.sessions.filter { it.firstStart > cutOff }
 
         result = result.copy(
             sessions = survivingSessions
@@ -196,7 +194,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         return result
     }
 
-    private fun endLastSessionIfPresent(state: TrackingState, now: Date): TrackingState {
+    private fun endLastSessionIfPresent(state: TrackingState, now: Instant): TrackingState {
         val lastSession = state.sessions.lastOrNull()
             ?: // nothing to do
             return state
@@ -205,20 +203,42 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         // mark the session as ended and calculate the duration
         this.manager?.get()?.debugLogger?.debug("Session tracking finalizing current session")
 
-        val durationMillis = now.time - lastSession.firstStart.time
+        val durationMillis = (now - lastSession.firstStart).inWholeMilliseconds
         result = result.copy(
             sessions = result.sessions.dropLast(1) + lastSession.copy(ended = now, durationMillis = durationMillis),
         )
         return result
     }
 
-    private fun updateDistinctDays(state: TrackingState, now: Date): TrackingState {
+    private fun updateDistinctDays(state: TrackingState, now: Instant): TrackingState {
         val result = state.copy()
-        val today = dateFormat.format(now)
+        val today = dayString(now)
         // update distinct days (e.g. in case we've changed timezone or it's already tomorrow
         return result.copy(
             distinctDays = (result.distinctDays + today).distinctBy { it.lowercase() }
         )
+    }
+
+    private fun dayString(instant: Instant): String {
+        val calendar = GregorianCalendar()
+        calendar.timeInMillis = instant.toEpochMilliseconds()
+        val year = calendar.get(Calendar.YEAR).toString().padStart(4, '0')
+        val month = (calendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        val day = calendar.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
+        return "$year-$month-$day"
+    }
+
+    private fun parseDayStart(value: String): Instant? {
+        val match = dayStringPattern.matchEntire(value) ?: return null
+        val (year, month, day) = match.destructured
+        return try {
+            val calendar = GregorianCalendar()
+            calendar.clear()
+            calendar.set(year.toInt(), month.toInt() - 1, day.toInt())
+            Instant.fromEpochMilliseconds(calendar.timeInMillis)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun repairOldSessions(state: TrackingState): TrackingState {
@@ -239,7 +259,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         handleOnBackground()
     }
 
-    fun handleOnBackground(now: Date = Date()) {
+    fun handleOnBackground(now: Instant = Clock.System.now()) {
         this.manager?.get()?.debugLogger?.debug("Session tracking is shutting down")
         val currentState = this.providerState?.copy(
             lastEnteredBackground = now
@@ -258,9 +278,9 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         @Serializable(with = UUIDOptionalSerializer::class)
         val id: UUID? = null,
         @Serializable(with = DateSerializer::class)
-        val firstStart: Date,
+        val firstStart: Instant,
         @Serializable(with = DateSerializer::class)
-        val ended: Date?,
+        val ended: Instant?,
         // The duration of the session covering the time when the user was actively interacting with the app (based on the app's lifecycle)
         val durationMillis: Long
     )
@@ -272,7 +292,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         val distinctDays: List<String>,
         val lifetimeSessionsCount: Long? = null,
         @Serializable(with = DateSerializer::class)
-        val lastEnteredBackground: Date? = null
+        val lastEnteredBackground: Instant? = null
     )
 
     @Synchronized
@@ -282,10 +302,10 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
 
     @Synchronized
     override fun startNewSession(sessionID: UUID) {
-        startSession(sessionID, Date())
+        startSession(sessionID, Clock.System.now())
     }
 
-    private fun startSession(sessionID: UUID, now: Date) {
+    private fun startSession(sessionID: UUID, now: Instant) {
         this.manager?.get()?.debugLogger?.debug("Starting a new session $sessionID")
         var currentState = this.providerState?.copy()
             ?: throw IllegalStateException("Session tracking is not running yet")
