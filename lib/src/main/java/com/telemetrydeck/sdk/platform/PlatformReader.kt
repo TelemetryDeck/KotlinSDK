@@ -3,6 +3,7 @@ package com.telemetrydeck.sdk.platform
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.hardware.display.DisplayManager
 import android.os.Build
 import com.telemetrydeck.sdk.DebugLogger
 import java.util.Calendar
@@ -88,6 +89,20 @@ internal fun getDisplayMetrics(context: Context, logger: DebugLogger?): ScreenMe
         )
     } catch (e: Exception) {
         logger?.error("getDisplayMetrics failed: $e ${e.stackTraceToString()}")
+        return null
+    }
+}
+
+internal fun getConnectedDisplaySizes(context: Context, logger: DebugLogger?): List<DisplaySize>? {
+    try {
+        val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
+            ?: return null
+        return displayManager.displays.map { display ->
+            val mode = display.mode
+            DisplaySize(display.displayId, mode.physicalWidth, mode.physicalHeight)
+        }
+    } catch (e: Exception) {
+        logger?.error("getConnectedDisplaySizes failed: $e ${e.stackTraceToString()}")
         return null
     }
 }

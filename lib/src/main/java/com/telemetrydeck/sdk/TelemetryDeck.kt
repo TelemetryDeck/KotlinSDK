@@ -2,6 +2,7 @@ package com.telemetrydeck.sdk
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import com.telemetrydeck.sdk.params.Acquisition
 import com.telemetrydeck.sdk.params.Activation
 import com.telemetrydeck.sdk.params.ErrorCategory
@@ -9,6 +10,7 @@ import com.telemetrydeck.sdk.params.Navigation
 import com.telemetrydeck.sdk.params.Revenue
 import com.telemetrydeck.sdk.providers.AccessibilityProvider
 import com.telemetrydeck.sdk.providers.CalendarParameterProvider
+import com.telemetrydeck.sdk.providers.DisplayParameterProvider
 import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
@@ -444,12 +446,15 @@ class TelemetryDeck(
 
     companion object : TelemetryDeckClient, TelemetryDeckSignalProcessor {
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
-            get() = listOf(
-                EnvironmentParameterProvider(),
-                PlatformContextProvider(),
-                AccessibilityProvider(),
-                CalendarParameterProvider()
-            )
+            get() = buildList {
+                add(EnvironmentParameterProvider())
+                add(PlatformContextProvider())
+                add(AccessibilityProvider())
+                add(CalendarParameterProvider())
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    add(DisplayParameterProvider())
+                }
+            }
         internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 
         // [TelemetryDeck] singleton
