@@ -1,5 +1,38 @@
 # Changelog
 
+## 7.2.0
+
+### Before You Upgrade
+
+**Version 7.2.0 contains breaking changes.** Please read the migration notes below before updating.
+
+### Breaking Changes
+
+#### Signal timestamps now use `kotlin.time.Instant` ([#109](https://github.com/TelemetryDeck/KotlinSDK/pull/109))
+
+`Signal.receivedAt` is now `kotlin.time.Instant` instead of `java.util.Date`. The `kotlinx-datetime` dependency has been dropped in favor of a stateless serializer built on the Kotlin standard library. If you read `receivedAt` directly, update your code to use `Instant`.
+
+#### `TelemetryDeck.Calendar.hourOfDay` is now 1-based ([#110](https://github.com/TelemetryDeck/KotlinSDK/pull/110))
+
+`hourOfDay` now reports `1..24` instead of `0..23` (1 = 00:00-00:59, 24 = 23:00-23:59), aligning with the SwiftSDK.
+
+#### `TelemetryDeck.Calendar.quarterOfYear` is now derived from the month ([#110](https://github.com/TelemetryDeck/KotlinSDK/pull/110))
+
+The quarter is now always calculated from the month component, replacing the previous API-level-dependent logic, aligning with SwiftSDK.
+
+#### Signals are now sent as native JSON objects ([#111](https://github.com/TelemetryDeck/KotlinSDK/pull/111))
+
+Signal payloads are transmitted as native JSON objects instead of `"key:value"` string tags. If you implement a custom `SignalCache` or otherwise consume `Signal.payload` directly, expect a `JsonObject` rather than `List<String>`.
+
+### New Features
+
+#### Screen size parameters ([#111](https://github.com/TelemetryDeck/KotlinSDK/pull/111))
+
+The SDK now reports connected display dimensions automatically on Android 7.0 (API 24) and later ([SwiftSDK#293](https://github.com/TelemetryDeck/SwiftSDK/pull/293)):
+
+- `TelemetryDeck.Device.Screens.Primary.width` / `.height` / `.resolution`
+- `TelemetryDeck.Device.Screens.All.width` / `.height` / `.resolution` / `.count`
+
 ## 7.1.0
 
 Adds in-memory mode: In this mode, none of our default providers will use client side persistence to disk.
