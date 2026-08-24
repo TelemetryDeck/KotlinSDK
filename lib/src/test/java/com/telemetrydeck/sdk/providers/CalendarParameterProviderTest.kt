@@ -32,8 +32,10 @@ class CalendarParameterProviderTest {
         assertEquals("3", attributes[CalendarParams.DayOfWeek.paramName])
         assertEquals("15", attributes[CalendarParams.DayOfYear.paramName])
         assertEquals("1", attributes[CalendarParams.MonthOfYear.paramName])
-        assertEquals("10", attributes[CalendarParams.HourOfDay.paramName])
+        assertEquals("11", attributes[CalendarParams.HourOfDay.paramName])
         assertEquals("false", attributes[CalendarParams.IsWeekend.paramName])
+        // 3 under the default-locale week rules (java.util.Calendar.WEEK_OF_YEAR)
+        assertEquals("3", attributes[CalendarParams.WeekOfYear.paramName])
     }
 
     @Test
@@ -45,6 +47,7 @@ class CalendarParameterProviderTest {
 
         assertEquals("7", attributes[CalendarParams.DayOfWeek.paramName])
         assertEquals("true", attributes[CalendarParams.IsWeekend.paramName])
+        assertEquals("24", attributes[CalendarParams.HourOfDay.paramName])
     }
 
     @Test
@@ -67,6 +70,7 @@ class CalendarParameterProviderTest {
 
         assertEquals("1", attributes[CalendarParams.DayOfWeek.paramName])
         assertEquals("false", attributes[CalendarParams.IsWeekend.paramName])
+        assertEquals("1", attributes[CalendarParams.HourOfDay.paramName])
     }
 
     @Test
@@ -106,6 +110,27 @@ class CalendarParameterProviderTest {
                 "Calendar.DAY_OF_WEEK=$calendarDayOfWeek must map to ISO day $isoDayOfWeek",
                 "$isoDayOfWeek",
                 attributes[CalendarParams.DayOfWeek.paramName]
+            )
+        }
+    }
+
+    @Test
+    fun quarter_of_year_mapping_covers_all_twelve_months() {
+        val expected = mapOf(
+            1 to 1, 2 to 1, 3 to 1,
+            4 to 2, 5 to 2, 6 to 2,
+            7 to 3, 8 to 3, 9 to 3,
+            10 to 4, 11 to 4, 12 to 4,
+        )
+        val sut = CalendarParameterProvider()
+
+        for ((month, quarter) in expected) {
+            val attributes = sut.enrichInternal(emptyMap(), calendar(2025, month, 15, 10, 30, 0))
+
+            assertEquals(
+                "month=$month must map to quarter $quarter",
+                "$quarter",
+                attributes[CalendarParams.QuarterOfYear.paramName]
             )
         }
     }

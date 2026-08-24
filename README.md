@@ -468,8 +468,8 @@ By default, the KotlinSDK will append the following parameters to all outgoing s
 - `TelemetryDeck.Calendar.weekOfYear`: The week number within the current year as defined by `getFirstDayOfWeek()` and `getMinimalDaysInFirstWeek()`.
 - `TelemetryDeck.Calendar.isWeekend`: `true` if the day of the week is Saturday or Sunday, `false` otherwise.
 - `TelemetryDeck.Calendar.monthOfYear`: The number-of-the-month (1..12) component of the date.
-- `TelemetryDeck.Calendar.quarterOfYear`: The the quarter-of-year (1..4). For API 26 and earlier, it's the number of the month divided by 3.
-- `TelemetryDeck.Calendar.hourOfDay`: The hour-of-day (0..23) time component of this time value.
+- `TelemetryDeck.Calendar.quarterOfYear`: The quarter-of-year (1..4) derived from the month.
+- `TelemetryDeck.Calendar.hourOfDay`: The hour-of-day (1..24) time component. 1 = 00:00-00:59, 24 = 23:00-23:59.
 
 
 ## Purchase Completed

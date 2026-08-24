@@ -1,13 +1,10 @@
 package com.telemetrydeck.sdk.providers
 
 import android.content.Context
-import android.os.Build
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.platform.getCurrentLocale
 import java.lang.ref.WeakReference
-import java.time.LocalDate
-import java.time.temporal.IsoFields
 import java.util.Calendar
 
 class CalendarParameterProvider : TelemetryDeckProvider {
@@ -51,28 +48,15 @@ class CalendarParameterProvider : TelemetryDeckProvider {
         signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfWeek.paramName] = "$isoDayOfWeek"
         signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfYear.paramName] = "${now.get(Calendar.DAY_OF_YEAR)}"
         signalPayload[com.telemetrydeck.sdk.params.Calendar.MonthOfYear.paramName] = "$monthOfYear"
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.HourOfDay.paramName] = "${now.get(Calendar.HOUR_OF_DAY)}"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.HourOfDay.paramName] = "${now.get(Calendar.HOUR_OF_DAY) + 1}"
 
         // Note: isWeekend only accounts for Sat-Sun counties
         signalPayload[com.telemetrydeck.sdk.params.Calendar.IsWeekend.paramName] = "${isoDayOfWeek in listOf(6, 7)}"
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val currentDate = LocalDate.now()
-            signalPayload[com.telemetrydeck.sdk.params.Calendar.WeekOfYear.paramName] = "${Calendar.getInstance().get(Calendar.WEEK_OF_YEAR)}"
-            signalPayload[com.telemetrydeck.sdk.params.Calendar.QuarterOfYear.paramName] = "${currentDate.get(IsoFields.QUARTER_OF_YEAR)}"
-        } else {
-            // falling back to simple 3 month approach
-            val quarterNumber = when (monthOfYear) {
-                in 1..3 -> 1
-                in 4..6 -> 2
-                in 7..9 -> 3
-                in 10..12 -> 4
-                else -> null
-            }
-            if (quarterNumber != null) {
-                signalPayload[com.telemetrydeck.sdk.params.Calendar.QuarterOfYear.paramName] = "$quarterNumber"
-            }
-        }
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.WeekOfYear.paramName] = "${now.get(Calendar.WEEK_OF_YEAR)}"
+
+        val quarterNumber = (monthOfYear + 2) / 3
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.QuarterOfYear.paramName] = "$quarterNumber"
 
         return signalPayload
     }
