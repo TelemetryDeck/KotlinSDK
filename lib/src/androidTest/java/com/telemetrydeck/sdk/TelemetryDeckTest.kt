@@ -23,10 +23,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.net.URL
-import java.util.Date
 import java.util.UUID
 import kotlin.collections.find
 import kotlin.text.startsWith
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
 
 
 @RunWith(AndroidJUnit4::class)
@@ -242,12 +243,12 @@ class TelemetryDeckTest {
 
         // simulate going into the background 10 minutes later
         (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnBackground(
-            Date(Date().time + 1000 * 10 * 60)
+            Clock.System.now() + 10.minutes
         )
 
         // and back to foreground an hour later
         (TelemetryDeck.instance!!.sessionManager as SessionTrackingSignalProvider).handleOnForeground(
-            Date(Date().time + 1000 * 60 * 60)
+            Clock.System.now() + 60.minutes
         )
 
         // act
@@ -356,20 +357,18 @@ class TelemetryDeckTest {
         val sut =
             (TelemetryDeck.instance!!.providers.find { it is DurationSignalTrackerProvider } as DurationSignalTrackerProvider)
 
-        val now = Date()
+        val now = Clock.System.now()
         sut.handleOnForeground(now)
 
         sut.startTracking("foreground", emptyMap(), includeBackgroundTime = false, now)
         sut.startTracking("foreground_and_background", emptyMap(), includeBackgroundTime = true, now)
 
         // +600seconds, simulate going into the background 10 minutes later
-        val time1 = Date(now.time + 1000 * 10 * 60)
-        sut.handleOnBackground(
-            Date(now.time + 1000 * 10 * 60)
-        )
+        val time1 = now + 10.minutes
+        sut.handleOnBackground(time1)
 
         // +3600seconds, and back to foreground an hour later
-        val endTime = Date(time1.time + (1000 * 60 * 60))
+        val endTime = time1 + 60.minutes
 
         sut.handleOnForeground(
             endTime

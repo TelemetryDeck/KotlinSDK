@@ -5,11 +5,6 @@ import android.os.Build
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.platform.getCurrentLocale
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.isoDayNumber
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 import java.lang.ref.WeakReference
 import java.time.LocalDate
 import java.time.temporal.IsoFields
@@ -45,16 +40,21 @@ class CalendarParameterProvider : TelemetryDeckProvider {
             manager?.get()?.debugLogger?.error("CalendarParameterProvider: Locale is null")
         }
 
+        return enrichInternal(additionalPayload, Calendar.getInstance())
+    }
+
+    internal fun enrichInternal(additionalPayload: Map<String, String>, now: Calendar): Map<String, String> {
         val signalPayload = additionalPayload.toMutableMap()
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfMonth.paramName] = "${now.day}"
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfWeek.paramName] = "${now.dayOfWeek.isoDayNumber}"
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfYear.paramName] = "${now.dayOfYear}"
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.MonthOfYear.paramName] = "${now.month.number}"
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.HourOfDay.paramName] = "${now.hour}"
+        val isoDayOfWeek = ((now.get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1
+        val monthOfYear = now.get(Calendar.MONTH) + 1
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfMonth.paramName] = "${now.get(Calendar.DAY_OF_MONTH)}"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfWeek.paramName] = "$isoDayOfWeek"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.DayOfYear.paramName] = "${now.get(Calendar.DAY_OF_YEAR)}"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.MonthOfYear.paramName] = "$monthOfYear"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.HourOfDay.paramName] = "${now.get(Calendar.HOUR_OF_DAY)}"
 
         // Note: isWeekend only accounts for Sat-Sun counties
-        signalPayload[com.telemetrydeck.sdk.params.Calendar.IsWeekend.paramName] = "${now.dayOfWeek.isoDayNumber in listOf(6, 7)}"
+        signalPayload[com.telemetrydeck.sdk.params.Calendar.IsWeekend.paramName] = "${isoDayOfWeek in listOf(6, 7)}"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val currentDate = LocalDate.now()
@@ -62,7 +62,7 @@ class CalendarParameterProvider : TelemetryDeckProvider {
             signalPayload[com.telemetrydeck.sdk.params.Calendar.QuarterOfYear.paramName] = "${currentDate.get(IsoFields.QUARTER_OF_YEAR)}"
         } else {
             // falling back to simple 3 month approach
-            val quarterNumber = when (now.month.number) {
+            val quarterNumber = when (monthOfYear) {
                 in 1..3 -> 1
                 in 4..6 -> 2
                 in 7..9 -> 3

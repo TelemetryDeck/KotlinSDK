@@ -12,7 +12,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
-import java.util.Date
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @RunWith(AndroidJUnit4::class)
@@ -82,9 +83,9 @@ class DurationSignalTrackerProviderTest {
     @UiThreadTest
     @Test
     fun restores_state_from_disk() {
-        val now = Date()
-        val twoHoursAgo = Date(now.time - 7200000)
-        val hourAgo = Date(now.time - 3600000)
+        val now = Clock.System.now()
+        val twoHoursAgo = now - 7200000.milliseconds
+        val hourAgo = now - 3600000.milliseconds
         val state = DurationSignalTrackerProvider.TrackerState(
             signals = mapOf("signal1" to DurationSignalTrackerProvider.CachedData(startTime = twoHoursAgo, parameters = mapOf("param1" to "value1"), false)),
             lastEnteredBackground = hourAgo
@@ -110,9 +111,9 @@ class DurationSignalTrackerProviderTest {
     @UiThreadTest
     @Test
     fun substracts_background_time() {
-        val now = Date()
-        val twoHoursAgo = Date(now.time - 7200000)
-        val hourAgo = Date(now.time - 3700000)
+        val now = Clock.System.now()
+        val twoHoursAgo = now - 7200000.milliseconds
+        val hourAgo = now - 3700000.milliseconds
         val state = DurationSignalTrackerProvider.TrackerState(
             signals = mapOf("signal1" to DurationSignalTrackerProvider.CachedData(startTime = twoHoursAgo, parameters = mapOf("param1" to "value1"), false)),
             lastEnteredBackground = hourAgo
