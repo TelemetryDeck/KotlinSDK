@@ -10,9 +10,13 @@ import androidx.annotation.RequiresApi
 import com.telemetrydeck.sdk.DebugLogger
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.TelemetryDeckTypedProvider
 import com.telemetrydeck.sdk.params.Screens
 import com.telemetrydeck.sdk.platform.DisplaySize
 import com.telemetrydeck.sdk.platform.getConnectedDisplaySizes
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import java.lang.ref.WeakReference
 
 /**
@@ -21,7 +25,7 @@ import java.lang.ref.WeakReference
 @RequiresApi(Build.VERSION_CODES.N)
 class DisplayParameterProvider internal constructor(
     private val now: () -> Long
-) : TelemetryDeckProvider {
+) : TelemetryDeckProvider, TelemetryDeckTypedProvider {
     constructor() : this(System::currentTimeMillis)
 
     private var app: WeakReference<Context?>? = null
@@ -29,7 +33,7 @@ class DisplayParameterProvider internal constructor(
     private var displayManager: WeakReference<DisplayManager?>? = null
     private var displayListener: DisplayManager.DisplayListener? = null
 
-    private var cachedParams: Map<String, String>? = null
+    private var cachedParams: Map<String, JsonElement>? = null
     private var cacheTimestamp: Long = 0L
 
     override fun register(ctx: Context?, client: TelemetryDeckSignalProcessor) {
@@ -68,22 +72,12 @@ class DisplayParameterProvider internal constructor(
         }
     }
 
-    override fun enrich(
-        signalType: String,
-        clientUser: String?,
-        additionalPayload: Map<String, String>
-    ): Map<String, String> {
-        val signalPayload = additionalPayload.toMutableMap()
-        for (item in resolvedParams()) {
-            if (!signalPayload.containsKey(item.key)) {
-                signalPayload[item.key] = item.value
-            }
-        }
-        return signalPayload
+    override fun enrichTyped(signalType: String, clientUser: String?): Map<String, JsonElement> {
+        return resolvedParams()
     }
 
     @Synchronized
-    internal fun resolvedParams(): Map<String, String> {
+    internal fun resolvedParams(): Map<String, JsonElement> {
         val isTestMode = this.manager?.get()?.configuration?.testMode == true
         val cached = cachedParams
         if (!isTestMode && cached != null && now() - cacheTimestamp < CACHE_LIFETIME_MILLIS) {
@@ -102,7 +96,7 @@ class DisplayParameterProvider internal constructor(
         cachedParams = null
     }
 
-    private fun readScreenParams(context: Context, logger: DebugLogger?): Map<String, String> {
+    private fun readScreenParams(context: Context, logger: DebugLogger?): Map<String, JsonElement> {
         val displays = getConnectedDisplaySizes(context, logger)
         if (displays.isNullOrEmpty()) {
             return emptyMap()
@@ -110,14 +104,14 @@ class DisplayParameterProvider internal constructor(
 
         val primary = displays.firstOrNull { it.displayId == Display.DEFAULT_DISPLAY } ?: displays.first()
 
-        val params = mutableMapOf<String, String>()
-        params[Screens.PrimaryWidth.paramName] = "${primary.width}"
-        params[Screens.PrimaryHeight.paramName] = "${primary.height}"
-        params[Screens.PrimaryResolution.paramName] = resolutionString(primary)
-        params[Screens.AllWidth.paramName] = displays.joinToString(";") { "${it.width}" }
-        params[Screens.AllHeight.paramName] = displays.joinToString(";") { "${it.height}" }
-        params[Screens.AllResolution.paramName] = displays.joinToString(";") { resolutionString(it) }
-        params[Screens.AllCount.paramName] = "${displays.size}"
+        val params = mutableMapOf<String, JsonElement>()
+        params[Screens.PrimaryWidth.paramName] = JsonPrimitive(primary.width)
+        params[Screens.PrimaryHeight.paramName] = JsonPrimitive(primary.height)
+        params[Screens.PrimaryResolution.paramName] = JsonPrimitive(resolutionString(primary))
+        params[Screens.AllWidth.paramName] = JsonArray(displays.map { JsonPrimitive(it.width) })
+        params[Screens.AllHeight.paramName] = JsonArray(displays.map { JsonPrimitive(it.height) })
+        params[Screens.AllResolution.paramName] = JsonArray(displays.map { JsonPrimitive(resolutionString(it)) })
+        params[Screens.AllCount.paramName] = JsonPrimitive(displays.size)
         return params
     }
 

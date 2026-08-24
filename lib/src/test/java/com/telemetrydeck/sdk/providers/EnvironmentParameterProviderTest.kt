@@ -3,6 +3,7 @@ package com.telemetrydeck.sdk.providers
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.telemetrydeck.sdk.TelemetryDeck
 import com.telemetrydeck.sdk.TelemetryManagerConfiguration
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -24,7 +25,7 @@ class EnvironmentParameterProviderTest {
         Assert.assertNotNull(queuedSignal)
         Assert.assertEquals(
             true,
-            queuedSignal?.payload?.any { it.startsWith("TelemetryDeck.SDK.version:") }
+            queuedSignal?.payload?.containsKey("TelemetryDeck.SDK.version")
 
         )
     }
@@ -41,8 +42,8 @@ class EnvironmentParameterProviderTest {
 
         Assert.assertNotNull(queuedSignal)
         Assert.assertEquals(
-            true,
-            queuedSignal?.payload?.contains("telemetryClientVersion:my value")
+            "my value",
+            queuedSignal?.payload?.get("telemetryClientVersion")?.jsonPrimitive?.content
         )
     }
 
@@ -59,7 +60,7 @@ class EnvironmentParameterProviderTest {
         Assert.assertNotNull(queuedSignal)
         Assert.assertEquals(
             true,
-            queuedSignal?.payload?.filter { it.startsWith("TelemetryDeck.SDK.buildType:") }?.isNotEmpty()
+            queuedSignal?.payload?.containsKey("TelemetryDeck.SDK.buildType")
         )
     }
 }

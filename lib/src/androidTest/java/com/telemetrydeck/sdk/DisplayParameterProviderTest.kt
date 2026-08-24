@@ -6,6 +6,9 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SdkSuppress
 import com.telemetrydeck.sdk.providers.DisplayParameterProvider
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -24,7 +27,7 @@ class DisplayParameterProviderTest {
     @Test
     fun appendsAllExpectedParameters() {
         val sut = createSut()
-        val result = sut.enrich("", null)
+        val result = sut.enrichTyped("", null)
 
         assertTrue(result.containsKey("TelemetryDeck.Device.Screens.Primary.width"))
         assertTrue(result.containsKey("TelemetryDeck.Device.Screens.Primary.height"))
@@ -34,21 +37,22 @@ class DisplayParameterProviderTest {
         assertTrue(result.containsKey("TelemetryDeck.Device.Screens.All.resolution"))
         assertTrue(result.containsKey("TelemetryDeck.Device.Screens.All.count"))
 
-        assertTrue(result.getValue("TelemetryDeck.Device.Screens.Primary.width").toInt() > 0)
-        assertTrue(result.getValue("TelemetryDeck.Device.Screens.Primary.height").toInt() > 0)
-        assertTrue(result.getValue("TelemetryDeck.Device.Screens.Primary.resolution").matches(Regex("\\d+,\\d+")))
-        assertTrue(result.getValue("TelemetryDeck.Device.Screens.All.resolution").split(";").all { it.matches(Regex("\\d+,\\d+")) })
-        assertTrue(result.getValue("TelemetryDeck.Device.Screens.All.count").toInt() >= 1)
+        assertTrue(result.getValue("TelemetryDeck.Device.Screens.Primary.width").jsonPrimitive.int > 0)
+        assertTrue(result.getValue("TelemetryDeck.Device.Screens.Primary.height").jsonPrimitive.int > 0)
+        assertTrue(result.getValue("TelemetryDeck.Device.Screens.Primary.resolution").jsonPrimitive.content.matches(Regex("\\d+,\\d+")))
+        assertTrue(result.getValue("TelemetryDeck.Device.Screens.All.resolution").jsonArray.all { it.jsonPrimitive.content.matches(Regex("\\d+,\\d+")) })
+        assertTrue(result.getValue("TelemetryDeck.Device.Screens.All.count").jsonPrimitive.int >= 1)
 
         sut.stop()
     }
 
     @Test
-    fun doesNotOverwriteACallerProvidedValue() {
+    fun allDisplayValuesAreAlwaysArraysEvenForASingleDisplay() {
         val sut = createSut()
-        val result = sut.enrich("", null, mapOf("TelemetryDeck.Device.Screens.Primary.width" to "custom"))
+        val result = sut.enrichTyped("", null)
 
-        assertEquals("custom", result["TelemetryDeck.Device.Screens.Primary.width"])
+        val width = result.getValue("TelemetryDeck.Device.Screens.All.width").jsonArray
+        assertEquals(result.getValue("TelemetryDeck.Device.Screens.All.count").jsonPrimitive.int, width.size)
 
         sut.stop()
     }

@@ -15,6 +15,12 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -32,7 +38,7 @@ class PersistentSignalCacheTest {
     var folder = TemporaryFolder()
 
     private fun makeSignal(type: String = "type", user: String = "user") =
-        Signal(UUID.randomUUID(), type, user, SignalPayload())
+        Signal(UUID.randomUUID(), type, user)
 
     @Test
     fun persistentSignalCache_starts_with_empty_queue() = runTest(UnconfinedTestDispatcher()) {
@@ -40,6 +46,69 @@ class PersistentSignalCacheTest {
         val sut = PersistentSignalCache(cacheDir, null, ioDispatcher = UnconfinedTestDispatcher())
 
         Assert.assertEquals(0, sut.count())
+    }
+
+    @Test
+    fun oldListFormatPayloadCacheIsDroppedGracefully() = runTest(UnconfinedTestDispatcher()) {
+        val cacheDir = folder.newFolder()
+        val cacheFile = File(cacheDir, "telemetrydeck.json")
+        cacheFile.writeText(
+            "[{\"receivedAt\":\"2025-01-15T09:30:00.000Z\",\"appID\":\"32cb6574-6732-4238-879f-582febeb6536\"," +
+                "\"clientUser\":\"clientUser\",\"sessionID\":null,\"type\":\"type\",\"payload\":[\"platform:Android\"]}]"
+        )
+
+        val sut = PersistentSignalCache(cacheDir, null, ioDispatcher = UnconfinedTestDispatcher())
+
+        Assert.assertEquals(0, sut.count())
+    }
+
+    @Test
+    fun oldListFormatPayloadCacheIsOverwrittenOnResume() = runTest(UnconfinedTestDispatcher()) {
+        val cacheDir = folder.newFolder()
+        val cacheFile = File(cacheDir, "telemetrydeck.json")
+        cacheFile.writeText(
+            "[{\"receivedAt\":\"2025-01-15T09:30:00.000Z\",\"appID\":\"32cb6574-6732-4238-879f-582febeb6536\"," +
+                "\"clientUser\":\"clientUser\",\"sessionID\":null,\"type\":\"type\",\"payload\":[\"platform:Android\"]}]"
+        )
+
+        val sut = PersistentSignalCache(cacheDir, null, ioDispatcher = UnconfinedTestDispatcher())
+        Assert.assertEquals(0, sut.count())
+
+        sut.add(makeSignal("type", "user"))
+
+        val signals = Json.decodeFromString<List<Signal>>(cacheFile.readText())
+        Assert.assertEquals(1, signals.count())
+        Assert.assertEquals("type", signals[0].type)
+    }
+
+    @Test
+    fun typedPayloadSurvivesPersistAndRestore() = runTest(UnconfinedTestDispatcher()) {
+        val cacheDir = folder.newFolder()
+        val payload = JsonObject(
+            mapOf(
+                "TelemetryDeck.Device.Screens.All.width" to JsonArray(listOf(JsonPrimitive(1080), JsonPrimitive(1920))),
+                "TelemetryDeck.Device.Screens.All.count" to JsonPrimitive(2),
+            )
+        )
+        val signal = Signal(
+            appID = UUID.randomUUID(),
+            type = "type",
+            clientUser = "user",
+            payload = payload,
+        )
+        val sut = PersistentSignalCache(cacheDir, null, ioDispatcher = UnconfinedTestDispatcher())
+        sut.add(signal)
+
+        val restored = PersistentSignalCache(cacheDir, null, ioDispatcher = UnconfinedTestDispatcher())
+        val signals = restored.empty()
+
+        Assert.assertEquals(1, signals.count())
+        val restoredPayload = signals[0].payload
+        val width = restoredPayload.getValue("TelemetryDeck.Device.Screens.All.width").jsonArray
+        Assert.assertEquals(listOf(1080, 1920), width.map { it.jsonPrimitive.int })
+        val count = restoredPayload.getValue("TelemetryDeck.Device.Screens.All.count").jsonPrimitive
+        Assert.assertEquals(2, count.int)
+        Assert.assertFalse(count.isString)
     }
 
     @Test

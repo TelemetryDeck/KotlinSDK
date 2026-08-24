@@ -25,6 +25,7 @@ import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
 
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
@@ -417,12 +418,21 @@ class TelemetryDeck(
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt)
 
-        val payload = SignalPayload(additionalPayload = signalTransform.additionalPayload)
+        val payload = signalTransform.additionalPayload.toJsonPrimitives().toMutableMap()
+        for (provider in this.providers) {
+            val typedProvider = provider as? TelemetryDeckTypedProvider ?: continue
+            for ((key, value) in typedProvider.enrichTyped(signalTransform.signalType, signalTransform.clientUser)) {
+                if (!payload.containsKey(key)) {
+                    payload[key] = value
+                }
+            }
+        }
+
         val signal = Signal(
             appID = configuration.telemetryAppID,
             type = signalTransform.signalType,
             clientUser = hashedUser,
-            payload = payload.asMultiValueDimension,
+            payload = JsonObject(payload),
             isTestMode = configuration.testMode.toString().lowercase(),
             floatValue = signalTransform.floatValue
         )

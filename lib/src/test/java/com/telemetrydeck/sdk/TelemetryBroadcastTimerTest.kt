@@ -77,8 +77,8 @@ class TelemetryBroadcastTimerTest {
         val testDispatcher = StandardTestDispatcher(testScheduler)
         val cache = mockk<SignalCache>(relaxed = true)
         val failedSignals = listOf(
-            Signal(UUID.randomUUID(), "type1", "user", SignalPayload()),
-            Signal(UUID.randomUUID(), "type2", "user", SignalPayload()),
+            Signal(UUID.randomUUID(), "type1", "user"),
+            Signal(UUID.randomUUID(), "type2", "user"),
         )
         every { cache.empty() } returns failedSignals
 

@@ -91,15 +91,15 @@ class SessionTrackingLaunchEnrichmentTest {
 
         val launchSignal = sessionStartedSignals.first()
 
-        val sdkVersionEntry = launchSignal.payload.find { it.startsWith("${SDK.Version.paramName}:") }
+        val sdkVersionEntry = launchSignal.payload[SDK.Version.paramName]
         assertNotNull(
-            "Launch session signal must contain '${SDK.Version.paramName}:...' — enrichment providers were not registered before sessionManager",
+            "Launch session signal must contain '${SDK.Version.paramName}' — enrichment providers were not registered before sessionManager",
             sdkVersionEntry
         )
 
-        val calendarEntry = launchSignal.payload.find { it.startsWith("${Calendar.DayOfWeek.paramName}:") }
+        val calendarEntry = launchSignal.payload[Calendar.DayOfWeek.paramName]
         assertNotNull(
-            "Launch session signal must contain '${Calendar.DayOfWeek.paramName}:...' — CalendarParameterProvider was not registered before sessionManager",
+            "Launch session signal must contain '${Calendar.DayOfWeek.paramName}' — CalendarParameterProvider was not registered before sessionManager",
             calendarEntry
         )
     }

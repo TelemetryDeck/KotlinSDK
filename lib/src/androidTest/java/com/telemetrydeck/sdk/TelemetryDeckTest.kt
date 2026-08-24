@@ -14,6 +14,7 @@ import com.telemetrydeck.sdk.signals.Session
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -259,12 +260,12 @@ class TelemetryDeckTest {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
                 assertNotEquals(sessionID.toString(), it.sessionID)
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Acquisition.firstSessionDate:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.averageSessionSeconds:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.distinctDaysUsed:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.totalSessionsCount:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.previousSessionSeconds:") })
-                assertNotNull(it.payload.find { it.startsWith("TelemetryDeck.Retention.distinctDaysUsedLastMonth:") })
+                assertNotNull(it.payload["TelemetryDeck.Acquisition.firstSessionDate"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.averageSessionSeconds"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.distinctDaysUsed"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.totalSessionsCount"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.previousSessionSeconds"])
+                assertNotNull(it.payload["TelemetryDeck.Retention.distinctDaysUsedLastMonth"])
             })
         }
     }
@@ -285,14 +286,14 @@ class TelemetryDeckTest {
         verify {
             signalCache.add(withArg { signal ->
                 assertEquals("type", signal.type)
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfMonth:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfWeek:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.dayOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.weekOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.isWeekend:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.monthOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.quarterOfYear:") })
-                assertNotNull(signal.payload.find { it.startsWith("TelemetryDeck.Calendar.hourOfDay:") })
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.dayOfMonth"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.dayOfWeek"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.dayOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.weekOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.isWeekend"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.monthOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.quarterOfYear"])
+                assertNotNull(signal.payload["TelemetryDeck.Calendar.hourOfDay"])
             })
         }
     }
@@ -312,8 +313,7 @@ class TelemetryDeckTest {
         verify {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
-                val duration =
-                    it.payload.find { it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+                val duration = it.payload["TelemetryDeck.Signal.durationInSeconds"]
                 assertNotNull(duration)
             })
         }
@@ -334,8 +334,7 @@ class TelemetryDeckTest {
         verify {
             signalCache.add(withArg {
                 assertEquals("type", it.type)
-                val duration =
-                    it.payload.find { it.startsWith("TelemetryDeck.Signal.durationInSeconds:") }
+                val duration = it.payload["TelemetryDeck.Signal.durationInSeconds"]
                 assertNotNull(duration)
                 assertEquals(10.0, it.floatValue)
                 assertEquals(
@@ -407,12 +406,12 @@ class TelemetryDeckTest {
         verify {
             signalCache.add(withArg {
                 assertEquals("TelemetryDeck.Purchase.completed", it.type)
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.type:one-time-purchase" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.countryCode:BE" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.currencyCode:EUR" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.productID:product1" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.offerID:offer1" })
-                assert(it.payload.any { it == "TelemetryDeck.Purchase.priceMicros:7990000" })
+                assertEquals(JsonPrimitive("one-time-purchase"), it.payload["TelemetryDeck.Purchase.type"])
+                assertEquals(JsonPrimitive("BE"), it.payload["TelemetryDeck.Purchase.countryCode"])
+                assertEquals(JsonPrimitive("EUR"), it.payload["TelemetryDeck.Purchase.currencyCode"])
+                assertEquals(JsonPrimitive("product1"), it.payload["TelemetryDeck.Purchase.productID"])
+                assertEquals(JsonPrimitive("offer1"), it.payload["TelemetryDeck.Purchase.offerID"])
+                assertEquals(JsonPrimitive("7990000"), it.payload["TelemetryDeck.Purchase.priceMicros"])
                 assert(it.floatValue == 8.38)
             })
         }

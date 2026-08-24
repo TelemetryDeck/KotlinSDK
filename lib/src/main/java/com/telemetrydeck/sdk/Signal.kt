@@ -1,6 +1,9 @@
 package com.telemetrydeck.sdk
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -38,9 +41,9 @@ data class Signal(
 
 
     /**
-     * Tags in the form "key:value" to attach to the signal
+     * The additional parameters attached to the signal, as a JSON object of key-value pairs
      */
-    var payload: List<String>,
+    var payload: JsonObject,
 
     /**
      * If "true", mark the signal as a testing signal and only show it in a dedicated test mode UI
@@ -52,10 +55,15 @@ data class Signal(
      */
     var floatValue: Double? = null
 ) {
-    constructor(appID: UUID, signalType: String, clientUser: String, payload: SignalPayload) : this(
+    constructor(appID: UUID, signalType: String, clientUser: String, additionalPayload: Map<String, String> = emptyMap()) : this(
         appID = appID,
         type = signalType,
         clientUser = clientUser,
-        payload = payload.asMultiValueDimension
+        payload = JsonObject(additionalPayload.toJsonPrimitives())
     )
 }
+
+/**
+ * Converts a map of string parameters into a map of [JsonPrimitive] values, suitable for building a [JsonObject] payload.
+ */
+internal fun Map<String, String>.toJsonPrimitives(): Map<String, JsonElement> = mapValues { JsonPrimitive(it.value) }
