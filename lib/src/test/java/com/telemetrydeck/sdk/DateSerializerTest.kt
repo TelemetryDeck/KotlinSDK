@@ -9,6 +9,10 @@ import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -51,7 +55,7 @@ class DateSerializerTest {
 
     @Test
     fun signal_fixture_whole_second_decodes_and_reencodes_byte_identically() {
-        val json = "{\"receivedAt\":\"2025-01-15T09:30:00.000Z\",\"appID\":\"32cb6574-6732-4238-879f-582febeb6536\",\"clientUser\":\"clientUser\",\"sessionID\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"type\",\"payload\":[\"platform:Android\"]}"
+        val json = "{\"receivedAt\":\"2025-01-15T09:30:00.000Z\",\"appID\":\"32cb6574-6732-4238-879f-582febeb6536\",\"clientUser\":\"clientUser\",\"sessionID\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"type\",\"payload\":{\"platform\":\"Android\"}}"
 
         val signal = Json.decodeFromString<Signal>(json)
 
@@ -60,18 +64,33 @@ class DateSerializerTest {
         assertEquals("clientUser", signal.clientUser)
         assertEquals("11111111-1111-1111-1111-111111111111", signal.sessionID)
         assertEquals("type", signal.type)
-        assertEquals(listOf("platform:Android"), signal.payload)
+        assertEquals(buildJsonObject { put("platform", "Android") }, signal.payload)
 
         assertEquals(json, Json.encodeToString(signal))
     }
 
     @Test
     fun signal_fixture_fractional_decodes_and_reencodes_byte_identically() {
-        val json = "{\"receivedAt\":\"2025-01-15T09:30:00.123Z\",\"appID\":\"32cb6574-6732-4238-879f-582febeb6536\",\"clientUser\":\"clientUser\",\"sessionID\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"type\",\"payload\":[\"platform:Android\"]}"
+        val json = "{\"receivedAt\":\"2025-01-15T09:30:00.123Z\",\"appID\":\"32cb6574-6732-4238-879f-582febeb6536\",\"clientUser\":\"clientUser\",\"sessionID\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"type\",\"payload\":{\"platform\":\"Android\"}}"
 
         val signal = Json.decodeFromString<Signal>(json)
 
         assertEquals(Instant.parse("2025-01-15T09:30:00.123Z").toEpochMilliseconds(), signal.receivedAt.toEpochMilliseconds())
+        assertEquals(json, Json.encodeToString(signal))
+    }
+
+    @Test
+    fun signal_fixture_typed_payload_decodes_and_reencodes_byte_identically() {
+        val json = "{\"receivedAt\":\"2025-01-15T09:30:00.000Z\",\"appID\":\"32cb6574-6732-4238-879f-582febeb6536\",\"clientUser\":\"clientUser\",\"sessionID\":\"11111111-1111-1111-1111-111111111111\",\"type\":\"type\",\"payload\":{\"TelemetryDeck.Device.Screens.All.width\":[1080,1920],\"TelemetryDeck.Device.Screens.All.count\":2}}"
+
+        val signal = Json.decodeFromString<Signal>(json)
+
+        val expectedPayload = buildJsonObject {
+            put("TelemetryDeck.Device.Screens.All.width", JsonArray(listOf(JsonPrimitive(1080), JsonPrimitive(1920))))
+            put("TelemetryDeck.Device.Screens.All.count", 2)
+        }
+        assertEquals(expectedPayload, signal.payload)
+
         assertEquals(json, Json.encodeToString(signal))
     }
 
@@ -124,7 +143,7 @@ class DateSerializerTest {
                             try {
                                 val epochMillis = 1_700_000_000_000L + threadIndex * 3_600_001L + i
                                 val instant = Instant.fromEpochMilliseconds(epochMillis)
-                                val signal = Signal(UUID.randomUUID(), "type", "user", SignalPayload())
+                                val signal = Signal(UUID.randomUUID(), "type", "user")
                                 signal.receivedAt = instant
 
                                 val json = Json.encodeToString(signal)

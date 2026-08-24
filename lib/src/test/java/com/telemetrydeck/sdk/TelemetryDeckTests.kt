@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.telemetrydeck.sdk.providers.DefaultParameterProvider
 import com.telemetrydeck.sdk.providers.DefaultPrefixProvider
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -200,7 +201,7 @@ class TelemetryDeckTests {
 
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Acquisition.userAcquired", signal?.type)
-        Assert.assertEquals("TelemetryDeck.Acquisition.channel:channel 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.channel:") })
+        Assert.assertEquals("channel 1", signal?.payload?.get("TelemetryDeck.Acquisition.channel")?.jsonPrimitive?.content)
     }
 
     @Test
@@ -215,7 +216,7 @@ class TelemetryDeckTests {
 
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Acquisition.leadStarted", signal?.type)
-        Assert.assertEquals("TelemetryDeck.Acquisition.leadID:lead 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.leadID:") })
+        Assert.assertEquals("lead 1", signal?.payload?.get("TelemetryDeck.Acquisition.leadID")?.jsonPrimitive?.content)
     }
 
     @Test
@@ -230,7 +231,7 @@ class TelemetryDeckTests {
 
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Acquisition.leadConverted", signal?.type)
-        Assert.assertEquals("TelemetryDeck.Acquisition.leadID:lead 1", signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Acquisition.leadID:") })
+        Assert.assertEquals("lead 1", signal?.payload?.get("TelemetryDeck.Acquisition.leadID")?.jsonPrimitive?.content)
     }
 
     @Test
@@ -246,8 +247,8 @@ class TelemetryDeckTests {
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Activation.coreFeatureUsed", signal?.type)
         Assert.assertEquals(
-            "TelemetryDeck.Activation.featureName:feature 1",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Activation.featureName:") })
+            "feature 1",
+            signal?.payload?.get("TelemetryDeck.Activation.featureName")?.jsonPrimitive?.content)
     }
 
     @Test
@@ -277,8 +278,8 @@ class TelemetryDeckTests {
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Revenue.paywallShown", signal?.type)
         Assert.assertEquals(
-            "TelemetryDeck.Revenue.paywallShowReason:trial_ended",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Revenue.paywallShowReason:") }
+            "trial_ended",
+            signal?.payload?.get("TelemetryDeck.Revenue.paywallShowReason")?.jsonPrimitive?.content
         )
     }
 
@@ -326,20 +327,20 @@ class TelemetryDeckTests {
         // validate the navigation status payload
         // https://github.com/TelemetryDeck/KotlinSDK/issues/28
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
-            "TelemetryDeck.Navigation.schemaVersion:1"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.schemaVersion")?.jsonPrimitive?.content,
+            "1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
-            "TelemetryDeck.Navigation.identifier:source -> destination"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.identifier")?.jsonPrimitive?.content,
+            "source -> destination"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
-            "TelemetryDeck.Navigation.sourcePath:source"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.sourcePath")?.jsonPrimitive?.content,
+            "source"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
-            "TelemetryDeck.Navigation.destinationPath:destination"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.destinationPath")?.jsonPrimitive?.content,
+            "destination"
         )
     }
 
@@ -398,20 +399,20 @@ class TelemetryDeckTests {
         // validate the navigation status payload
         // https://github.com/TelemetryDeck/KotlinSDK/issues/28
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
-            "TelemetryDeck.Navigation.schemaVersion:1"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.schemaVersion")?.jsonPrimitive?.content,
+            "1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
-            "TelemetryDeck.Navigation.identifier: -> destination"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.identifier")?.jsonPrimitive?.content,
+            " -> destination"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
-            "TelemetryDeck.Navigation.sourcePath:"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.sourcePath")?.jsonPrimitive?.content,
+            ""
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
-            "TelemetryDeck.Navigation.destinationPath:destination"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.destinationPath")?.jsonPrimitive?.content,
+            "destination"
         )
     }
 
@@ -433,20 +434,20 @@ class TelemetryDeckTests {
         // validate the navigation status payload
         // https://github.com/TelemetryDeck/KotlinSDK/issues/28
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.schemaVersion") },
-            "TelemetryDeck.Navigation.schemaVersion:1"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.schemaVersion")?.jsonPrimitive?.content,
+            "1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.identifier") },
-            "TelemetryDeck.Navigation.identifier:destination1 -> destination2"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.identifier")?.jsonPrimitive?.content,
+            "destination1 -> destination2"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.sourcePath") },
-            "TelemetryDeck.Navigation.sourcePath:destination1"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.sourcePath")?.jsonPrimitive?.content,
+            "destination1"
         )
         Assert.assertEquals(
-            queuedSignal?.payload?.single { it.startsWith("TelemetryDeck.Navigation.destinationPath") },
-            "TelemetryDeck.Navigation.destinationPath:destination2"
+            queuedSignal?.payload?.get("TelemetryDeck.Navigation.destinationPath")?.jsonPrimitive?.content,
+            "destination2"
         )
     }
 
@@ -495,7 +496,7 @@ class TelemetryDeckTests {
         // validate the signal type
         Assert.assertEquals(queuedSignal?.type, "test")
 
-        Assert.assertEquals("param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("param1:") }, )
+        Assert.assertEquals("value1", queuedSignal?.payload?.get("param1")?.jsonPrimitive?.content)
     }
 
     @Test
@@ -512,7 +513,7 @@ class TelemetryDeckTests {
         // validate the signal type
         Assert.assertEquals("SignalPrefix.test", queuedSignal?.type)
         Assert.assertEquals(1.0, queuedSignal?.floatValue)
-        Assert.assertEquals("ParamPrefix.param1:value1", queuedSignal?.payload?.firstOrNull { it.startsWith("ParamPrefix.") }, )
+        Assert.assertEquals("value1", queuedSignal?.payload?.get("ParamPrefix.param1")?.jsonPrimitive?.content)
     }
 
     @Test
@@ -528,8 +529,8 @@ class TelemetryDeckTests {
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Referral.sent", signal?.type)
         Assert.assertEquals(
-            "TelemetryDeck.Referral.receiversCount:1",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.receiversCount:") }
+            "1",
+            signal?.payload?.get("TelemetryDeck.Referral.receiversCount")?.jsonPrimitive?.content
         )
     }
 
@@ -546,8 +547,8 @@ class TelemetryDeckTests {
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Referral.sent", signal?.type)
         Assert.assertEquals(
-            "TelemetryDeck.Referral.receiversCount:5",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.receiversCount:") }
+            "5",
+            signal?.payload?.get("TelemetryDeck.Referral.receiversCount")?.jsonPrimitive?.content
         )
     }
 
@@ -564,8 +565,8 @@ class TelemetryDeckTests {
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Referral.sent", signal?.type)
         Assert.assertEquals(
-            "TelemetryDeck.Referral.kind:email",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.kind:") }
+            "email",
+            signal?.payload?.get("TelemetryDeck.Referral.kind")?.jsonPrimitive?.content
         )
     }
 
@@ -582,8 +583,8 @@ class TelemetryDeckTests {
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Referral.userRatingSubmitted", signal?.type)
         Assert.assertEquals(
-            "TelemetryDeck.Referral.ratingValue:8",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.ratingValue:") }
+            "8",
+            signal?.payload?.get("TelemetryDeck.Referral.ratingValue")?.jsonPrimitive?.content
         )
     }
 
@@ -600,12 +601,12 @@ class TelemetryDeckTests {
         Assert.assertNotNull(signal)
         Assert.assertEquals("TelemetryDeck.Referral.userRatingSubmitted", signal?.type)
         Assert.assertEquals(
-            "TelemetryDeck.Referral.ratingValue:9",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.ratingValue:") }
+            "9",
+            signal?.payload?.get("TelemetryDeck.Referral.ratingValue")?.jsonPrimitive?.content
         )
         Assert.assertEquals(
-            "TelemetryDeck.Referral.ratingComment:Great app!",
-            signal?.payload?.firstOrNull { it.startsWith("TelemetryDeck.Referral.ratingComment:") }
+            "Great app!",
+            signal?.payload?.get("TelemetryDeck.Referral.ratingComment")?.jsonPrimitive?.content
         )
     }
 

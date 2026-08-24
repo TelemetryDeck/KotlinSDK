@@ -48,10 +48,10 @@ class SessionTrackingSignalProviderTest {
 
         Assert.assertNotNull(sessionStartedSignal)
         Assert.assertTrue(
-            sessionStartedSignal?.payload?.any { it.startsWith("TelemetryDeck.SDK.version:") } == true
+            sessionStartedSignal?.payload?.containsKey("TelemetryDeck.SDK.version") == true
         )
         Assert.assertTrue(
-            sessionStartedSignal?.payload?.any { it.startsWith("TelemetryDeck.Calendar.dayOfWeek:") } == true
+            sessionStartedSignal?.payload?.containsKey("TelemetryDeck.Calendar.dayOfWeek") == true
         )
     }
 

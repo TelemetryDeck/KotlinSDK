@@ -2,6 +2,7 @@ package com.telemetrydeck.sdk
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import com.telemetrydeck.sdk.params.Acquisition
 import com.telemetrydeck.sdk.params.Activation
 import com.telemetrydeck.sdk.params.ErrorCategory
@@ -9,6 +10,7 @@ import com.telemetrydeck.sdk.params.Navigation
 import com.telemetrydeck.sdk.params.Revenue
 import com.telemetrydeck.sdk.providers.AccessibilityProvider
 import com.telemetrydeck.sdk.providers.CalendarParameterProvider
+import com.telemetrydeck.sdk.providers.DisplayParameterProvider
 import com.telemetrydeck.sdk.providers.DurationSignalTrackerProvider
 import com.telemetrydeck.sdk.providers.EnvironmentParameterProvider
 import com.telemetrydeck.sdk.providers.FileUserIdentityProvider
@@ -23,6 +25,7 @@ import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
 
 class TelemetryDeck(
     override val configuration: TelemetryManagerConfiguration,
@@ -415,12 +418,21 @@ class TelemetryDeck(
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt)
 
-        val payload = SignalPayload(additionalPayload = signalTransform.additionalPayload)
+        val payload = signalTransform.additionalPayload.toJsonPrimitives().toMutableMap()
+        for (provider in this.providers) {
+            val typedProvider = provider as? TelemetryDeckTypedProvider ?: continue
+            for ((key, value) in typedProvider.enrichTyped(signalTransform.signalType, signalTransform.clientUser)) {
+                if (!payload.containsKey(key)) {
+                    payload[key] = value
+                }
+            }
+        }
+
         val signal = Signal(
             appID = configuration.telemetryAppID,
             type = signalTransform.signalType,
             clientUser = hashedUser,
-            payload = payload.asMultiValueDimension,
+            payload = JsonObject(payload),
             isTestMode = configuration.testMode.toString().lowercase(),
             floatValue = signalTransform.floatValue
         )
@@ -444,12 +456,15 @@ class TelemetryDeck(
 
     companion object : TelemetryDeckClient, TelemetryDeckSignalProcessor {
         internal val defaultTelemetryProviders: List<TelemetryDeckProvider>
-            get() = listOf(
-                EnvironmentParameterProvider(),
-                PlatformContextProvider(),
-                AccessibilityProvider(),
-                CalendarParameterProvider()
-            )
+            get() = buildList {
+                add(EnvironmentParameterProvider())
+                add(PlatformContextProvider())
+                add(AccessibilityProvider())
+                add(CalendarParameterProvider())
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    add(DisplayParameterProvider())
+                }
+            }
         internal val alwaysOnProviders = listOf(DurationSignalTrackerProvider())
 
         // [TelemetryDeck] singleton

@@ -2,6 +2,7 @@ package com.telemetrydeck.sdk
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.net.URL
@@ -20,19 +21,19 @@ class SignalsUnitTest {
             UUID.randomUUID(),
             "type",
             "clientUser",
-            SignalPayload(additionalPayload = mapOf("platform" to "Android"))
+            mapOf("platform" to "Android")
         )
 
         assertEquals("type", signal.type)
         assertEquals("clientUser", signal.clientUser)
-        assertEquals("platform:Android", signal.payload[0])
+        assertEquals(JsonPrimitive("Android"), signal.payload["platform"])
     }
 
     @Test
     fun signal_serialize_date() {
         val receivedAt = Clock.System.now()
 
-        val signal = Signal(UUID.randomUUID(), "type", "clientUser", SignalPayload())
+        val signal = Signal(UUID.randomUUID(), "type", "clientUser")
         signal.receivedAt = receivedAt
 
         val signalJson = Json.encodeToString(signal)
@@ -45,34 +46,13 @@ class SignalsUnitTest {
     fun signal_serialize_uuid() {
         val appID = UUID.randomUUID()
 
-        val signal = Signal(appID, "type", "clientUser", SignalPayload())
+        val signal = Signal(appID, "type", "clientUser")
 
         val signalJson = Json.encodeToString(signal)
         val decodedSignal = Json.decodeFromString<Signal>(signalJson)
 
         // uuid comparison to the string representation from UUID to ensure equal casing
         assertEquals(appID, decodedSignal.appID)
-    }
-
-    @Test
-    fun signal_payload_asMultiValueDimension() {
-        val payload = SignalPayload(additionalPayload = mapOf("key" to "value"))
-        val value = payload.asMultiValueDimension
-
-        // additional properties are included in the multi dimension value
-        assertEquals(1, value.size)
-        assertEquals("key:value", value[0])
-    }
-
-    @Test
-    fun signal_payload_asMultiValueDimension_with_additional_properties_with_separator() {
-        val payload = SignalPayload(additionalPayload = mapOf("key:with_separator" to "value"))
-
-        val value = payload.asMultiValueDimension
-
-        // keys with the field separator ':' are encoded with an underscore instead '_'
-        assertEquals(1, value.size)
-        assertEquals("key_with_separator:value", value[0])
     }
 
     @Test
@@ -104,7 +84,7 @@ class SignalsUnitTest {
     fun signal_serialize_floatValue() {
         val float = 3.444444444444445
 
-        val signal = Signal(UUID.randomUUID(), "type", "clientUser", SignalPayload())
+        val signal = Signal(UUID.randomUUID(), "type", "clientUser")
         signal.floatValue = float
 
         val signalJson = Json.encodeToString(signal)

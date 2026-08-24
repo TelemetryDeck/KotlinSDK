@@ -14,7 +14,7 @@ class MemorySignalCacheTest {
 
     @Test
     fun memorySignalCache_add_signal() {
-        val signal = Signal(appID = UUID.randomUUID(), "type", "user", SignalPayload())
+        val signal = Signal(appID = UUID.randomUUID(), "type", "user")
 
         val sut = MemorySignalCache()
         sut.add(signal)
@@ -24,8 +24,8 @@ class MemorySignalCacheTest {
 
     @Test
     fun memorySignalCache_empty_signals() {
-        val signal1 = Signal(appID = UUID.randomUUID(), "type", "user", SignalPayload())
-        val signal2 = Signal(appID = UUID.randomUUID(), "type", "user", SignalPayload())
+        val signal1 = Signal(appID = UUID.randomUUID(), "type", "user")
+        val signal2 = Signal(appID = UUID.randomUUID(), "type", "user")
 
         val sut = MemorySignalCache()
         sut.add(signal1)
@@ -39,8 +39,8 @@ class MemorySignalCacheTest {
 
     @Test
     fun memorySignalCache_read_signal_data() {
-        val signal1 = Signal(appID = UUID.randomUUID(), "type1", "user1", SignalPayload())
-        val signal2 = Signal(appID = UUID.randomUUID(), "type2", "user2", SignalPayload())
+        val signal1 = Signal(appID = UUID.randomUUID(), "type1", "user1")
+        val signal2 = Signal(appID = UUID.randomUUID(), "type2", "user2")
 
         val sut = MemorySignalCache()
         sut.add(signal1)
@@ -60,7 +60,7 @@ class MemorySignalCacheTest {
     fun cacheLimit_evictsOldestOnOverflow() {
         val sut = MemorySignalCache(cacheLimit = 3)
         for (i in 1..5) {
-            sut.add(Signal(appID = UUID.randomUUID(), "type$i", "user", SignalPayload()))
+            sut.add(Signal(appID = UUID.randomUUID(), "type$i", "user"))
         }
 
         Assert.assertEquals(3, sut.count())
@@ -74,7 +74,7 @@ class MemorySignalCacheTest {
     fun noEvictionBelowLimit() {
         val sut = MemorySignalCache(cacheLimit = 5)
         for (i in 1..3) {
-            sut.add(Signal(appID = UUID.randomUUID(), "type$i", "user", SignalPayload()))
+            sut.add(Signal(appID = UUID.randomUUID(), "type$i", "user"))
         }
 
         Assert.assertEquals(3, sut.count())
@@ -84,7 +84,7 @@ class MemorySignalCacheTest {
     fun defaultLimitIsUnbounded() {
         val sut = MemorySignalCache()
         for (i in 1..10_001) {
-            sut.add(Signal(appID = UUID.randomUUID(), "type$i", "user", SignalPayload()))
+            sut.add(Signal(appID = UUID.randomUUID(), "type$i", "user"))
         }
 
         Assert.assertEquals(10_001, sut.count())
@@ -93,7 +93,7 @@ class MemorySignalCacheTest {
     @Test
     fun addAll_appendsAllSignals() {
         val sut = MemorySignalCache()
-        sut.addAll((1..5).map { Signal(appID = UUID.randomUUID(), "type$it", "user", SignalPayload()) })
+        sut.addAll((1..5).map { Signal(appID = UUID.randomUUID(), "type$it", "user") })
 
         Assert.assertEquals(5, sut.count())
     }
@@ -101,7 +101,7 @@ class MemorySignalCacheTest {
     @Test
     fun addAll_respectsCacheLimit() {
         val sut = MemorySignalCache(cacheLimit = 3)
-        sut.addAll((1..7).map { Signal(appID = UUID.randomUUID(), "type$it", "user", SignalPayload()) })
+        sut.addAll((1..7).map { Signal(appID = UUID.randomUUID(), "type$it", "user") })
 
         Assert.assertEquals(3, sut.count())
         val survivors = sut.empty()
@@ -113,12 +113,12 @@ class MemorySignalCacheTest {
     @Test
     fun addAll_acrossExistingQueue_evictsOldest() {
         val sut = MemorySignalCache(cacheLimit = 3)
-        sut.add(Signal(appID = UUID.randomUUID(), "a", "user", SignalPayload()))
-        sut.add(Signal(appID = UUID.randomUUID(), "b", "user", SignalPayload()))
+        sut.add(Signal(appID = UUID.randomUUID(), "a", "user"))
+        sut.add(Signal(appID = UUID.randomUUID(), "b", "user"))
         sut.addAll(listOf(
-            Signal(appID = UUID.randomUUID(), "c", "user", SignalPayload()),
-            Signal(appID = UUID.randomUUID(), "d", "user", SignalPayload()),
-            Signal(appID = UUID.randomUUID(), "e", "user", SignalPayload()),
+            Signal(appID = UUID.randomUUID(), "c", "user"),
+            Signal(appID = UUID.randomUUID(), "d", "user"),
+            Signal(appID = UUID.randomUUID(), "e", "user"),
         ))
 
         Assert.assertEquals(3, sut.count())

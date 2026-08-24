@@ -85,11 +85,11 @@ class SessionTrackingRegressionTest {
         val signal = sessionStartedSignals.first()
         Assert.assertTrue(
             "Session.started must carry TelemetryDeck.SDK.version from EnvironmentParameterProvider",
-            signal.payload.any { it.startsWith("TelemetryDeck.SDK.version:") }
+            signal.payload.containsKey("TelemetryDeck.SDK.version")
         )
         Assert.assertTrue(
             "Session.started must carry TelemetryDeck.Calendar.dayOfWeek from CalendarParameterProvider",
-            signal.payload.any { it.startsWith("TelemetryDeck.Calendar.dayOfWeek:") }
+            signal.payload.containsKey("TelemetryDeck.Calendar.dayOfWeek")
         )
     }
 }
