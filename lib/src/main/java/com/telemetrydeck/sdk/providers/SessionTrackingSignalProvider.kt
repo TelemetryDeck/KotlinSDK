@@ -56,7 +56,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
             var newState = restoredState ?: TrackingState(emptyList(), emptyList())
             newState = repairOldSessions(newState)
             this.providerState = newState
-            storage?.writeState(fileName, newState)
+            storage?.writeState(fileName, newState, manager?.get()?.debugLogger)
         }
     }
 
@@ -266,7 +266,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
         )
         if (currentState != null) {
             this.providerState = currentState
-            storage?.writeState(fileName, currentState)
+            storage?.writeState(fileName, currentState, manager?.get()?.debugLogger)
         } else {
             this.manager?.get()?.debugLogger?.debug("Session tracking state is empty")
         }
@@ -311,7 +311,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
             ?: throw IllegalStateException("Session tracking is not running yet")
         currentState = endLastSessionIfPresent(currentState, now)
         currentState = startNewSessionAndTruncateStorage(currentState, now, sessionID)
-        storage?.writeState(fileName, currentState)
+        storage?.writeState(fileName, currentState, manager?.get()?.debugLogger)
         this.providerState = currentState
         if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
             manager?.get()?.processSignal(

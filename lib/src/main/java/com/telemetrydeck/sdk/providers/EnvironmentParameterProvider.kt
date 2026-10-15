@@ -73,18 +73,22 @@ class EnvironmentParameterProvider : TelemetryDeckProvider {
         val sdkVersion = Build.VERSION.SDK_INT
         metadata[Device.SystemVersion.paramName] = "$platform $release (SDK: $sdkVersion)"
 
+        val (major, minor) = majorMinorVersion(release, debugLogger)
+        metadata[Device.SystemMajorVersion.paramName] = major
+        metadata[Device.SystemMajorMinorVersion.paramName] = "$major.$minor"
+    }
+
+    private fun majorMinorVersion(release: String, debugLogger: DebugLogger?): Pair<String, String> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val versionInfo = VersionInfo.getInstance(release)
-            metadata[Device.SystemMajorVersion.paramName] = "${versionInfo.major}"
-            metadata[Device.SystemMajorMinorVersion.paramName] =
-                "${versionInfo.major}.${versionInfo.minor}"
-        } else {
-            val versionInfo = release.split(".")
-            val major = versionInfo.elementAtOrNull(0) ?: "0"
-            val minor = versionInfo.elementAtOrNull(1) ?: "0"
-            metadata[Device.SystemMajorVersion.paramName] = major
-            metadata[Device.SystemMajorMinorVersion.paramName] = "$major.$minor"
+            try {
+                val versionInfo = VersionInfo.getInstance(release)
+                return "${versionInfo.major}" to "${versionInfo.minor}"
+            } catch (e: IllegalArgumentException) {
+                debugLogger?.error("Unable to parse system version $release: $e")
+            }
         }
+        val versionInfo = release.split(".")
+        return (versionInfo.elementAtOrNull(0) ?: "0") to (versionInfo.elementAtOrNull(1) ?: "0")
     }
 
     private fun appendContextSpecificParams(ctx: Context?, debugLogger: DebugLogger?) {

@@ -70,7 +70,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
             )
         }
 
-        storage?.writeState(fileName, currentState)
+        storage?.writeState(fileName, currentState, manager?.get()?.debugLogger)
         this.state = currentState
     }
 
@@ -81,7 +81,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         )
         if (currentState != null) {
             this.state = currentState
-            storage?.writeState(fileName, currentState)
+            storage?.writeState(fileName, currentState, manager?.get()?.debugLogger)
         }
     }
 

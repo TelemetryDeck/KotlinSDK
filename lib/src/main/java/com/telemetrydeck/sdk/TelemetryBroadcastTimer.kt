@@ -1,5 +1,6 @@
 package com.telemetrydeck.sdk
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,7 +21,7 @@ internal class TelemetryBroadcastTimer(
 ) {
     private var logger: DebugLogger? = null
     private val consecutiveFailures = AtomicInteger(0)
-    private val scope = CoroutineScope(coroutineContext)
+    private val scope = CoroutineScope(loggingExceptionHandler { logger } + coroutineContext)
     private var job: Job? = null
 
     init {
@@ -67,6 +68,16 @@ internal class TelemetryBroadcastTimer(
     }
 
     private suspend fun transmitBatch() {
+        try {
+            transmitCachedSignals()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger?.error("Failed to broadcast cached signals: $e ${e.stackTraceToString()}")
+        }
+    }
+
+    private suspend fun transmitCachedSignals() {
         val managerInstance = manager.get() ?: return
         val cache = managerInstance.signalCache
         if (cache == null) {
