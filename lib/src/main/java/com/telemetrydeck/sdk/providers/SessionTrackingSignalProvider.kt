@@ -11,6 +11,7 @@ import com.telemetrydeck.sdk.TelemetryStorage
 import com.telemetrydeck.sdk.UUIDOptionalSerializer
 import com.telemetrydeck.sdk.params.Retention
 import com.telemetrydeck.sdk.readState
+import com.telemetrydeck.sdk.runProvider
 import com.telemetrydeck.sdk.signals.Acquisition
 import com.telemetrydeck.sdk.signals.Session
 import com.telemetrydeck.sdk.writeState
@@ -121,7 +122,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
 
     @Synchronized
     override fun onStart(owner: LifecycleOwner) {
-        handleOnForeground()
+        runProvider(this, manager?.get()?.debugLogger, Unit) { handleOnForeground() }
     }
 
     fun handleOnForeground(now: Instant = Clock.System.now()) {
@@ -256,7 +257,7 @@ class SessionTrackingSignalProvider: TelemetryDeckSessionManagerProvider, Defaul
 
     @Synchronized
     override fun onStop(owner: LifecycleOwner) {
-        handleOnBackground()
+        runProvider(this, manager?.get()?.debugLogger, Unit) { handleOnBackground() }
     }
 
     fun handleOnBackground(now: Instant = Clock.System.now()) {

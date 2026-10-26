@@ -392,14 +392,8 @@ class TelemetryDeck(
         sessionManager?.let { session -> runProvider(session, Unit) { session.register(context, this) } }
     }
 
-    private inline fun <T> runProvider(provider: Any, fallback: T, block: () -> T): T {
-        return try {
-            block()
-        } catch (e: Exception) {
-            logger?.error("Provider ${provider::class} failed: $e ${e.stackTraceToString()}")
-            fallback
-        }
-    }
+    private inline fun <T> runProvider(provider: Any, fallback: T, block: () -> T): T =
+        runProvider(provider, logger, fallback, block)
 
     private fun createSignal(
         signalType: String,

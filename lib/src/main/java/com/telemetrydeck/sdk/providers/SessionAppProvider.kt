@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.runProvider
 import com.telemetrydeck.sdk.signals.Session
 import java.lang.ref.WeakReference
 
@@ -34,17 +35,21 @@ class SessionAppProvider : TelemetryDeckProvider, DefaultLifecycleObserver {
 
 
     override fun onStart(owner: LifecycleOwner) {
-        if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
-            manager?.get()?.processSignal(
-                Session.Started.signalName
-            )
+        runProvider(this, manager?.get()?.debugLogger, Unit) {
+            if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
+                manager?.get()?.processSignal(
+                    Session.Started.signalName
+                )
+            }
         }
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
-            // app is going into the background, reset the sessionID
-            manager?.get()?.resetSession()
+        runProvider(this, manager?.get()?.debugLogger, Unit) {
+            if (manager?.get()?.configuration?.sendNewSessionBeganSignal == true) {
+                // app is going into the background, reset the sessionID
+                manager?.get()?.resetSession()
+            }
         }
     }
 
