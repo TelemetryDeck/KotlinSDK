@@ -317,4 +317,17 @@ class PersistentSignalCacheTest {
             dispatchCount < 10,
         )
     }
+
+    @Test
+    fun unreadable_cache_file_on_restore_does_not_throw() {
+        val cacheDir = folder.newFolder()
+        val sut = PersistentSignalCache(cacheDir, null, ioDispatcher = UnconfinedTestDispatcher())
+        val cacheFile = File(cacheDir, sut.cacheFileName)
+        cacheFile.delete()
+        cacheFile.mkdirs()
+
+        val restored = PersistentSignalCache(cacheDir, null, ioDispatcher = UnconfinedTestDispatcher())
+
+        Assert.assertEquals(0, restored.count())
+    }
 }

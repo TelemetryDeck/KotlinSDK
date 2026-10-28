@@ -52,7 +52,7 @@ class TelemetryDeck(
         }
 
     override fun newSession(sessionID: UUID) {
-        sessionManager?.startNewSession(sessionID)
+        sessionManager?.let { session -> runProvider(session, Unit) { session.startNewSession(sessionID) } }
     }
 
     override fun newDefaultUser(user: String?) {
@@ -386,11 +386,14 @@ class TelemetryDeck(
     private fun installProviders(context: Context?) {
         for (provider in providers) {
             logger?.debug("Installing provider ${provider::class}.")
-            provider.register(context, this)
+            runProvider(provider, Unit) { provider.register(context, this) }
         }
-        identityProvider.register(context, this)
-        sessionManager?.register(context, this)
+        runProvider(identityProvider, Unit) { identityProvider.register(context, this) }
+        sessionManager?.let { session -> runProvider(session, Unit) { session.register(context, this) } }
     }
+
+    private inline fun <T> runProvider(provider: Any, fallback: T, block: () -> T): T =
+        runProvider(provider, logger, fallback, block)
 
     private fun createSignal(
         signalType: String,
@@ -399,21 +402,27 @@ class TelemetryDeck(
         floatValue: Double?
     ): Signal {
         var enrichedPayload = additionalPayload
-        enrichedPayload = sessionManager?.enrich(signalType, clientUser, enrichedPayload) ?: enrichedPayload
+        sessionManager?.let { session ->
+            enrichedPayload = runProvider(session, enrichedPayload) { session.enrich(signalType, clientUser, enrichedPayload) }
+        }
         for (provider in this.providers) {
-            enrichedPayload = provider.enrich(signalType, clientUser, enrichedPayload)
+            enrichedPayload = runProvider(provider, enrichedPayload) { provider.enrich(signalType, clientUser, enrichedPayload) }
         }
 
         var signalTransform = SignalTransform(signalType, clientUser, enrichedPayload, floatValue)
-        signalTransform = sessionManager?.transform(signalTransform) ?: signalTransform
+        sessionManager?.let { session ->
+            signalTransform = runProvider(session, signalTransform) { session.transform(signalTransform) }
+        }
         for (provider in this.providers) {
-            signalTransform = provider.transform(signalTransform)
+            signalTransform = runProvider(provider, signalTransform) { provider.transform(signalTransform) }
         }
         return signalFromTransform(signalTransform)
     }
 
     private fun signalFromTransform(signalTransform: SignalTransform): Signal {
-        val userValue = identityProvider.calculateIdentity(signalTransform.clientUser, configuration.defaultUser)
+        val userValue = runProvider(identityProvider, signalTransform.clientUser ?: configuration.defaultUser ?: "") {
+            identityProvider.calculateIdentity(signalTransform.clientUser, configuration.defaultUser)
+        }
 
         val userValueWithSalt = userValue + (configuration.salt ?: "")
         val hashedUser = hashString(userValueWithSalt)
@@ -421,7 +430,10 @@ class TelemetryDeck(
         val payload = signalTransform.additionalPayload.toJsonPrimitives().toMutableMap()
         for (provider in this.providers) {
             val typedProvider = provider as? TelemetryDeckTypedProvider ?: continue
-            for ((key, value) in typedProvider.enrichTyped(signalTransform.signalType, signalTransform.clientUser)) {
+            val typedPayload = runProvider(provider, emptyMap()) {
+                typedProvider.enrichTyped(signalTransform.signalType, signalTransform.clientUser)
+            }
+            for ((key, value) in typedPayload) {
                 if (!payload.containsKey(key)) {
                     payload[key] = value
                 }
@@ -436,7 +448,7 @@ class TelemetryDeck(
             isTestMode = configuration.testMode.toString().lowercase(),
             floatValue = signalTransform.floatValue
         )
-        signal.sessionID = this.sessionManager?.getCurrentSessionID()?.toString()
+        signal.sessionID = this.sessionManager?.let { session -> runProvider(session, null) { session.getCurrentSessionID() } }?.toString()
         logger?.debug("Created a signal ${signal.type}, session ${signal.sessionID}, test ${signal.isTestMode}")
         return signal
     }
@@ -514,10 +526,10 @@ class TelemetryDeck(
                 return
             manager.broadcastTimer?.stop()
             for (provider in manager.providers) {
-                provider.stop()
+                manager.runProvider(provider, Unit) { provider.stop() }
             }
-            manager.identityProvider.stop()
-            manager.sessionManager?.stop()
+            manager.runProvider(manager.identityProvider, Unit) { manager.identityProvider.stop() }
+            manager.sessionManager?.let { session -> manager.runProvider(session, Unit) { session.stop() } }
             synchronized(this) {
                 instance = null
             }

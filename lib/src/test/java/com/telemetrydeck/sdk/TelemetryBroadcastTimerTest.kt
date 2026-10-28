@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
+import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.UUID
 
@@ -101,5 +102,31 @@ class TelemetryBroadcastTimerTest {
 
         verify(atLeast = 1) { cache.addAll(failedSignals) }
         verify(exactly = 0) { cache.add(any()) }
+    }
+
+    @Test
+    fun failingCacheIsLoggedAndTimerKeepsRunning() = runTest {
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val cache = mockk<SignalCache>(relaxed = true)
+        every { cache.empty() } throws IOException("EBADF")
+
+        val processor = mockk<TelemetryDeckSignalProcessor>(relaxed = true)
+        every { processor.signalCache } returns cache
+
+        val logger = mockk<DebugLogger>(relaxed = true)
+        val timer = TelemetryBroadcastTimer(
+            manager = WeakReference(processor),
+            debugLogger = WeakReference(logger),
+            transmitInterval = 50L,
+            coroutineContext = testDispatcher,
+        )
+
+        timer.start()
+        advanceTimeBy(200L)
+        timer.stop()
+        advanceUntilIdle()
+
+        verify(atLeast = 2) { cache.empty() }
+        verify(atLeast = 2) { logger.error(any()) }
     }
 }

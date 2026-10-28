@@ -35,14 +35,14 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central at the followin
 ```groovy
 // `build.gradle`
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:7.2.0'
+    implementation 'com.telemetrydeck:kotlin-sdk:7.3.0'
 }
 ```
 
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk:7.2.0")
+    implementation("com.telemetrydeck:kotlin-sdk:7.3.0")
 }
 ```
 
@@ -77,12 +77,12 @@ A quick way to start is by adding your App ID to the `application` section of th
     ...
 
     <meta-data android:name="com.telemetrydeck.appID"
-        android:value="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+        android:value="<YOUR-APP-ID>" />
 
 </application>
 ```
 
-Replace `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX` with your TelemetryDeck App ID.
+Replace `<YOUR-APP-ID>` with your TelemetryDeck App ID.
 
 In addition, the following optional properties are supported:
 
@@ -98,7 +98,8 @@ For greater control you can set up and configure `TelemetryDeck` using the provi
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .showDebugLogs(true)
     .defaultUser("Person")
 
@@ -143,7 +144,8 @@ default behaviour by providing your own implementation of `TelemetryDeckIdentity
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .showDebugLogs(true)
     .defaultUser("Person")
     .identityProvider(YourIdentityProvider())
@@ -259,7 +261,8 @@ val provider = DefaultParameterProvider(mapOf("key" to "value"))
 // add the provider when configuring an instance of TelemetryDeck
 
 val builder = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .addProvider(provider)
 ```
 
@@ -276,7 +279,8 @@ val provider = DefaultPrefixProvider("MyApp.", "MyApp.Params.")
 // add the provider when configuring an instance of TelemetryDeck
 
 val builder = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .addProvider(provider)
 ```
 
@@ -398,7 +402,8 @@ follows:
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .sessionID(UUID.fromString("00000000-0000-0000-0000-000000000000"))
 ```
 
@@ -406,7 +411,8 @@ val builder = TelemetryDeck.Builder()
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .sessionManager(null)
 ```
 
@@ -419,7 +425,8 @@ For situations where writing to disk is undesirable (sandboxed processes, privac
 
 ```kotlin
 val builder = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .inMemoryOnly(true)
 
 TelemetryDeck.start(context, builder)
@@ -437,7 +444,8 @@ Note: Starting the SDK without a `Context` turns on in-memory mode too.
 
 ```kotlin
 val telemetryDeck = TelemetryDeck.Builder()
-    .appID("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+    .appID("<YOUR-APP-ID>")
+    .namespace("<YOUR-NAMESPACE>")
     .build(null)
 ```
 
@@ -518,7 +526,7 @@ When integrating with Google Play Billing Library, you can adopt the TelemetryDe
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.2.0")
+    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.3.0")
 }
 ```
 

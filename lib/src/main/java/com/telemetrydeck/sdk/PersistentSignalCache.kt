@@ -17,8 +17,9 @@ class PersistentSignalCache(
 ) : SignalCache {
     val cacheFileName: String = "telemetrydeck.json"
     private var file: File? = null
+    private var logger: DebugLogger? = null
 
-    private val ioScope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    private val ioScope = CoroutineScope(SupervisorJob() + ioDispatcher + loggingExceptionHandler { logger })
     private val saveRequests = Channel<Unit>(Channel.CONFLATED)
 
     init {
@@ -36,6 +37,7 @@ class PersistentSignalCache(
         cacheLimit: Int = 10_000,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO.limitedParallelism(1),
     ) : this(cacheLimit = cacheLimit, ioDispatcher = ioDispatcher) {
+        this.logger = logger
         if (!cacheDir.isDirectory) {
             logger?.error("Expected a folder but received a file instead.")
             return
@@ -44,8 +46,8 @@ class PersistentSignalCache(
         logger?.debug("Using signal cache at ${writeFile.absolutePath}.")
         if (writeFile.exists()) {
             logger?.debug("Detected existing signal cache, attempting to parse...")
-            val content = writeFile.readText()
             try {
+                val content = writeFile.readText()
                 val oldSignals: List<Signal> = Json.decodeFromString(content)
                 val trimmed = if (oldSignals.size > cacheLimit) {
                     logger?.debug("Restored cache exceeds cacheLimit ($cacheLimit), dropping ${oldSignals.size - cacheLimit} oldest signals")
@@ -56,7 +58,7 @@ class PersistentSignalCache(
                 logger?.debug("Restoring ${trimmed.count()} signals from cache.")
                 signalQueue.addAll(trimmed)
             } catch (e: Exception) {
-                logger?.error("Failed to parse signal cache.")
+                logger?.error("Failed to parse signal cache: $e ${e.stackTraceToString()}")
             }
         }
         file = writeFile
@@ -107,9 +109,13 @@ class PersistentSignalCache(
         synchronized(this) {
             snapshot = signalQueue.toList()
         }
-        file?.parentFile?.mkdirs()
-        file?.createNewFile()
-        val json = Json.encodeToString(snapshot)
-        file?.writeText(json)
+        try {
+            file?.parentFile?.mkdirs()
+            file?.createNewFile()
+            val json = Json.encodeToString(snapshot)
+            file?.writeText(json)
+        } catch (e: Exception) {
+            logger?.error("Failed to save signal cache: $e ${e.stackTraceToString()}")
+        }
     }
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.3.0
+
+Bugfixes and improvements making the library more resilient ([#115](https://github.com/TelemetryDeck/KotlinSDK/pull/115))
+
 ## 7.2.0
 
 ### Before You Upgrade

@@ -6,6 +6,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.telemetrydeck.sdk.TelemetryDeckSessionManagerProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
+import com.telemetrydeck.sdk.runProvider
 import com.telemetrydeck.sdk.signals.Session
 import java.lang.ref.WeakReference
 import java.util.UUID
@@ -42,7 +43,7 @@ class MemorySessionProvider : TelemetryDeckSessionManagerProvider, DefaultLifecy
 
     @Synchronized
     override fun onStart(owner: LifecycleOwner) {
-        handleOnForeground()
+        runProvider(this, manager?.get()?.debugLogger, Unit) { handleOnForeground() }
     }
 
     @Synchronized

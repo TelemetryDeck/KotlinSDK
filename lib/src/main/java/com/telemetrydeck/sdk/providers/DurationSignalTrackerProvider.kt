@@ -9,6 +9,7 @@ import com.telemetrydeck.sdk.TelemetryDeckProvider
 import com.telemetrydeck.sdk.TelemetryDeckSignalProcessor
 import com.telemetrydeck.sdk.TelemetryStorage
 import com.telemetrydeck.sdk.readState
+import com.telemetrydeck.sdk.runProvider
 import com.telemetrydeck.sdk.signals.Signal
 import com.telemetrydeck.sdk.writeState
 import kotlinx.serialization.Serializable
@@ -34,11 +35,11 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        handleOnForeground()
+        runProvider(this, manager?.get()?.debugLogger, Unit) { handleOnForeground() }
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        handleOnBackground()
+        runProvider(this, manager?.get()?.debugLogger, Unit) { handleOnBackground() }
     }
 
     fun handleOnForeground(now: Instant = Clock.System.now()) {
@@ -70,7 +71,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
             )
         }
 
-        storage?.writeState(fileName, currentState)
+        storage?.writeState(fileName, currentState, manager?.get()?.debugLogger)
         this.state = currentState
     }
 
@@ -81,7 +82,7 @@ class DurationSignalTrackerProvider : TelemetryDeckProvider, DefaultLifecycleObs
         )
         if (currentState != null) {
             this.state = currentState
-            storage?.writeState(fileName, currentState)
+            storage?.writeState(fileName, currentState, manager?.get()?.debugLogger)
         }
     }
 
