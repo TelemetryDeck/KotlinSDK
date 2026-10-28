@@ -35,14 +35,14 @@ The Kotlin SDK for TelemetryDeck is available from Maven Central at the followin
 ```groovy
 // `build.gradle`
 dependencies {
-    implementation 'com.telemetrydeck:kotlin-sdk:7.2.0'
+    implementation 'com.telemetrydeck:kotlin-sdk:7.3.0'
 }
 ```
 
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk:7.2.0")
+    implementation("com.telemetrydeck:kotlin-sdk:7.3.0")
 }
 ```
 
@@ -526,7 +526,7 @@ When integrating with Google Play Billing Library, you can adopt the TelemetryDe
 ```kotlin
 // `build.gradle.kts`
 dependencies {
-    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.2.0")
+    implementation("com.telemetrydeck:kotlin-sdk-google-services:7.3.0")
 }
 ```
 
