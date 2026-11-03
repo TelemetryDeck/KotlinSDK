@@ -673,6 +673,23 @@ class TelemetryDeckTests {
     }
 
     @Test
+    fun telemetryDeck_provider_throwing_error_in_enrich_keeps_signal() {
+        val manager = TelemetryDeck.Builder()
+            .appID("32CB6574-6732-4238-879F-582FEBEB6536")
+            .addProvider(FailingTelemetryDeckProvider(failInEnrich = true, failure = ::NotImplementedError))
+            .addProvider(DefaultParameterProvider(mapOf("param1" to "value1")))
+            .build(null)
+
+        manager.signal("test")
+
+        val signals = manager.cache?.empty()
+        Assert.assertEquals(1, signals?.size)
+        val queuedSignal = signals?.first()
+        Assert.assertEquals("value1", queuedSignal?.payload?.get("param1")?.jsonPrimitive?.content)
+        Assert.assertNull(queuedSignal?.payload?.get(FailingTelemetryDeckProvider.PARAM_NAME))
+    }
+
+    @Test
     fun telemetryDeck_provider_failing_in_transform_keeps_signal() {
         val manager = TelemetryDeck.Builder()
             .appID("32CB6574-6732-4238-879F-582FEBEB6536")

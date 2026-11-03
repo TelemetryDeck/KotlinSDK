@@ -90,12 +90,10 @@ class AccessibilityProvider : TelemetryDeckProvider {
             val colorCorrectionSettingKey = "accessibility_display_daltonizer_enabled"
             val colorModeSettingKey = "accessibility_display_daltonizer"
             val isColorCorrectionEnabled =
-                Settings.Secure.getInt(context.contentResolver, colorCorrectionSettingKey) == 1 &&
-                        Settings.Secure.getInt(context.contentResolver, colorModeSettingKey) == 0
+                Settings.Secure.getInt(context.contentResolver, colorCorrectionSettingKey, 0) == 1 &&
+                        Settings.Secure.getInt(context.contentResolver, colorModeSettingKey, -1) == 0
             attributes[Accessibility.ShouldDifferentiateWithoutColor.paramName] =
                 "$isColorCorrectionEnabled"
-        } catch (e: Settings.SettingNotFoundException) {
-            attributes[Accessibility.ShouldDifferentiateWithoutColor.paramName] = "false"
         } catch (e: Exception) {
             this.manager?.get()?.debugLogger?.error("Error detecting ShouldDifferentiateWithoutColor: ${e.stackTraceToString()}")
         }
@@ -103,12 +101,14 @@ class AccessibilityProvider : TelemetryDeckProvider {
         try {
             val transitionAnimationScale = Settings.Global.getFloat(
                 context.contentResolver,
-                Settings.Global.TRANSITION_ANIMATION_SCALE
+                Settings.Global.TRANSITION_ANIMATION_SCALE,
+                1.0f
             )
 
             val animatorDurationScale = Settings.Global.getFloat(
                 context.contentResolver,
-                Settings.Global.ANIMATOR_DURATION_SCALE
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1.0f
             )
 
             attributes[Accessibility.IsReduceMotionEnabled.paramName] =
