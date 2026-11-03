@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.3.1
+
+- Fix `Accessibility.isReduceMotionEnabled` parameter may be missing.
+
+- When a provider throws during event enrichment, the event doesn't abort and it is allowed to continue the pipeline.
+
 ## 7.3.0
 
 Bugfixes and improvements making the library more resilient ([#115](https://github.com/TelemetryDeck/KotlinSDK/pull/115))
